@@ -371,14 +371,26 @@ def ingest_exotics(conn: sqlite3.Connection, race_id: int, exotics: list[dict[st
         )
 
 
+class SkippedPDF(Exception):
+    """Raised when a parsed PDF is not a result chart we can ingest.
+
+    Distinct from generic errors so the pipeline can record it as a soft
+    skip rather than a crash (e.g. Brisnet PP files share the directory tree
+    but aren't result charts; later phases will parse those separately).
+    """
+
+
 def ingest_parsed_pdf(conn: sqlite3.Connection, parsed: dict[str, Any]) -> dict[str, int]:
     """Top-level: insert one parsed-PDF dict into the DB. Returns counts."""
     track_code = parsed.get("track_code")
-    if not track_code:
-        raise ValueError(f"no track code: {parsed.get('source_pdf')}")
     race_date = parsed.get("race_date")
-    if not race_date:
-        raise ValueError(f"no race date: {parsed.get('source_pdf')}")
+    race_count = parsed.get("race_count", 0)
+    if not track_code or not race_date or race_count == 0:
+        raise SkippedPDF(
+            f"not a result chart "
+            f"(track={track_code!r}, date={race_date!r}, races={race_count}): "
+            f"{parsed.get('source_pdf')}"
+        )
     track_id = get_or_create_track(conn, track_code, parsed.get("track_text"))
 
     # Weather summary uses first race that has one (most cards have one weather block).
@@ -544,17 +556,40 @@ def _cmd_pipeline(args: argparse.Namespace) -> int:
         init_db(db_path, schema_path)
         log.info("created %s", db_path)
     pdfs = sorted(pdf_dir.rglob("*.pdf"))
+    if args.exclude:
+        excludes = args.exclude
+        pdfs = [p for p in pdfs if not any(x in p.parts for x in excludes)]
     if args.limit:
         pdfs = pdfs[: args.limit]
     log.info("found %d PDFs under %s", len(pdfs), pdf_dir)
-    n_ok = 0
-    n_err = 0
-    totals = {"races": 0, "entries": 0, "exotics": 0}
+
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA foreign_keys = ON")
+
+    # Resume support: skip PDFs already successfully recorded with a matching sha.
+    already_done: dict[str, str] = {}
+    if args.resume:
+        for s, h in conn.execute(
+            "SELECT source_pdf, file_sha256 FROM parsed_files WHERE success = 1"
+        ):
+            already_done[s] = h
+
+    n_ok = 0
+    n_err = 0
+    n_skip = 0
+    n_resumed = 0
+    totals = {"races": 0, "entries": 0, "exotics": 0}
     t0 = time.perf_counter()
     for i, pdf in enumerate(pdfs, 1):
         try:
+            # Resume: skip if already recorded as successful with matching sha.
+            if args.resume and (recorded := already_done.get(str(pdf))):
+                pdf_sha = parser._sha256(pdf)
+                if recorded == pdf_sha:
+                    n_resumed += 1
+                    if i % 100 == 0:
+                        log.info("  progress: %d/%d (%d resumed)", i, len(pdfs), n_resumed)
+                    continue
             cache_file = cache_dir / (pdf.stem + ".json")
             parsed: dict[str, Any] | None = None
             if cache_file.exists() and not args.force_parse:
@@ -586,6 +621,15 @@ def _cmd_pipeline(args: argparse.Namespace) -> int:
             if i % 25 == 0:
                 log.info("  progress: %d/%d  (%.1f PDFs/min)", i, len(pdfs),
                          (i / max(time.perf_counter() - t0, 1e-9)) * 60.0)
+        except SkippedPDF as e:
+            log.info("SKIP %s: %s", pdf.name, e)
+            with conn:
+                record_parsed_file(
+                    conn,
+                    source_pdf=str(pdf), sha256="", races_found=0, races_loaded=0,
+                    success=False, error_message=f"skipped: {e}", warnings_json=None,
+                )
+            n_skip += 1
         except Exception as e:
             log.exception("FAILED %s: %s", pdf, e)
             with conn:
@@ -599,8 +643,10 @@ def _cmd_pipeline(args: argparse.Namespace) -> int:
     elapsed = time.perf_counter() - t0
     rate = len(pdfs) / max(elapsed / 60.0, 1e-9)
     log.info(
-        "done: %d ok, %d err in %.1fs (%.1f PDFs/min)\n  totals: %d races, %d entries, %d exotics",
-        n_ok, n_err, elapsed, rate, totals["races"], totals["entries"], totals["exotics"],
+        "done: %d ok, %d skipped (non-chart), %d resumed, %d err in %.1fs (%.1f PDFs/min)\n"
+        "  totals: %d races, %d entries, %d exotics",
+        n_ok, n_skip, n_resumed, n_err, elapsed, rate,
+        totals["races"], totals["entries"], totals["exotics"],
     )
     return 0 if n_err == 0 else 2
 
@@ -628,6 +674,14 @@ def main(argv: list[str] | None = None) -> int:
     p_pipe.add_argument("--cache", required=True)
     p_pipe.add_argument("--limit", type=int, default=0)
     p_pipe.add_argument("--force-parse", action="store_true")
+    p_pipe.add_argument(
+        "--exclude", action="append", default=[],
+        help="Skip PDFs under this path component (repeatable). e.g. --exclude gp-pps-files",
+    )
+    p_pipe.add_argument(
+        "--resume", action="store_true",
+        help="Skip PDFs already successfully recorded in parsed_files with matching sha.",
+    )
     p_pipe.set_defaults(func=_cmd_pipeline)
 
     args = p.parse_args(argv)

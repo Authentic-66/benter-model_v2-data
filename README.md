@@ -12,14 +12,16 @@ scripts/
   equibase_pdf_parser.py   ← parse one PDF or a directory of PDFs into JSON
   db_schema.sql            ← SQLite schema (tracks, races, entries, ...)
   db_loader.py             ← load parsed JSON into the SQLite DB
-  run_validation.py        ← 100-PDF validation harness
-  PHASE_3A_VALIDATION.md   ← validation report (success rates, completeness)
+  run_validation.py        ← Phase 3A 100-PDF validation harness
+  analyze_full_load.py     ← Phase 3B full-corpus analyzer
+  PHASE_3A_VALIDATION.md   ← Phase 3A report (100-PDF sample)
+  PHASE_3B_FULL_LOAD.md    ← Phase 3B report (full 1,483-PDF corpus)
+  gp_2019_2026.db          ← 100-PDF validation sample DB (~6 MB)
+  gp_full.db               ← production DB, 14,857 races, 116k entries (~73 MB)
 
 Gulfstream Park/
-  gp-results-2019/ ... gp-results-2026/   ← chart PDFs (renamed 2 ways)
-  gp-pps-files/                           ← Brisnet PP files (Phase 3B)
-
-gp_2019_2026.db            ← populated DB from the 100-PDF validation sample
+  gp-results-2019/ ... gp-results-2026/   ← chart PDFs (3 filename conventions)
+  gp-pps-files/                           ← Brisnet PP files (Phase 3C)
 ```
 
 ## Quick start
@@ -55,12 +57,18 @@ python scripts/db_loader.py pipeline \
     --db gp.db \
     --schema scripts/db_schema.sql \
     --pdf-dir "Gulfstream Park" \
-    --cache .cache
+    --cache .cache \
+    --exclude gp-pps-files \
+    --resume
 ```
 
 This creates `gp.db` (if missing), parses every PDF under the directory,
-caches JSON sidecars, then loads them into the SQLite DB. Idempotent:
-re-running over the same inputs is a no-op except for cache reads.
+caches JSON sidecars, then loads them into the SQLite DB. Flags:
+
+- `--exclude gp-pps-files` skips Brisnet PP files (Phase 3C); repeatable
+- `--resume` skips PDFs already successfully recorded (by sha256 in
+  `parsed_files`), so an interrupted run can be restarted safely
+- `--force-parse` bypasses the JSON cache and re-parses every PDF
 
 ### Re-run the validation report
 
@@ -153,12 +161,14 @@ Indexes are on `(track+date)`, `horse_name`, `trainer`, `jockey`, and
 
 ## Phase plan
 
-- **Phase 3A (now):** parser + DB + validation ← done, awaiting Doug's review
-- **Phase 3B:** Brisnet PP parser, speed figures + additional tracks
-- **Phase 3C:** v10 workbook signal integration
-- **Phase 3D:** feature engineering pipeline (target 100-130 variables)
-- **Phase 3E:** model training (time-decay weighted, 7-year window)
-- **Phase 3F:** validation infrastructure
+- **Phase 3A:** parser + DB + 100-PDF validation ← done
+- **Phase 3B:** full GP corpus load (1,480 PDFs, 14,857 races) ← done; see
+  `scripts/PHASE_3B_FULL_LOAD.md`
+- **Phase 3C:** Brisnet PP parser, speed figures + additional tracks
+- **Phase 3D:** v10 workbook signal integration
+- **Phase 3E:** feature engineering pipeline (target 100-130 variables)
+- **Phase 3F:** model training (time-decay weighted, 7-year window)
+- **Phase 3G:** validation infrastructure
 
 ## Verifying a build
 
