@@ -1,0 +1,807 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-07-01",
+  "notes": [
+    "Every feature we might ever want lives in the catalog below.",
+    "Set 'active': true to include a feature in the built table.",
+    "Bucket assignments follow the Phase 3C taxonomy:",
+    "  1 = Race Context, 2 = Horse Immutable, 3 = Recent Form,",
+    "  4 = Connections, 5 = Pedigree, 6 = Race Dynamics,",
+    "  7 = Market Signals, 8 = Track-Specific.",
+    "For window features, 'window_days' is the lookback horizon.",
+    "For shrunk features, 'shrinkage' specifies (prior_key, k).",
+    "See FEATURES_CATALOG.md for prose descriptions."
+  ],
+  "defaults": {
+    "shrinkage_prior_win_rate": 0.12,
+    "shrinkage_prior_itm_rate": 0.35,
+    "shrinkage_k_defaults": {
+      "trainer_overall": 20,
+      "trainer_at_track": 30,
+      "trainer_at_surface": 25,
+      "trainer_at_distance": 30,
+      "trainer_jockey_combo": 25,
+      "jockey_overall": 20,
+      "jockey_at_track": 30,
+      "jockey_at_surface": 25,
+      "jockey_at_distance": 30,
+      "horse_career": 15,
+      "speed_par_time": 50
+    },
+    "half_life_days": {
+      "training_loss": 730,
+      "aggregate_stats": 180
+    }
+  },
+  "features": {
+    "distance_yards": {
+      "active": true,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "races.distance_yards",
+      "description": "Race distance in yards."
+    },
+    "distance_furlongs": {
+      "active": true,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "races.distance_yards / 220",
+      "description": "Race distance in furlongs (yards / 220)."
+    },
+    "surface": {
+      "active": true,
+      "bucket": 1,
+      "type": "categorical",
+      "source": "races.surface",
+      "description": "Dirt / Turf / AllWeather / Tapeta."
+    },
+    "track_condition": {
+      "active": true,
+      "bucket": 1,
+      "type": "categorical",
+      "source": "races.track_condition",
+      "description": "Fast, Firm, Good, Sloppy, Muddy, Yielding, WetFast, etc."
+    },
+    "is_sealed_track": {
+      "active": true,
+      "bucket": 1,
+      "type": "boolean",
+      "source": "derived: track_condition in {Sloppy, Muddy}",
+      "description": "Sealed-track proxy — dirt tracks are typically sealed in wet."
+    },
+    "purse": {
+      "active": true,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "races.purse",
+      "description": "Race purse in USD."
+    },
+    "log_purse": {
+      "active": true,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "log(races.purse + 1)",
+      "description": "Log-transformed purse for smoother distribution."
+    },
+    "race_type": {
+      "active": true,
+      "bucket": 1,
+      "type": "categorical",
+      "source": "races.race_type",
+      "description": "Coarse race category (CLAIMING, ALLOWANCE, STAKES, MAIDEN, etc)."
+    },
+    "claiming_price": {
+      "active": true,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "races.claiming_price",
+      "description": "Top claiming price; NULL for non-claiming races."
+    },
+    "field_size": {
+      "active": true,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "races.field_size",
+      "description": "Actual starters (after scratches)."
+    },
+    "month_of_year": {
+      "active": true,
+      "bucket": 1,
+      "type": "categorical",
+      "source": "derived: race_date month",
+      "description": "1-12, captures seasonal biases."
+    },
+    "day_of_week": {
+      "active": true,
+      "bucket": 1,
+      "type": "cyclic",
+      "source": "derived: race_date weekday",
+      "description": "1-7, cyclic-encoded (sin/cos)."
+    },
+    "days_since_last_workout": {
+      "active": false,
+      "bucket": 1,
+      "type": "numeric",
+      "planned_source": "brisnet_pp.last_work_date (Phase 3G)",
+      "description": "Days between most recent workout and race — deferred until PP integration."
+    },
+    "weather_temperature_f": {
+      "active": false,
+      "bucket": 1,
+      "type": "numeric",
+      "source": "races.temperature_f",
+      "description": "Temperature at post; deferred until we see it matters."
+    },
+    "is_stakes": {
+      "active": false,
+      "bucket": 1,
+      "type": "boolean",
+      "source": "derived: race_type LIKE 'STAKES%'",
+      "description": "Convenience flag."
+    },
+    "distance_change_bucket": {
+      "active": false,
+      "bucket": 1,
+      "type": "categorical",
+      "source": "derived",
+      "description": "Sprint→sprint, sprint→route, route→sprint, route→route."
+    },
+
+    "horse_age": {
+      "active": true,
+      "bucket": 2,
+      "type": "numeric",
+      "source": "derived: race_date - horses.foaled_date",
+      "description": "Age in years (fractional) at race date; NULL if foaled_date missing."
+    },
+    "horse_sex": {
+      "active": true,
+      "bucket": 2,
+      "type": "categorical",
+      "source": "horses.sex",
+      "description": "Filly, Mare, Colt, Gelding, Horse."
+    },
+    "horse_country_origin": {
+      "active": true,
+      "bucket": 2,
+      "type": "categorical",
+      "source": "horses.foaled_place or country suffix",
+      "description": "USA, GB, IRE, FR, etc. NULL when unknown."
+    },
+    "is_florida_bred": {
+      "active": true,
+      "bucket": 2,
+      "type": "boolean",
+      "source": "derived: horses.foaled_place = 'Florida'",
+      "description": "Restricted races at GP favor state-breds."
+    },
+    "days_since_foaled": {
+      "active": false,
+      "bucket": 2,
+      "type": "numeric",
+      "source": "derived",
+      "description": "Age in days; overlaps horse_age."
+    },
+    "horse_color": {
+      "active": false,
+      "bucket": 2,
+      "type": "categorical",
+      "source": "horses.color",
+      "description": "Cosmetic; rarely predictive."
+    },
+
+    "last_race_finish_pos": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries lookup",
+      "description": "Finish position last time out (NULL if first start)."
+    },
+    "last_race_beaten_lengths": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries lookup",
+      "description": "Beaten lengths last time out (0 if winner, NULL if not reported)."
+    },
+    "last_race_field_size": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries lookup",
+      "description": "Field size in last race — contextualizes the finish."
+    },
+    "last_race_days_ago": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "derived",
+      "description": "Days between prior start and today."
+    },
+    "days_since_last_race": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "derived (alias)",
+      "description": "Same as last_race_days_ago — kept for legacy names."
+    },
+    "career_starts": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries count",
+      "description": "Total career starts prior to this race."
+    },
+    "career_wins": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries where finish_pos=1",
+      "description": "Total career wins prior to this race."
+    },
+    "career_win_pct_shrunk": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "shrunk rate",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "horse_career"},
+      "description": "Bayesian-shrunk career win rate."
+    },
+    "career_itm_pct_shrunk": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "shrunk rate",
+      "shrinkage": {"prior_key": "shrinkage_prior_itm_rate", "k_key": "horse_career"},
+      "description": "Bayesian-shrunk in-the-money (finish ≤ 3) rate."
+    },
+    "last_race_speed_figure": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "computed_speed_figures via prior entry",
+      "description": "Our computed speed figure from most recent start; NULL if unavailable."
+    },
+    "last_3_avg_finish": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries",
+      "description": "Mean of finish_pos over last ≤ 3 starts; requires ≥ 1 prior start."
+    },
+    "speed_trajectory_3_races": {
+      "active": true,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "derived from computed_speed_figures",
+      "description": "Slope of speed figure over last 3 starts (positive = improving)."
+    },
+    "career_earnings_usd": {
+      "active": false,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "prior entries win/place/show payouts",
+      "description": "Cumulative gross earnings — proxy for class."
+    },
+    "career_avg_speed_figure": {
+      "active": false,
+      "bucket": 3,
+      "type": "numeric",
+      "source": "computed_speed_figures aggregate",
+      "description": "Career average — often dominated by outliers."
+    },
+    "last_race_won": {
+      "active": false,
+      "bucket": 3,
+      "type": "boolean",
+      "source": "derived",
+      "description": "Won last time out."
+    },
+    "last_race_was_maiden": {
+      "active": false,
+      "bucket": 3,
+      "type": "boolean",
+      "source": "derived",
+      "description": "Was last race a maiden race?"
+    },
+
+    "trainer_30d_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling window + shrinkage",
+      "window_days": 30,
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_overall"},
+      "description": "Trainer's win rate over the past 30 days, shrunk."
+    },
+    "trainer_90d_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling window + shrinkage",
+      "window_days": 90,
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_overall"},
+      "description": "Trainer's win rate over the past 90 days, shrunk."
+    },
+    "trainer_365d_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling window + shrinkage",
+      "window_days": 365,
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_overall"},
+      "description": "Trainer's win rate over the past 365 days, shrunk."
+    },
+    "trainer_at_track_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (track, trainer)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_at_track"},
+      "description": "Trainer's shrunk win rate at THIS track (all prior years)."
+    },
+    "trainer_at_surface_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (surface, trainer)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_at_surface"},
+      "description": "Trainer's shrunk win rate on THIS surface."
+    },
+    "trainer_at_distance_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (distance bucket, trainer)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_at_distance"},
+      "description": "Trainer's shrunk win rate at this distance bucket (sprint/route)."
+    },
+    "trainer_recent_form_trend": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "trainer_30d - trainer_90d",
+      "description": "Positive = trainer heating up."
+    },
+    "trainer_starts_30d": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling count",
+      "window_days": 30,
+      "description": "Trainer's starter volume in the last 30 days — activity proxy."
+    },
+    "days_since_trainer_last_win": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "prior entries",
+      "description": "Freshness of the trainer's most recent win."
+    },
+
+    "jockey_30d_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling window + shrinkage",
+      "window_days": 30,
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "jockey_overall"},
+      "description": "Jockey's shrunk win rate over the past 30 days."
+    },
+    "jockey_90d_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling window + shrinkage",
+      "window_days": 90,
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "jockey_overall"},
+      "description": "Jockey's shrunk win rate over the past 90 days."
+    },
+    "jockey_365d_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling window + shrinkage",
+      "window_days": 365,
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "jockey_overall"},
+      "description": "Jockey's shrunk win rate over the past 365 days."
+    },
+    "jockey_at_track_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (track, jockey)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "jockey_at_track"},
+      "description": "Jockey's shrunk win rate at THIS track."
+    },
+    "jockey_at_surface_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (surface, jockey)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "jockey_at_surface"},
+      "description": "Jockey's shrunk win rate on THIS surface."
+    },
+    "jockey_at_distance_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (dist bucket, jockey)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "jockey_at_distance"},
+      "description": "Jockey's shrunk win rate at this distance bucket."
+    },
+    "jockey_starts_30d": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "rolling count",
+      "window_days": 30,
+      "description": "Jockey's mount volume in the last 30 days."
+    },
+    "days_since_jockey_last_win": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "prior entries",
+      "description": "Freshness of the jockey's most recent win."
+    },
+
+    "trainer_jockey_combo_winrate_shrunk": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "all-time (trainer, jockey)",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "trainer_jockey_combo"},
+      "description": "Win rate when this trainer + jockey combo run together."
+    },
+    "trainer_jockey_combo_starts": {
+      "active": true,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "count",
+      "description": "How many times this combo has run before — signals familiarity."
+    },
+    "is_first_time_combo": {
+      "active": true,
+      "bucket": 4,
+      "type": "boolean",
+      "source": "derived: combo_starts == 0",
+      "description": "First time this trainer/jockey pair together."
+    },
+    "trainer_jockey_bond_strength": {
+      "active": false,
+      "bucket": 4,
+      "type": "numeric",
+      "source": "fraction of trainer's starts using this jockey",
+      "description": "Are they a regular pairing? Deferred."
+    },
+    "trainer_workout_pattern": {
+      "active": false,
+      "bucket": 4,
+      "type": "categorical",
+      "planned_source": "brisnet_pp (Phase 3G)",
+      "description": "Trainer's typical workout pattern signature."
+    },
+
+    "sire_id": {
+      "active": false,
+      "bucket": 5,
+      "type": "categorical",
+      "source": "horses.sire_id",
+      "description": "Raw sire ID; use with high-cardinality embedding or as-is."
+    },
+    "sire_at_surface_winrate_shrunk": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "priors from v10 workbook (Phase 3F)",
+      "description": "Sire progeny win rate on this surface — Phase 3F."
+    },
+    "sire_at_distance_winrate_shrunk": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "priors from v10 workbook (Phase 3F)",
+      "description": "Sire progeny win rate at this distance bucket."
+    },
+    "sire_first_time_turf_flag": {
+      "active": false,
+      "bucket": 5,
+      "type": "boolean",
+      "planned_source": "v10 workbook signal (Phase 3F)",
+      "description": "Doug's flagged 'first-time-turf' sire pattern."
+    },
+    "damsire_at_surface_winrate": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "Phase 3F",
+      "description": "Damsire (broodmare sire) tendency; often distinct signal."
+    },
+    "dam_progeny_avg_finish": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "Phase 3F",
+      "description": "Dam's other foals' typical performance."
+    },
+    "is_first_time_lasix": {
+      "active": false,
+      "bucket": 5,
+      "type": "boolean",
+      "source": "derived (prior entries)",
+      "description": "First start with Lasix — often a positive signal."
+    },
+    "is_first_time_blinkers": {
+      "active": false,
+      "bucket": 5,
+      "type": "boolean",
+      "source": "entries.first_time_blinkers",
+      "description": "Chart flag: first-time blinkers."
+    },
+    "pedigree_index": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "constructed from v10 signals",
+      "description": "Composite pedigree score from Doug's v10 workbook."
+    },
+    "sire_turf_index_v10": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "v10 workbook",
+      "description": "v10 sire-on-turf indicator (curated by Doug)."
+    },
+    "sire_dirt_index_v10": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "v10 workbook",
+      "description": "v10 sire-on-dirt indicator."
+    },
+    "sire_wet_index_v10": {
+      "active": false,
+      "bucket": 5,
+      "type": "numeric",
+      "planned_source": "v10 workbook",
+      "description": "v10 sire-in-wet indicator."
+    },
+
+    "post_position": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "entries.post_pos",
+      "description": "Actual starting-gate post."
+    },
+    "post_rank_in_field": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "derived: post_pos / field_size",
+      "description": "Post relative to field size (0-1)."
+    },
+    "is_outside_post": {
+      "active": true,
+      "bucket": 6,
+      "type": "boolean",
+      "source": "derived: post >= field_size - 1",
+      "description": "One of the outermost two gates."
+    },
+    "is_inside_post": {
+      "active": true,
+      "bucket": 6,
+      "type": "boolean",
+      "source": "derived: post_pos ≤ 2",
+      "description": "One of the inside two gates."
+    },
+    "weight_lbs": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "entries.weight_lbs",
+      "description": "Weight carried in pounds."
+    },
+    "weight_vs_field_avg": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "derived per race",
+      "description": "Horse's weight minus field mean weight."
+    },
+    "weight_change_from_last_race": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "prior entry lookup",
+      "description": "Weight_now - weight_last (positive = heavier)."
+    },
+    "distance_change_from_last_race": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "prior entry lookup",
+      "description": "Yards_now - yards_last."
+    },
+    "pace_type_last_race": {
+      "active": true,
+      "bucket": 6,
+      "type": "categorical",
+      "source": "derived from prior pace_calls_json",
+      "description": "front / stalk / mid / close — bucketed by early call position."
+    },
+    "gate_break_avg_last_3": {
+      "active": true,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "derived from prior entries",
+      "description": "Average start_pos over last ≤ 3 starts (lower = sharper break)."
+    },
+    "start_pos_last_race": {
+      "active": false,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "prior entry",
+      "description": "Overlaps gate_break_avg_last_3."
+    },
+    "pace_progression_last_race": {
+      "active": false,
+      "bucket": 6,
+      "type": "numeric",
+      "source": "derived",
+      "description": "Position change from early call to finish."
+    },
+    "surface_change_from_last_race": {
+      "active": true,
+      "bucket": 6,
+      "type": "boolean",
+      "source": "prior entry lookup",
+      "description": "Different surface than last time."
+    },
+
+    "final_odds": {
+      "active": true,
+      "bucket": 7,
+      "type": "numeric",
+      "source": "entries.final_odds",
+      "description": "Raw tote odds (Benter's anchor variable)."
+    },
+    "log_final_odds": {
+      "active": true,
+      "bucket": 7,
+      "type": "numeric",
+      "source": "log(final_odds + 1)",
+      "description": "Log-transformed final odds — smoother distribution."
+    },
+    "odds_rank_in_field": {
+      "active": true,
+      "bucket": 7,
+      "type": "numeric",
+      "source": "derived per race",
+      "description": "1 = shortest odds (favorite)."
+    },
+    "implied_probability": {
+      "active": true,
+      "bucket": 7,
+      "type": "numeric",
+      "source": "1 / (final_odds + 1)",
+      "description": "Approximate market probability (raw, no takeout removal)."
+    },
+    "is_favorite": {
+      "active": true,
+      "bucket": 7,
+      "type": "boolean",
+      "source": "entries.is_favorite",
+      "description": "Chart flag — post-time favorite."
+    },
+    "odds_ratio_to_favorite": {
+      "active": true,
+      "bucket": 7,
+      "type": "numeric",
+      "source": "derived per race",
+      "description": "Horse's odds / favorite's odds."
+    },
+    "market_probability_normalized": {
+      "active": false,
+      "bucket": 7,
+      "type": "numeric",
+      "planned_source": "derived",
+      "description": "Implied probs normalized to sum to 1 after takeout adjustment."
+    },
+    "morning_line_odds": {
+      "active": false,
+      "bucket": 7,
+      "type": "numeric",
+      "planned_source": "brisnet_pp (Phase 3G)",
+      "description": "Morning line — leads to price-drift features."
+    },
+    "odds_drop_from_morning_line": {
+      "active": false,
+      "bucket": 7,
+      "type": "numeric",
+      "planned_source": "morning_line - final_odds",
+      "description": "Positive = bet-down horse."
+    },
+
+    "track_dirt_bias_90d": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "rolling 90d aggregate on this track's dirt races",
+      "description": "Recent dirt-track speed bias (fast/slow relative to par)."
+    },
+    "track_turf_bias_90d": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "rolling 90d aggregate on this track's turf races",
+      "description": "Recent turf-course speed bias."
+    },
+    "historical_condition_winrate_shrunk": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "shrunk rate per horse × condition",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "horse_career"},
+      "description": "Horse's shrunk win rate under THIS track condition."
+    },
+    "historical_surface_winrate_shrunk": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "shrunk rate per horse × surface",
+      "shrinkage": {"prior_key": "shrinkage_prior_win_rate", "k_key": "horse_career"},
+      "description": "Horse's shrunk win rate on THIS surface."
+    },
+    "track_distance_par_time_sec": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "computed_speed_figures.par_time_sec",
+      "description": "Par time for this (surf, dist, cond) cell — signal about race speed."
+    },
+    "condition_change_from_last_race": {
+      "active": true,
+      "bucket": 8,
+      "type": "boolean",
+      "source": "prior entry lookup",
+      "description": "Different track condition than last time."
+    },
+    "starts_at_track": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "prior entries at this track",
+      "description": "Horse's experience at THIS track."
+    },
+    "wins_at_track": {
+      "active": true,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "prior entries wins at this track",
+      "description": "Horse's wins at THIS track."
+    },
+    "expected_pace_shape": {
+      "active": false,
+      "bucket": 8,
+      "type": "categorical",
+      "planned_source": "aggregate of entries' pace_type_last_race",
+      "description": "Anticipated pace scenario (fast/slow/moderate) for the race."
+    },
+    "track_speed_yield_90d": {
+      "active": false,
+      "bucket": 8,
+      "type": "numeric",
+      "planned_source": "aggregate final_time - par_time over recent 90d",
+      "description": "Are recent times running fast or slow at this track?"
+    },
+    "rail_setting_feet": {
+      "active": false,
+      "bucket": 8,
+      "type": "numeric",
+      "source": "races.temporary_rail_feet",
+      "description": "Turf temporary rail placement."
+    }
+  }
+}
