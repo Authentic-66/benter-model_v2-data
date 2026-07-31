@@ -1,0 +1,155 @@
+{
+  "rows": {
+    "rows": 207976,
+    "entries_in_db": 207976,
+    "duplicate_entry_ids": 0,
+    "row_count_matches": true,
+    "pass": true
+  },
+  "coverage": {
+    "n_features": 108,
+    "over_90_overall": 51,
+    "over_90_by_track": {
+      "GP": 51,
+      "CT": 52,
+      "MNR": 51
+    },
+    "over_50_by_track": {
+      "GP": 94,
+      "CT": 100,
+      "MNR": 97
+    },
+    "worst": {
+      "sire_first_time_starter_win_pct": 0.0597,
+      "horse_shipping_success_rate": 0.1022,
+      "trainer_rising_class_win_pct": 0.1254,
+      "trainer_dropping_class_win_pct": 0.1288,
+      "trainer_off_layoff_win_pct": 0.143,
+      "trainer_first_time_starters_win_pct": 0.1578,
+      "track_turf_bias_90d": 0.2049,
+      "sire_route_win_pct": 0.3139,
+      "trainer_at_other_tracks_winrate": 0.322,
+      "jockey_at_other_tracks_winrate": 0.3261,
+      "sire_sprint_win_pct": 0.3785,
+      "sire_dirt_win_pct": 0.4636,
+      "speed_trajectory_3_races": 0.4823,
+      "track_dirt_bias_90d": 0.6346,
+      "distance_specialist_flag": 0.6796
+    }
+  },
+  "dead": {
+    "all_null": [],
+    "constant": [],
+    "pass": true
+  },
+  "ranges": {
+    "out_of_range": [],
+    "pass": true
+  },
+  "market": {
+    "races_checked": 27569,
+    "races_not_summing_to_1": 0,
+    "pass": true
+  },
+  "shrinkage": {
+    "prior": 0.12,
+    "bands": [
+      {
+        "starts": "[0,1)",
+        "n": 10657,
+        "mean": 0.12000000000000001,
+        "std": 1.387843896501401e-17,
+        "dist_from_prior": 0.0
+      },
+      {
+        "starts": "[1,5)",
+        "n": 49294,
+        "mean": 0.11823971540069364,
+        "std": 0.021796914613564828,
+        "dist_from_prior": 0.017593673125667498
+      },
+      {
+        "starts": "[5,20)",
+        "n": 97018,
+        "mean": 0.12295148359390765,
+        "std": 0.03841660363286957,
+        "dist_from_prior": 0.030328578759311657
+      },
+      {
+        "starts": "[20,60)",
+        "n": 47098,
+        "mean": 0.15364559839583175,
+        "std": 0.053487888367569625,
+        "dist_from_prior": 0.04909118572448794
+      },
+      {
+        "starts": "[60,1000000000)",
+        "n": 3909,
+        "mean": 0.18636246068350967,
+        "std": 0.05545268040841607,
+        "dist_from_prior": 0.07234481710462404
+      }
+    ],
+    "dispersion_grows_with_n": true,
+    "pass": true
+  },
+  "first_start": {
+    "first_start_rows": 32822,
+    "features_with_values_on_first_start": {},
+    "pass": true
+  },
+  "cross_track_coverage": {
+    "overall": {
+      "horse_shipping_starts": 1.0,
+      "horse_shipping_success_rate": 0.1022,
+      "is_at_jockey_home_track": 0.9945,
+      "is_at_trainer_home_track": 0.9894,
+      "is_shipping_today": 0.8422,
+      "jockey_at_other_tracks_starts": 1.0,
+      "jockey_at_other_tracks_winrate": 0.3261,
+      "jockey_home_track": 0.9945,
+      "trainer_at_other_tracks_starts": 1.0,
+      "trainer_at_other_tracks_winrate": 0.322,
+      "trainer_home_track": 0.9894
+    },
+    "GP": {
+      "horse_shipping_starts": 1.0,
+      "horse_shipping_success_rate": 0.0049,
+      "is_at_jockey_home_track": 0.9949,
+      "is_at_trainer_home_track": 0.9916,
+      "is_shipping_today": 0.8111,
+      "jockey_at_other_tracks_starts": 1.0,
+      "jockey_at_other_tracks_winrate": 0.1852,
+      "jockey_home_track": 0.9949,
+      "trainer_at_other_tracks_starts": 1.0,
+      "trainer_at_other_tracks_winrate": 0.1724,
+      "trainer_home_track": 0.9916
+    },
+    "CT": {
+      "horse_shipping_starts": 1.0,
+      "horse_shipping_success_rate": 0.1687,
+      "is_at_jockey_home_track": 0.9953,
+      "is_at_trainer_home_track": 0.9887,
+      "is_shipping_today": 0.8849,
+      "jockey_at_other_tracks_starts": 1.0,
+      "jockey_at_other_tracks_winrate": 0.572,
+      "jockey_home_track": 0.9953,
+      "trainer_at_other_tracks_starts": 1.0,
+      "trainer_at_other_tracks_winrate": 0.5802,
+      "trainer_home_track": 0.9887
+    },
+    "MNR": {
+      "horse_shipping_starts": 1.0,
+      "horse_shipping_success_rate": 0.3096,
+      "is_at_jockey_home_track": 0.9919,
+      "is_at_trainer_home_track": 0.9833,
+      "is_shipping_today": 0.8769,
+      "jockey_at_other_tracks_starts": 1.0,
+      "jockey_at_other_tracks_winrate": 0.4058,
+      "jockey_home_track": 0.9919,
+      "trainer_at_other_tracks_starts": 1.0,
+      "trainer_at_other_tracks_winrate": 0.4109,
+      "trainer_home_track": 0.9833
+    }
+  }
+}

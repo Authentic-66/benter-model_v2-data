@@ -129,6 +129,40 @@ def load_entries_frame(conn: sqlite3.Connection) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # Prior-lookup helpers (as-of-time queries)
 # ---------------------------------------------------------------------------
+#
+# ROW ORDER CONTRACT (added Phase 4B.1)
+# -------------------------------------
+# Every helper below sorts internally by (entity, race_date, entry_id) to walk
+# each entity's history in time order, then **restores the caller's original
+# row order before returning**.
+#
+# This contract exists because it was previously violated. The helpers used to
+# return rows in entity-sorted order, while several call sites assigned the
+# result straight onto an entry-ordered frame:
+#
+#     rolled = _prior_by_entity_expanding(df_w, "horse_id", ["one"], "horse")
+#     out["career_starts"] = rolled["horse_one"]     # positional, not keyed
+#
+# Values landed on the wrong entries. Measured against a SQL ground-truth count
+# of prior starts, the affected features matched on ~9.8% of entries — chance.
+# Roughly two dozen aggregates were wrong, including four Doug ranked 1.
+#
+# Returning in input order makes BOTH access patterns correct: callers that
+# merge on entry_id are unaffected, and callers that assign positionally now
+# get the right answer. See test_feature_builder_alignment.py, which fails if
+# this contract is ever broken again.
+
+
+def _restore_input_order(out: pd.DataFrame, df_sorted: pd.DataFrame) -> pd.DataFrame:
+    """Undo the internal sort so the result lines up with the caller's rows.
+
+    ``df_sorted`` carries the positional labels of the input frame (the
+    helpers reset the index before sorting), so sorting by that index puts
+    every row back where the caller expects it.
+    """
+    out.index = df_sorted.index
+    return out.sort_index().reset_index(drop=True)
+
 
 def _prior_by_entity_expanding(
     df: pd.DataFrame,
@@ -141,9 +175,10 @@ def _prior_by_entity_expanding(
     "Prior" means race_date strictly earlier — same-day races are also
     excluded (safer default for daily-card feature engineering).
 
-    Returns a DataFrame with columns f"{prefix}_{col}" aligned by entry_id.
+    Returns a DataFrame with columns f"{prefix}_{col}", one row per input row,
+    **in the caller's original row order** (see ROW ORDER CONTRACT above).
     """
-    df_sorted = df[["entry_id", entity_col, "race_date_dt"] + value_cols].copy()
+    df_sorted = df[["entry_id", entity_col, "race_date_dt"] + value_cols].reset_index(drop=True)
     df_sorted = df_sorted.sort_values([entity_col, "race_date_dt", "entry_id"])
     results: dict[str, np.ndarray] = {
         f"{prefix}_{col}": np.zeros(len(df_sorted), dtype=float) for col in value_cols
@@ -181,7 +216,7 @@ def _prior_by_entity_expanding(
     out = pd.DataFrame({"entry_id": df_sorted["entry_id"].values})
     for k, v in results.items():
         out[k] = v
-    return out
+    return _restore_input_order(out, df_sorted)
 
 
 def _prior_by_entity_windowed(
@@ -191,8 +226,11 @@ def _prior_by_entity_windowed(
     window_days: int,
     prefix: str,
 ) -> pd.DataFrame:
-    """Like `_prior_by_entity_expanding` but limited to a rolling window."""
-    df_sorted = df[["entry_id", entity_col, "race_date_dt"] + value_cols].copy()
+    """Like `_prior_by_entity_expanding` but limited to a rolling window.
+
+    Returns rows in the caller's original order (see ROW ORDER CONTRACT above).
+    """
+    df_sorted = df[["entry_id", entity_col, "race_date_dt"] + value_cols].reset_index(drop=True)
     df_sorted = df_sorted.sort_values([entity_col, "race_date_dt", "entry_id"])
     results: dict[str, np.ndarray] = {
         f"{prefix}_{col}": np.zeros(len(df_sorted), dtype=float) for col in value_cols
@@ -232,7 +270,7 @@ def _prior_by_entity_windowed(
     out = pd.DataFrame({"entry_id": df_sorted["entry_id"].values})
     for k, v in results.items():
         out[k] = v
-    return out
+    return _restore_input_order(out, df_sorted)
 
 
 def _prior_last_value(
@@ -243,8 +281,11 @@ def _prior_last_value(
     prefix: str,
 ) -> pd.DataFrame:
     """Return, for each row, the value_cols from the most recent PRIOR row
-    of the same entity."""
-    df_sorted = df[["entry_id", entity_col, "race_date_dt", date_col] + value_cols].copy()
+    of the same entity.
+
+    Returns rows in the caller's original order (see ROW ORDER CONTRACT above).
+    """
+    df_sorted = df[["entry_id", entity_col, "race_date_dt", date_col] + value_cols].reset_index(drop=True)
     df_sorted = df_sorted.sort_values([entity_col, "race_date_dt", "entry_id"])
     results: dict[str, list] = {f"{prefix}_{col}": [None] * len(df_sorted) for col in value_cols}
     results[f"{prefix}_{date_col}"] = [None] * len(df_sorted)
@@ -273,7 +314,7 @@ def _prior_last_value(
     out = pd.DataFrame({"entry_id": df_sorted["entry_id"].values})
     for k, v in results.items():
         out[k] = v
-    return out
+    return _restore_input_order(out, df_sorted)
 
 
 def _prior_days_to_event(
@@ -283,8 +324,11 @@ def _prior_days_to_event(
     prefix: str,
 ) -> pd.DataFrame:
     """For each row, days since the same entity's most recent PRIOR row where
-    ``event_mask_col`` was 1 (e.g., days_since_trainer_last_win)."""
-    df_sorted = df[["entry_id", entity_col, "race_date_dt", event_mask_col]].copy()
+    ``event_mask_col`` was 1 (e.g., days_since_trainer_last_win).
+
+    Returns rows in the caller's original order (see ROW ORDER CONTRACT above).
+    """
+    df_sorted = df[["entry_id", entity_col, "race_date_dt", event_mask_col]].reset_index(drop=True)
     df_sorted = df_sorted.sort_values([entity_col, "race_date_dt", "entry_id"])
     result = np.full(len(df_sorted), np.nan)
     entity_vals = df_sorted[entity_col].to_numpy()
@@ -305,10 +349,11 @@ def _prior_days_to_event(
                 last_event_date = dates[i]
         start = end
 
-    return pd.DataFrame({
+    out = pd.DataFrame({
         "entry_id": df_sorted["entry_id"].values,
         f"days_since_{prefix}": result,
     })
+    return _restore_input_order(out, df_sorted)
 
 
 # ---------------------------------------------------------------------------
