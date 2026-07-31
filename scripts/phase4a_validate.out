@@ -1,0 +1,182 @@
+
+========================================================================
+Track dimension
+========================================================================
+  id=  1  code=GP    name=GULFSTREAMPARK
+  id=  2  code=CT    name=HOLLYWOODCASINOATCHARLES TOWNRACES
+  id=  3  code=MNR   name=MOUNTAINEERCASINORACETRACK&RESORT
+
+========================================================================
+Totals per track
+========================================================================
+  CT    race_days=  943   races=  7734   entries=  54585
+  GP    race_days= 1480   races= 14857   entries= 116311
+  MNR   race_days=  688   races=  5514   entries=  37080
+  ALL   race_days= 3111   races= 28105   entries= 207976
+
+========================================================================
+Per-track x per-year race counts
+========================================================================
+  track  year     race_days     races   entries
+  CT    2021           177      1435     10089
+  CT    2022           180      1477      9989
+  CT    2023           167      1375     10321
+  CT    2024           160      1306      9387
+  CT    2025           165      1350      9637
+  CT    2026            94       791      5162
+  GP    2019           196      2099     16904
+  GP    2020           193      2022     16855
+  GP    2021           207      2090     16604
+  GP    2022           200      1969     15371
+  GP    2023           195      1866     14230
+  GP    2024           197      1915     14654
+  GP    2025           199      1959     14703
+  GP    2026            93       937      6990
+  MNR   2021           133      1074      7336
+  MNR   2022           132      1050      6442
+  MNR   2023           124       992      6794
+  MNR   2024           127      1018      7128
+  MNR   2025           120       961      6508
+  MNR   2026            52       419      2872
+
+========================================================================
+Average field size per track
+========================================================================
+  CT    avg=7.37  min=3  max=10
+  GP    avg=7.88  min=3  max=14
+  MNR   avg=6.86  min=2  max=10
+
+========================================================================
+Favorite win rate per track (odds sanity: healthy ~ 30-40%)
+========================================================================
+  CT    favorites=  7412  wins= 2995  win%=40.41
+  GP    favorites= 14754  wins= 5347  win%=36.24
+  MNR   favorites=  5413  wins= 2295  win%=42.4
+
+========================================================================
+Odds coverage per track (share of entries with a final_odds value)
+========================================================================
+  CT    entries=  54585  with_odds=  54585  pct=100.0
+  GP    entries= 116311  with_odds= 116311  pct=100.0
+  MNR   entries=  37080  with_odds=  37080  pct=100.0
+
+========================================================================
+Cross-track jockey overlap (jockeys who rode at 2+ tracks)
+========================================================================
+  total jockeys: 700
+  jockeys w/ mounts at 2+ tracks: 204
+  jockeys w/ mounts at all 3 tracks: 23
+  top 20 cross-track riders by mount volume:
+    Lopez, Paco                       tracks=GP,CT,MNR     mounts=3794
+    Saez, Luis                        tracks=GP,CT,MNR     mounts=3745
+    Torres, Cristian                  tracks=GP,CT,MNR     mounts=2046
+    Ho, Wesley                        tracks=GP,CT,MNR     mounts=1345
+    Velazquez, John                   tracks=GP,CT,MNR     mounts=1091
+    Leon, Jose                        tracks=GP,CT,MNR     mounts=964
+    Simpson, Jason                    tracks=GP,CT,MNR     mounts=952
+    Ramgeet, Andre                    tracks=GP,CT,MNR     mounts=710
+    Williams, Ajhari                  tracks=GP,CT,MNR     mounts=610
+    Hernandez, Jairo                  tracks=GP,CT,MNR     mounts=539
+    Hernandez, Jr., Brian             tracks=GP,CT,MNR     mounts=221
+    Baez, Jan                         tracks=GP,CT,MNR     mounts=214
+    Mitchell, Richard                 tracks=GP,CT,MNR     mounts=205
+    Torrealba, J.G.                   tracks=GP,CT,MNR     mounts=57
+    Geroux, Florent                   tracks=GP,CT,MNR     mounts=55
+    Stanley, Angel                    tracks=GP,CT,MNR     mounts=44
+    Cardoso, David                    tracks=GP,CT,MNR     mounts=23
+    Lezcano, Jose                     tracks=GP,CT,MNR     mounts=19
+    Conner, Tyler                     tracks=GP,CT,MNR     mounts=17
+    Marquez, Charlie                  tracks=GP,CT,MNR     mounts=17
+
+========================================================================
+Cross-track trainer overlap (2+ tracks)
+========================================================================
+  total trainers: 1904
+  trainers w/ starts at 2+ tracks: 433
+  trainers w/ starts at all 3 tracks: 43
+  top 20 cross-track trainers by start volume:
+    Joseph, Jr., Saffie               tracks=GP,CT,MNR     starts=4450
+    Barboza, Jr., Victor              tracks=GP,CT,MNR     starts=1987
+    Pletcher, Todd                    tracks=GP,CT,MNR     starts=1915
+    Maker, Michael                    tracks=GP,CT,MNR     starts=1669
+    Pickett, Crystal                  tracks=GP,CT,MNR     starts=1161
+    Rodriguez, Angel                  tracks=GP,CT,MNR     starts=842
+    Walsh, Brendan                    tracks=GP,CT,MNR     starts=625
+    FigginsIII, Ollie                 tracks=GP,CT,MNR     starts=613
+    Wilkes, Ian                       tracks=GP,CT,MNR     starts=520
+    Cordero-Lopez, Alexis             tracks=GP,CT,MNR     starts=473
+    Mathes, Julie                     tracks=GP,CT,MNR     starts=467
+    Viands, Gregory                   tracks=GP,CT,MNR     starts=439
+    Cuttino, Marion                   tracks=GP,CT,MNR     starts=419
+    Adorno, Jean                      tracks=GP,CT,MNR     starts=419
+    Gonzalez, Claudio                 tracks=GP,CT,MNR     starts=297
+    Morzan, Javier                    tracks=GP,CT,MNR     starts=260
+    Santillana, Frank                 tracks=GP,CT,MNR     starts=207
+    Brooks, Gerald                    tracks=GP,CT,MNR     starts=185
+    Cox, Brad                         tracks=GP,CT,MNR     starts=177
+    Richards, Renaldo                 tracks=GP,CT,MNR     starts=166
+
+========================================================================
+Cross-track horse overlap (shippers, 2+ tracks)
+========================================================================
+  total horses: 32822
+  horses that raced at 2+ tracks: 3467
+  horses that raced at all 3 tracks: 248
+  top 20 shippers by starts:
+    Brother Skye                      tracks=GP,CT,MNR     starts=70
+    Hopping Henry                     tracks=GP,CT,MNR     starts=55
+    Kingston Time                     tracks=GP,CT,MNR     starts=52
+    Happy Champ                       tracks=GP,CT,MNR     starts=50
+    True Heiress                      tracks=GP,CT,MNR     starts=47
+    Starship Taxi                     tracks=GP,CT,MNR     starts=44
+    Positive Phil                     tracks=GP,CT,MNR     starts=44
+    Advance Cash                      tracks=GP,CT,MNR     starts=43
+    Power                             tracks=GP,CT,MNR     starts=42
+    Warrior Empress                   tracks=GP,CT,MNR     starts=41
+    Ms Headley                        tracks=GP,CT,MNR     starts=40
+    Mr Tingles                        tracks=GP,CT,MNR     starts=40
+    Robbedinthebahamas                tracks=GP,CT,MNR     starts=40
+    Bravo Zulu                        tracks=GP,CT,MNR     starts=39
+    Kukulkan                          tracks=GP,CT,MNR     starts=38
+    Rosas Way                         tracks=GP,CT,MNR     starts=37
+    Pont Du Gard                      tracks=GP,CT,MNR     starts=37
+    Bella Basora                      tracks=GP,CT,MNR     starts=37
+    Readyseekgo                       tracks=GP,CT,MNR     starts=36
+    Smooth Rico                       tracks=GP,CT,MNR     starts=36
+
+========================================================================
+Anthony Farrior spot check (Doug's flagged rider)
+========================================================================
+    (no rows)
+
+========================================================================
+Parser file outcomes
+========================================================================
+  FAIL: 51
+  OK: 3111
+  failed/skipped files (51 total, showing first 20):
+    20241010-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241011-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241012-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241017-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241018-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241019-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241024-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241025-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241026-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241031-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241101-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241102-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241107-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241108-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241109-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241114-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241115-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241116-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241121-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+    20241122-usa-mnr-a-d.standard.pdf: No /Root object! - Is this really a PDF?
+
+========================================================================
+Warnings summary (races that flagged any warning)
+========================================================================
+  PDFs with >=1 warning: 406
