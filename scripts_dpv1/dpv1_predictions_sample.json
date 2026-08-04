@@ -1,0 +1,291 @@
+[
+  {
+    "race_id": 14857,
+    "track": "GP",
+    "race_date": "2026-06-28",
+    "race_type": "MAIDENCLAIMING",
+    "surface": "AllWeather",
+    "distance_yards": 1870.0,
+    "field_size": 8,
+    "longshot_count": 0,
+    "horses": [
+      {
+        "rank": 1,
+        "program_num": null,
+        "final_odds": 1.6,
+        "p_model_itm": 0.7102,
+        "p_fundamental_itm": 0.5201,
+        "p_market_itm": 0.7839,
+        "edge_vs_market": -0.0737,
+        "finish_pos": 4.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 2,
+        "program_num": null,
+        "final_odds": 1.8,
+        "p_model_itm": 0.702,
+        "p_fundamental_itm": 0.694,
+        "p_market_itm": 0.7612,
+        "edge_vs_market": -0.0592,
+        "finish_pos": 8.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 3,
+        "program_num": null,
+        "final_odds": 4.1,
+        "p_model_itm": 0.509,
+        "p_fundamental_itm": 0.3734,
+        "p_market_itm": 0.5452,
+        "edge_vs_market": -0.0362,
+        "finish_pos": 3.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 4,
+        "program_num": null,
+        "final_odds": 11.0,
+        "p_model_itm": 0.2956,
+        "p_fundamental_itm": 0.3212,
+        "p_market_itm": 0.2645,
+        "edge_vs_market": 0.0312,
+        "finish_pos": 5.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 5,
+        "program_num": null,
+        "final_odds": 10.9,
+        "p_model_itm": 0.294,
+        "p_fundamental_itm": 0.2784,
+        "p_market_itm": 0.2665,
+        "edge_vs_market": 0.0275,
+        "finish_pos": 1.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 6,
+        "program_num": null,
+        "final_odds": 14.5,
+        "p_model_itm": 0.2432,
+        "p_fundamental_itm": 0.2227,
+        "p_market_itm": 0.2085,
+        "edge_vs_market": 0.0347,
+        "finish_pos": 2.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 7,
+        "program_num": null,
+        "final_odds": 36.5,
+        "p_model_itm": 0.1291,
+        "p_fundamental_itm": 0.1359,
+        "p_market_itm": 0.0892,
+        "edge_vs_market": 0.0399,
+        "finish_pos": 6.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 8,
+        "program_num": null,
+        "final_odds": 40.4,
+        "p_model_itm": 0.1244,
+        "p_fundamental_itm": 0.2021,
+        "p_market_itm": 0.0809,
+        "edge_vs_market": 0.0435,
+        "finish_pos": 7.0,
+        "was_itm": 0
+      }
+    ]
+  },
+  {
+    "race_id": 22589,
+    "track": "CT",
+    "race_date": "2026-07-25",
+    "race_type": "CLAIMING",
+    "surface": "Dirt",
+    "distance_yards": 1430.0,
+    "field_size": 7,
+    "longshot_count": 0,
+    "horses": [
+      {
+        "rank": 1,
+        "program_num": null,
+        "final_odds": 1.4,
+        "p_model_itm": 0.7341,
+        "p_fundamental_itm": 0.5073,
+        "p_market_itm": 0.8108,
+        "edge_vs_market": -0.0768,
+        "finish_pos": 2.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 2,
+        "program_num": null,
+        "final_odds": 1.9,
+        "p_model_itm": 0.6789,
+        "p_fundamental_itm": 0.441,
+        "p_market_itm": 0.7541,
+        "edge_vs_market": -0.0752,
+        "finish_pos": 4.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 3,
+        "program_num": null,
+        "final_odds": 4.5,
+        "p_model_itm": 0.4785,
+        "p_fundamental_itm": 0.2513,
+        "p_market_itm": 0.5187,
+        "edge_vs_market": -0.0401,
+        "finish_pos": 3.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 4,
+        "program_num": null,
+        "final_odds": 7.0,
+        "p_model_itm": 0.3798,
+        "p_fundamental_itm": 0.2644,
+        "p_market_itm": 0.3818,
+        "edge_vs_market": -0.002,
+        "finish_pos": 7.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 5,
+        "program_num": null,
+        "final_odds": 9.3,
+        "p_model_itm": 0.3253,
+        "p_fundamental_itm": 0.293,
+        "p_market_itm": 0.3055,
+        "edge_vs_market": 0.0198,
+        "finish_pos": 5.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 6,
+        "program_num": null,
+        "final_odds": 21.8,
+        "p_model_itm": 0.192,
+        "p_fundamental_itm": 0.2761,
+        "p_market_itm": 0.1452,
+        "edge_vs_market": 0.0469,
+        "finish_pos": null,
+        "was_itm": 0
+      },
+      {
+        "rank": 7,
+        "program_num": null,
+        "final_odds": 39.1,
+        "p_model_itm": 0.1224,
+        "p_fundamental_itm": 0.1186,
+        "p_market_itm": 0.0839,
+        "edge_vs_market": 0.0385,
+        "finish_pos": 6.0,
+        "was_itm": 0
+      }
+    ]
+  },
+  {
+    "race_id": 28105,
+    "track": "MNR",
+    "race_date": "2026-07-29",
+    "race_type": "CLAIMING",
+    "surface": "Dirt",
+    "distance_yards": 1210.0,
+    "field_size": 8,
+    "longshot_count": 0,
+    "horses": [
+      {
+        "rank": 1,
+        "program_num": null,
+        "final_odds": 1.9,
+        "p_model_itm": 0.6579,
+        "p_fundamental_itm": 0.4798,
+        "p_market_itm": 0.7263,
+        "edge_vs_market": -0.0684,
+        "finish_pos": 2.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 2,
+        "program_num": null,
+        "final_odds": 2.1,
+        "p_model_itm": 0.6399,
+        "p_fundamental_itm": 0.4922,
+        "p_market_itm": 0.7034,
+        "edge_vs_market": -0.0635,
+        "finish_pos": 1.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 3,
+        "program_num": null,
+        "final_odds": 3.9,
+        "p_model_itm": 0.5164,
+        "p_fundamental_itm": 0.5862,
+        "p_market_itm": 0.5332,
+        "edge_vs_market": -0.0168,
+        "finish_pos": 6.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 4,
+        "program_num": null,
+        "final_odds": 8.1,
+        "p_model_itm": 0.351,
+        "p_fundamental_itm": 0.4766,
+        "p_market_itm": 0.3218,
+        "edge_vs_market": 0.0292,
+        "finish_pos": 5.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 5,
+        "program_num": null,
+        "final_odds": 8.3,
+        "p_model_itm": 0.3489,
+        "p_fundamental_itm": 0.5138,
+        "p_market_itm": 0.3157,
+        "edge_vs_market": 0.0331,
+        "finish_pos": 8.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 6,
+        "program_num": null,
+        "final_odds": 13.9,
+        "p_model_itm": 0.249,
+        "p_fundamental_itm": 0.3449,
+        "p_market_itm": 0.2052,
+        "edge_vs_market": 0.0438,
+        "finish_pos": 4.0,
+        "was_itm": 0
+      },
+      {
+        "rank": 7,
+        "program_num": null,
+        "final_odds": 18.7,
+        "p_model_itm": 0.2072,
+        "p_fundamental_itm": 0.3421,
+        "p_market_itm": 0.1576,
+        "edge_vs_market": 0.0495,
+        "finish_pos": 3.0,
+        "was_itm": 1
+      },
+      {
+        "rank": 8,
+        "program_num": null,
+        "final_odds": 86.6,
+        "p_model_itm": 0.0705,
+        "p_fundamental_itm": 0.1814,
+        "p_market_itm": 0.0367,
+        "edge_vs_market": 0.0338,
+        "finish_pos": 7.0,
+        "was_itm": 0
+      }
+    ]
+  }
+]

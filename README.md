@@ -1,5 +1,28 @@
 # Benter Model v2 — Data Pipeline
 
+> ### ⚠️ Correction — Phase 4B.1 (2026-07-31)
+>
+> A row-alignment bug in `scripts/feature_builder.py` scrambled **26 aggregate
+> features** across entries (trainer/jockey win rates, career records,
+> at-track form) for every build prior to 2026-07-31. Measured against SQL
+> ground truth the affected features were correct on **9.8%** of entries —
+> chance. It is **fixed**, `entry_features_v1` and `entry_v10_flags` have been
+> rebuilt, and v2 / v2a / v10 have been retrained.
+>
+> **What changed:** Phase 3F's conclusion that v10 priors "marginally help" is
+> **withdrawn** — on corrected features v10 is neutral-to-slightly-negative and
+> the blend weight α turns negative. The Phase 3F report below still contains
+> the pre-fix numbers.
+>
+> **What held:** Phase 3E's "market is efficient / α ≈ 0" finding survives and
+> is now better evidenced. Phase 3G's ITM model and its shipping verdict are
+> unchanged. No ship criterion changed status on any model.
+>
+> Read **`scripts/PHASE_4B1_BUG_FIX_IMPACT.md`** before quoting any number from
+> `PHASE_3C_FEATURES.md`, `PHASE_3E_MODEL_V1.md`, `PHASE_3F_V10_PRIORS.md` or
+> `PHASE_3G_ITM_MODEL.md`. Use the `*_rebuilt.pkl` artifacts for any new
+> comparison; the originals are kept only to reproduce the historical reports.
+
 Phase 3A artifacts: a PDF parser, a SQLite schema, and a database loader for
 Equibase result charts. The current build targets Gulfstream Park
 (2019-2026, ~1,500 PDFs, ~15,000 races); the same pipeline is designed to
@@ -61,14 +84,26 @@ scripts_v2a/                   ← Phase 3G v2a work (isolated from v2)
   PHASE_3C_FEATURES.md         ← Phase 3C report (feature engineering)
   PHASE_3D_VALIDATION.md       ← Phase 3D report (validation infrastructure)
   PHASE_3E_MODEL_V1.md         ← Phase 3E report (first model — SHIP CRITERIA FAIL)
-  PHASE_3F_V10_PRIORS.md       ← Phase 3F report (v10 priors — marginally helps)
+  PHASE_3F_V10_PRIORS.md       ← Phase 3F report (v10 priors — CONCLUSION WITHDRAWN, see 4B.1)
+  PHASE_4B1_BUG_FIX_IMPACT.md  ← Phase 4B.1 correction — READ FIRST
+  PHASE_3C_FEATURES_prefix.md  ← pre-fix copy of the 3C report
+
+  test_feature_builder_alignment.py  ← regression suite for the 4B.1 bug
+  diff_prefix_postfix.py       ← per-feature before/after diff
+  compare_grids.py             ← grid-search head-to-head
+  diagnose_alpha_shift.py      ← why alpha fell when features were fixed
 
   benter_v2.pkl                ← Phase 3E model (also copied as benter_v2_phase3e.pkl)
   benter_v2_phase3e.pkl        ← Phase 3E baseline for head-to-head comparisons
   benter_v2_v10.pkl            ← Phase 3F model with v10 features
+  benter_v2_rebuilt.pkl        ← 4B.1 v2, corrected features (use this one)
+  benter_v2_v10_rebuilt.pkl    ← 4B.1 v2+v10, corrected features
   benter_v2_grid_results.csv   ← Phase 3E grid results
   benter_v2_grid_phase3e.csv   ← copy for reproducing head-to-head
   benter_v2_grid_v10.csv       ← Phase 3F grid results
+  benter_v2_grid_rebuilt.csv   ← 4B.1 grid results (no v10)
+  benter_v2_grid_v10_rebuilt.csv ← 4B.1 grid results (with v10)
+  gp_full_no_v10.db            ← 4B.1 working copy, entry_v10_flags dropped
   gp_2019_2026.db              ← 100-PDF validation sample DB (~6 MB)
   gp_full.db                   ← production DB (~73 MB base + features)
 
@@ -190,6 +225,11 @@ python scripts/generate_phase3f_report.py
 Phase 3F prototype outcome: v10 signals ARE informative but already mostly
 priced by the market. Recommendation is to combine with Phase 3G Brisnet
 PP (fundamentally different information).
+
+> **Superseded by Phase 4B.1.** Rerun on corrected features, v10 is neutral
+> (log-loss 1.6473 without v10 vs 1.6475 with) and α turns negative. The
+> "marginally helps" verdict is withdrawn — treat v10 priors as unproven.
+> See `scripts/PHASE_4B1_BUG_FIX_IMPACT.md` §3.2.
 
 ### Train v2a — ITM-target model (Phase 3G)
 

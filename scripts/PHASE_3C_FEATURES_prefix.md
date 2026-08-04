@@ -190,21 +190,21 @@ Any pair above ~0.95 is a candidate to drop one leg of the pair before model fit
 
 | Feature A | Feature B | \|ρ\| |
 |---|---|---:|
+| `distance_yards` | `distance_furlongs` | 1.000 |
 | `last_race_days_ago` | `days_since_last_race` | 1.000 |
-| `wins_at_track` | `career_wins` | 1.000 |
-| `distance_furlongs` | `distance_yards` | 1.000 |
 | `starts_at_track` | `career_starts` | 1.000 |
+| `career_wins` | `wins_at_track` | 1.000 |
 | `track_distance_par_time_sec` | `distance_furlongs` | 0.998 |
 | `track_distance_par_time_sec` | `distance_yards` | 0.998 |
-| `jockey_365d_winrate_shrunk` | `jockey_at_track_winrate_shrunk` | 0.955 |
-| `jockey_at_distance_winrate_shrunk` | `jockey_at_track_winrate_shrunk` | 0.944 |
-| `trainer_at_distance_winrate_shrunk` | `trainer_at_track_winrate_shrunk` | 0.925 |
-| `log_final_odds` | `odds_rank_in_field` | 0.924 |
-| `historical_condition_winrate_shrunk` | `historical_surface_winrate_shrunk` | 0.921 |
+| `jockey_at_track_winrate_shrunk` | `jockey_365d_winrate_shrunk` | 0.955 |
+| `odds_rank_in_field` | `log_final_odds` | 0.924 |
 | `trainer_at_track_winrate_shrunk` | `trainer_365d_winrate_shrunk` | 0.898 |
-| `jockey_at_distance_winrate_shrunk` | `jockey_365d_winrate_shrunk` | 0.897 |
-| `historical_surface_winrate_shrunk` | `career_win_pct_shrunk` | 0.891 |
-| `post_position` | `post_rank_in_field` | 0.887 |
+| `post_rank_in_field` | `post_position` | 0.887 |
+| `implied_probability` | `log_final_odds` | 0.876 |
+| `jockey_90d_winrate_shrunk` | `jockey_30d_winrate_shrunk` | 0.874 |
+| `final_odds` | `log_final_odds` | 0.859 |
+| `jockey_365d_winrate_shrunk` | `jockey_90d_winrate_shrunk` | 0.853 |
+| `jockey_at_track_winrate_shrunk` | `jockey_90d_winrate_shrunk` | 0.822 |
 
 ## Bayesian shrinkage in action
 
@@ -224,20 +224,20 @@ A trainer with 1 win in 5 starts (20% raw) is shrunk to ~14% — close to the po
 
 ## Sample race showing all key features
 
-**2025-03-06 · Race 1** — CLAIMING, 1320 yd Dirt (Fast), field of 8.
+**2025-01-18 · Race 10** — ALLOWANCEOPTIONALCLAIMING, 1320 yd Dirt (Fast), field of 8.
 
 Selected features (full 78-column row available in the DB):
 
 | post_position | horse_name | finish_pos | final_odds | is_favorite | career_starts | career_wins | career_win_pct_shrunk | trainer_90d_winrate_shrunk | jockey_90d_winrate_shrunk | trainer_jockey_combo_winrate_shrunk | last_race_finish_pos | last_race_days_ago | last_race_speed_figure | pace_type_last_race | starts_at_track | wins_at_track |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1.000 | High Strike | 1 | 11.100 | 0 | 4 | 0 | 0.095 | 0.092 | 0.062 | 0.111 | 4.000 | 22.000 | 80.750 | front | 4 | 0 |
-| 2.000 | Austonian | 7 | 12.700 | 0 | 7 | 1 | 0.127 | 0.130 | 0.185 | 0.189 | 7.000 | 50.000 | 76.800 | stalk | 7 | 1 |
-| 3.000 | Sixteen Cigarettes | 3 | 6.600 | 0 | 16 | 2 | 0.123 | 0.148 | 0.101 | 0.115 | 2.000 | 25.000 | 78.175 | mid | 16 | 2 |
-| 4.000 | Jigsaw | 8 | 19.000 | 0 | 16 | 2 | 0.123 | 0.086 | 0.113 | 0.121 | 4.000 | 25.000 | 81.575 | close | 16 | 2 |
-| 5.000 | Improptude | 2 | 1.100 | 1 | 12 | 2 | 0.141 | 0.235 | 0.108 | 0.155 | 5.000 | 50.000 | 83.425 | mid | 12 | 2 |
-| 6.000 | Tapit's Direction | 4 | 20.000 | 0 | 17 | 2 | 0.119 | 0.138 | 0.153 | 0.216 | 1.000 | 236.000 | 73.400 | front | 17 | 2 |
-| 7.000 | David's Songs | 5 | 2.700 | 0 | 8 | 0 | 0.078 | 0.174 | 0.101 | 0.145 | 2.000 | 36.000 | 82.700 | close | 8 | 0 |
-| 8.000 | Golden Sombrero | 6 | 11.300 | 0 | 7 | 1 | 0.127 | 0.111 | 0.078 | 0.115 | 2.000 | 153.000 | 77.200 | mid | 7 | 1 |
+| 1.000 | Reliable Lady | 8 | 15.500 | 0 | 10 | 1 | 0.112 | 0.210 | 0.188 | 0.120 | 4.000 | 244.000 | 78.400 | close | 10 | 1 |
+| 2.000 | Broderie | 4 | 9.600 | 0 | 6 | 0 | 0.086 | 0.214 | 0.190 | 0.120 | 1.000 | 293.000 | 82.650 | stalk | 6 | 0 |
+| 3.000 | Done Enough | 3 | 23.800 | 0 | 5 | 0 | 0.090 | 0.214 | 0.190 | 0.120 | 3.000 | 28.000 | 65.775 | front | 5 | 0 |
+| 4.000 | Cruiseto Catalina | 7 | 3.200 | 0 | 9 | 1 | 0.117 | 0.212 | 0.188 | 0.111 | — | — | — | — | 9 | 1 |
+| 5.000 | Adios Babe | 2 | 6.500 | 0 | 4 | 0 | 0.095 | 0.214 | 0.190 | 0.083 | 1.000 | 98.000 | 85.100 | stalk | 4 | 0 |
+| 6.000 | Nursekringledances | 6 | 51.100 | 0 | 8 | 1 | 0.122 | 0.212 | 0.190 | 0.111 | — | — | — | — | 8 | 1 |
+| 7.000 | R Disaster | 1 | 1.500 | 1 | 3 | 0 | 0.100 | 0.214 | 0.190 | 0.086 | 1.000 | 64.000 | 78.175 | front | 3 | 0 |
+| 8.000 | Wailua | 5 | 3.400 | 0 | 7 | 0 | 0.082 | 0.214 | 0.190 | 0.115 | — | — | — | — | 7 | 0 |
 
 ## Speed figure verification
 

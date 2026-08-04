@@ -33,7 +33,7 @@ REPO_ROOT = DPV1_DIR.parent
 XLSX = REPO_ROOT / "DPv1_Feature_Ranking.xlsx"
 OUT = DPV1_DIR / "dpv1_feature_config.json"
 
-CONFIG_VERSION = "dpv1.1.0"
+CONFIG_VERSION = "dpv1.2.0"   # Phase 4D: pedigree bucket marked unavailable
 SHEET = "Doug Parks v1 Feature Ranking"
 
 
@@ -79,6 +79,50 @@ DEFERRED: dict[str, str] = {
     "sire_first_time_turf_flag":
         "Doug-curated sire list in the v10 workbook — Phase 4D.",
 }
+
+# ---------------------------------------------------------------------------
+# PERMANENTLY UNAVAILABLE in a results-only data regime (Phase 4D decision)
+# ---------------------------------------------------------------------------
+# Equibase result charts publish breeding on exactly one line per race — the
+# `Winner:` line. So horses.sex / foaled_date / sire_id / dam_id exist for
+# precisely the horses that win at least once, and for nobody else:
+#
+#     horses with pedigree           13,636
+#     horses that ever won a race    13,636
+#     pedigree but never won              0
+#
+# Applied globally, "has pedigree" therefore means "will win at some point" —
+# future information (Phase 4C measured P(ever won | horse_sex known) = 100%,
+# P(ever won | null) = 0%, on all three tracks independently).
+#
+# This is a DATA SOURCE limitation, not a parser or loader bug: a 9-runner
+# chart contains one sex token, and the per-entry parser output carries no
+# breeding fields at all. There is nothing to fix at the loader level.
+#
+# Backfilling from a horse's own winning appearances was considered and
+# REJECTED (Doug, Phase 4D): gating pedigree to "the horse had already won
+# before today" removes the future component, but what remains is so close to
+# a restatement of `career_wins` that it adds no information while keeping
+# leak risk. These features are marked unavailable rather than reconstructed.
+#
+# Unblocking requires a different source (Brisnet/DRF past-performance feed),
+# which carries breeding for every starter.
+PEDIGREE_UNAVAILABLE_REASON = (
+    "Results-only data regime: Equibase charts publish breeding solely on the "
+    "`Winner:` line, so pedigree exists only for horses that win. Using it is "
+    "future information; backfilling from own wins was rejected as adding "
+    "nothing beyond career_wins. Needs a PP feed (Brisnet/DRF)."
+)
+
+# Bucket 2 features sourced from the winner-only pedigree block.
+_PEDIGREE_BUCKET2 = {
+    "horse_sex", "horse_age", "horse_country_origin", "is_florida_bred",
+    "horse_color", "days_since_foaled",
+}
+
+# Bucket 5 is entirely sire/dam-derived EXCEPT these two, which Doug's catalog
+# files under pedigree but which are actually read off entries.equipment.
+_BUCKET5_NOT_PEDIGREE = {"is_first_time_blinkers", "is_first_time_lasix"}
 
 # Rank-3 features the builder implements anyway, so flipping "active" to true
 # later needs no code change. (Rank-3 features NOT listed here are catalogued
@@ -239,6 +283,14 @@ def build_config() -> dict:
     # Resolve activation.
     for name, e in seen.items():
         rank = e["doug_rank"]
+        is_pedigree = (name in _PEDIGREE_BUCKET2
+                       or (e["bucket"] == 5 and name not in _BUCKET5_NOT_PEDIGREE))
+        if is_pedigree:
+            e["implemented"] = False
+            e["active"] = False
+            e["unavailable_reason"] = PEDIGREE_UNAVAILABLE_REASON
+            e["unavailable_permanent"] = True
+            continue
         if name in BLOCKED:
             e["implemented"] = False
             e["active"] = False
@@ -326,6 +378,12 @@ def build_config() -> dict:
             "deferred_rank_1_2": sorted(
                 n for n, e in features.items()
                 if e.get("deferred_reason") and e["doug_rank"] in (1, 2)),
+            "permanently_unavailable": sorted(
+                n for n, e in features.items()
+                if e.get("unavailable_permanent")),
+            "permanently_unavailable_rank_1_2": sorted(
+                n for n, e in features.items()
+                if e.get("unavailable_permanent") and e["doug_rank"] in (1, 2)),
         },
         "defaults": {
             "shrinkage_prior_win_rate": 0.12,
@@ -384,6 +442,9 @@ def main() -> int:
     print(f"  ACTIVE total        : {c['active_total']}")
     print(f"  blocked rank 1-2    : {c['blocked_rank_1_2']}")
     print(f"  deferred rank 1-2   : {c['deferred_rank_1_2']}")
+    print(f"  permanently unavail : {len(c['permanently_unavailable'])} "
+          f"({len(c['permanently_unavailable_rank_1_2'])} of them rank 1-2)")
+    print(f"    {c['permanently_unavailable_rank_1_2']}")
     return 0
 
 

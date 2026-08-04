@@ -1,0 +1,301 @@
+{
+  "n_entries": 1579,
+  "n_races": 220,
+  "n_race_days": 18,
+  "by_track": {
+    "GP": 1010,
+    "CT": 569
+  },
+  "itm_rate": 0.415452818239392,
+  "n_predictors": 92,
+  "l2": 5.0,
+  "baselines": {
+    "blend": {
+      "baseline": {
+        "log_loss": 0.5794234067204149,
+        "auc": 0.7621191501730835,
+        "brier": 0.1950157766963574
+      },
+      "augmented_oof": {
+        "log_loss": 0.5983073872807095,
+        "auc": 0.7450089844885448,
+        "brier": 0.20166756103842257
+      },
+      "log_loss_gain": -0.01888398056029461,
+      "auc_gain": -0.017110165684538714,
+      "permutation_null": {
+        "n": 40,
+        "mean_gain": -0.020274910995288144,
+        "sd_gain": 0.004994928436386589,
+        "p95_gain": -0.010689395928842485,
+        "p_value": 0.35
+      },
+      "picks": {
+        "races": 220,
+        "top3_changed": 91,
+        "top3_changed_pct": 41.4,
+        "top_pick_changed": 71,
+        "top_pick_changed_pct": 32.3,
+        "mean_abs_prob_shift": 0.07603698316543205,
+        "p90_abs_prob_shift": 0.1601386952722589
+      },
+      "longshot_value_flags": {
+        "definition": "p_model > 1.25x market P(ITM) AND odds >= 8.0",
+        "longshot_band_n": 736,
+        "longshot_band_itm_rate": 0.22010869565217392,
+        "baseline_flagged": 396,
+        "baseline_flagged_itm": 0.13383838383838384,
+        "augmented_flagged": 330,
+        "augmented_flagged_itm": 0.19393939393939394,
+        "added": 122,
+        "removed": 188,
+        "added_itm_rate": 0.3114754098360656,
+        "removed_itm_rate": 0.14361702127659576,
+        "added_minus_removed_itm": 0.1679,
+        "permutation_p_value": 0.4,
+        "permutation_mean": 0.1627,
+        "auc_in_longshot_band": {
+          "baseline": 0.7041876371144664,
+          "augmented": 0.6435131414806211,
+          "gain": -0.060674495633845305
+        }
+      }
+    },
+    "fundamental": {
+      "baseline": {
+        "log_loss": 0.6218522258277576,
+        "auc": 0.6939344792960389,
+        "brier": 0.216457008957769
+      },
+      "augmented_oof": {
+        "log_loss": 0.6201693795751638,
+        "auc": 0.711338622730756,
+        "brier": 0.21448135351471023
+      },
+      "log_loss_gain": 0.0016828462525937393,
+      "auc_gain": 0.01740414343471708,
+      "permutation_null": {
+        "n": 40,
+        "mean_gain": -0.021994209945813675,
+        "sd_gain": 0.004312119340591897,
+        "p95_gain": -0.015365376548846848,
+        "p_value": 0.0
+      },
+      "picks": {
+        "races": 220,
+        "top3_changed": 140,
+        "top3_changed_pct": 63.6,
+        "top_pick_changed": 94,
+        "top_pick_changed_pct": 42.7,
+        "mean_abs_prob_shift": 0.11183826254853448,
+        "p90_abs_prob_shift": 0.22344526328037442
+      },
+      "longshot_value_flags": {
+        "definition": "p_model > 1.25x market P(ITM) AND odds >= 8.0",
+        "longshot_band_n": 736,
+        "longshot_band_itm_rate": 0.22010869565217392,
+        "baseline_flagged": 565,
+        "baseline_flagged_itm": 0.1929203539823009,
+        "augmented_flagged": 397,
+        "augmented_flagged_itm": 0.21158690176322417,
+        "added": 42,
+        "removed": 210,
+        "added_itm_rate": 0.2857142857142857,
+        "removed_itm_rate": 0.1761904761904762,
+        "added_minus_removed_itm": 0.1095,
+        "permutation_p_value": 0.225,
+        "permutation_mean": 0.0762,
+        "auc_in_longshot_band": {
+          "baseline": 0.6375553834903428,
+          "augmented": 0.6334150643093732,
+          "gain": -0.004140319180969576
+        }
+      }
+    }
+  },
+  "top_coefficients_in_sample": [
+    {
+      "feature": "pp_jt_winpct",
+      "coef": 0.2658
+    },
+    {
+      "feature": "pp_prime_power_rank",
+      "coef": -0.2339
+    },
+    {
+      "feature": "pp_beaten_len_last__missing",
+      "coef": -0.226
+    },
+    {
+      "feature": "pp_running_style=p",
+      "coef": 0.2218
+    },
+    {
+      "feature": "pp_hot_jt_combo",
+      "coef": -0.2189
+    },
+    {
+      "feature": "pp_prime_power__missing",
+      "coef": 0.1996
+    },
+    {
+      "feature": "pp_prime_power_rank__missing",
+      "coef": 0.1996
+    },
+    {
+      "feature": "pp_jky_angle_winpct__missing",
+      "coef": 0.1711
+    },
+    {
+      "feature": "pp_jky_angle_starts__missing",
+      "coef": 0.1711
+    },
+    {
+      "feature": "pp_has_strong_jky_angle__missing",
+      "coef": 0.1711
+    },
+    {
+      "feature": "pp_positive_jky_angles__missing",
+      "coef": 0.1711
+    },
+    {
+      "feature": "pp_pos_angle_count",
+      "coef": -0.16
+    },
+    {
+      "feature": "pp_surface_starts__missing",
+      "coef": -0.1584
+    },
+    {
+      "feature": "pp_surface_wins__missing",
+      "coef": -0.1584
+    },
+    {
+      "feature": "pp_workout_avg_pace",
+      "coef": -0.1503
+    },
+    {
+      "feature": "pp_running_style=na",
+      "coef": -0.1498
+    },
+    {
+      "feature": "pp_neg_angle_count",
+      "coef": -0.137
+    },
+    {
+      "feature": "pp_jockey_first_time__missing",
+      "coef": -0.1313
+    },
+    {
+      "feature": "pp_dist_starts__missing",
+      "coef": 0.1283
+    },
+    {
+      "feature": "pp_dist_wins__missing",
+      "coef": 0.1283
+    }
+  ],
+  "residual_correlations": [
+    {
+      "feature": "pp_jockey_change",
+      "n": 1344,
+      "corr_with_residual": 0.0609
+    },
+    {
+      "feature": "pp_jockey_first_time",
+      "n": 1483,
+      "corr_with_residual": 0.0508
+    },
+    {
+      "feature": "pp_career_starts",
+      "n": 1579,
+      "corr_with_residual": 0.0507
+    },
+    {
+      "feature": "pp_pos_angle_count",
+      "n": 1579,
+      "corr_with_residual": -0.0502
+    },
+    {
+      "feature": "pp_workout_avg_pace",
+      "n": 1576,
+      "corr_with_residual": -0.0464
+    },
+    {
+      "feature": "pp_workout_count_60d",
+      "n": 1576,
+      "corr_with_residual": -0.0418
+    },
+    {
+      "feature": "pp_neg_angle_count",
+      "n": 1579,
+      "corr_with_residual": -0.0413
+    },
+    {
+      "feature": "pp_prime_power_rank",
+      "n": 1510,
+      "corr_with_residual": -0.0408
+    },
+    {
+      "feature": "pp_hot_jt_combo",
+      "n": 1093,
+      "corr_with_residual": -0.0384
+    },
+    {
+      "feature": "pp_weight_change",
+      "n": 1051,
+      "corr_with_residual": -0.0333
+    },
+    {
+      "feature": "pp_speed_improving",
+      "n": 1579,
+      "corr_with_residual": -0.0324
+    },
+    {
+      "feature": "pp_blinkers_removed_today",
+      "n": 1579,
+      "corr_with_residual": 0.0306
+    },
+    {
+      "feature": "pp_positive_jky_angles",
+      "n": 1574,
+      "corr_with_residual": -0.0305
+    },
+    {
+      "feature": "pp_blinkers_added_today",
+      "n": 1579,
+      "corr_with_residual": -0.0289
+    },
+    {
+      "feature": "pp_first_time_lasix",
+      "n": 1579,
+      "corr_with_residual": -0.0283
+    },
+    {
+      "feature": "pp_best_e2",
+      "n": 1461,
+      "corr_with_residual": 0.028
+    },
+    {
+      "feature": "pp_best_late",
+      "n": 1456,
+      "corr_with_residual": 0.026
+    },
+    {
+      "feature": "pp_dist_starts",
+      "n": 1533,
+      "corr_with_residual": 0.0255
+    },
+    {
+      "feature": "pp_positive_trainer_angles",
+      "n": 1281,
+      "corr_with_residual": -0.0253
+    },
+    {
+      "feature": "pp_jky_angle_starts",
+      "n": 1574,
+      "corr_with_residual": -0.0229
+    }
+  ],
+  "residual_corr_noise_sd": 0.0252
+}
