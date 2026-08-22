@@ -59,10 +59,11 @@ PP_DIRS: dict[str, Path] = {
     "FP": REPO / "Fairmount Park" / "fp-pps-files",
     "EVD": REPO / "Evangeline Downs" / "evd-pps-files",
     "MNR": REPO / "Mountaineer" / "mnr-pps-files",
+    "ELP": REPO / "Ellis" / "elp-pps-files",
 }
 
-# Tracks with a result corpus in racing_full.db.
-CORPUS_TRACKS = ("GP", "CT", "MNR")
+# Tracks with a result corpus in racing_full.db. ELP joined in Phase 6B.
+CORPUS_TRACKS = ("GP", "CT", "MNR", "ELP")
 
 RAW_TABLE = "pp_entries_raw"
 FILES_TABLE = "pp_parsed_files"

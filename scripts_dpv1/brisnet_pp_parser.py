@@ -79,6 +79,7 @@ FILENAME_PREFIX_TO_TRACK = {
     "FPK": "FP", "FP": "FP",
     "EVD": "EVD",
     "MNR": "MNR",
+    "ELP": "ELP",
     "MVR": "MVR", "DD": "DD",
 }
 

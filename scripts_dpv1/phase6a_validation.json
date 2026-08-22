@@ -1,0 +1,41 @@
+{
+  "n_races": 14517,
+  "sources": {
+    "fundamental": {
+      "tickets_all": 86758,
+      "tickets_selected": 37078,
+      "selected_cost": 187894.39999999997,
+      "pred_roi_pct": 118.11718892092986,
+      "real_roi_pct": -33.9572281025938,
+      "real_roi_ci95": [
+        -37.28593306506664,
+        -30.59476008068319
+      ],
+      "all_real_roi_pct": -28.608046191967833
+    },
+    "blend": {
+      "tickets_all": 86758,
+      "tickets_selected": 3810,
+      "selected_cost": 10160.599999999999,
+      "pred_roi_pct": 12.716012690912446,
+      "real_roi_pct": -34.00271637501723,
+      "real_roi_ci95": [
+        -40.55483179779974,
+        -27.00373254769484
+      ],
+      "all_real_roi_pct": -23.281568991849394
+    },
+    "market": {
+      "tickets_all": 86758,
+      "tickets_selected": 18303,
+      "selected_cost": 60789.8,
+      "pred_roi_pct": 15.072898105181649,
+      "real_roi_pct": -22.39551701107752,
+      "real_roi_ci95": [
+        -26.022929637721713,
+        -18.744954309745395
+      ],
+      "all_real_roi_pct": -23.503526442719778
+    }
+  }
+}

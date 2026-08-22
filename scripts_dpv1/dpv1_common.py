@@ -45,8 +45,15 @@ DEFAULT_CONFIG = DPV1_DIR / "dpv1_feature_config.json"
 FEATURES_TABLE = "entry_features_dpv1"
 SPEED_TABLE = "computed_speed_figures_dpv1"
 
-# Track ids, per Phase 4A load.
-TRACK_CODES = {1: "GP", 2: "CT", 3: "MNR"}
+# Track ids, per Phase 4A load. ELP added in Phase 6B (1,540 races, 2021-2026).
+#
+# Note for anyone scoring an ELP race: DPv1 was *trained* on GP + CT + MNR
+# only, and ``track_code`` is a one-hot categorical. The preprocessor was
+# fitted with ``handle_unknown="ignore"``, so an ELP row lands as all-zeros
+# across the track_code block rather than raising — the model scores it as a
+# track it has no coefficient for. That is a real limitation, not a bug, and
+# it is reported at prediction time rather than hidden.
+TRACK_CODES = {1: "GP", 2: "CT", 3: "MNR", 4: "ELP"}
 
 
 # ---------------------------------------------------------------------------

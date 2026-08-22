@@ -1,0 +1,172 @@
+========================================================================
+ DPv1 dpv1.1.0 — ELP 2026-08-23
+ generated 2026-08-21 23:30
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 95-feature set was available; low cov means a
+ near-prior guess, not a real assessment.
+ NOTE: DPv1 was trained on GP/CT/MNR. ELP is outside that set, so the model
+       carries no track coefficient or track-bias figures for it.
+
+--- Race 1  (8 horses)  CLAIMING  1870  Turf  $40,000
+    feature coverage 70%
+ rank pgm       horse  P(ITM)  P(win)  cov  ML PrimePwr
+    1   4 Tiz Freedom    44.8    15.5   83 5/2    116.7
+    2   3    Executor    41.9    14.0   59 2/1    130.2
+    3   6     Restore    40.6    13.5   84 6/1    115.1
+    4   8     Ramblin    40.4    13.8   58 6/1    111.5
+    ...
+5 7 This Beau Knows 39.6 13.2 58  6/1  100.8
+6 1     Culture War 37.1 12.8 82       113.5
+7 2 Fight the Power 34.9 11.3 58 30/1  103.5
+8 5        Malevaje 20.8  5.9 80 30/1   94.6
+
+--- Race 2  (10 horses)  MAIDENCLAIMING  1320  Dirt  $16,000
+    feature coverage 75%
+ rank pgm        horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   2  Honor Bound    45.0    16.5   83 12/1    104.3
+    2   3  Mc Kinsense    40.2    13.8   81  6/1    119.0
+    3   7 Pelican Hill    37.4    12.0   86  9/2    116.5
+    4   4   Four Dimes    29.0     9.6   52  6/1         
+    ...
+ 5  5          Props 27.6 9.4 86 12/1   98.5
+ 6  1  Pick a Switch 26.5 8.7 56 20/1  104.3
+ 7 10 Problem Solved 26.0 8.4 84  3/1       
+ 8  6 Princeof Light 24.5 8.0 83  5/1  108.2
+ 9  9        Hartzus 22.8 7.1 54 20/1       
+10  8       Whatever 20.9 6.4 85  8/1  105.4
+
+--- Race 3  (9 horses)  MAIDENCLAIMING  1870  Turf  $16,000
+    feature coverage 78%
+ rank pgm           horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   2 Positive Equity    52.7    19.3   85         103.1
+    2   7       Al Amjaad    42.6    14.7   82  5/1     95.2
+    3   8     T V Channel    40.8    14.2   63  5/2    125.2
+    4   5   Nyttime Story    37.9    12.8   78 15/1     95.9
+    ...
+5 4            Hamlet 32.5 10.3 78  8/1  101.0
+6 9  Crude Intentions 29.5  9.3 61 12/1   92.4
+7 3 Can't Stop Willis 22.2  6.6 84  4/1  109.9
+8 6        Turnbuckle 21.6  6.5 88 12/1   99.0
+9 1     Blakely's Boy 20.2  6.3 81 30/1   78.5
+
+--- Race 4  (10 horses)  MAIDENCLAIMING  1430  Dirt  $37,500
+    feature coverage 77%
+ rank pgm            horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   4   She's Gotta Go    41.4    14.6   84  6/1    110.4
+    2   7      Legit Chick    32.9    10.4   81 15/1    103.3
+    3   9 Watershed Moment    32.7    10.9   66  2/1    112.1
+    4   6           Lexico    29.5     9.9   83  4/1    111.9
+    ...
+ 5  3     Crystal Frost 29.0 9.2 62  6/1  107.6
+ 6  1       Added Touch 28.2 9.4 87 10/1  107.3
+ 7  2    Raging Current 27.4 9.1 59  8/1  107.3
+ 8  5 Maxies Bubble Gum 26.6 9.2 82 15/1  101.5
+ 9 10     Skylar's Mate 26.3 8.7 82 20/1   86.0
+10  8        Mo Biscuit 25.9 8.5 83 12/1       
+
+--- Race 5  (12 horses)  MAIDENSPECIALWEIGHT  1760  Dirt  $100,000
+    feature coverage 70%
+ rank pgm            horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   1     Ever Forward    57.7    22.6   80  3/1    124.3
+    2   2        Dixieland    37.9    12.9   55  9/2    109.1
+    3   3 Devilish Delight    25.3     8.0   60 12/1    109.1
+    4   9      Madam Joker    24.3     7.9   55 15/1         
+    ...
+ 5 12        Jerri Jo 22.4 6.9 80 12/1  112.7
+ 6  8            Etna 21.9 6.8 79  6/1  122.3
+ 7 10     Violent Gal 21.2 6.5 57  8/1  113.9
+ 8  7 That's the Girl 20.8 6.7 60  8/1  115.0
+ 9  5 Prompt Response 20.2 5.9 77 12/1  105.4
+10 11   Miss Mc Cloud 19.8 6.2 77 12/1  111.3
+11  4  Lily's Revenge 17.0 5.6 84 20/1  108.0
+12  6   Seismic Shift 11.6 3.8 79 20/1  105.2
+
+--- Race 6  (10 horses)  ALLOWANCE  1210  Turf  $102,000
+    feature coverage 77%
+ rank pgm            horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   3 Military Cruiser    48.2    17.0   85  7/2    128.4
+    2   7        Livehappy    47.7    16.3   87 30/1    112.7
+    3   4        Zapd'Etat    40.9    13.9   85  8/1    120.8
+    4   8       Magic Brew    39.8    13.2   60  6/1    118.6
+    ...
+ 5  2 Twilight Delight 38.5 13.0 86  5/1  134.1
+ 6  1  Mom's Spaghetti 31.0 10.4 63 20/1  122.4
+ 7  9    Double Talker 21.7  6.8 52  2/1  128.9
+ 8 10    Valiant Humor 16.4  5.0 85 15/1  114.8
+ 9  6 Frontier Justice  8.0  2.2 84  8/1  104.0
+10  5       Blue Coast  7.9  2.2 82 30/1   92.7
+
+--- Race 7  (16 horses)  MAIDENSPECIALWEIGHT  1760  Dirt  $100,000
+    feature coverage 65%
+ rank pgm             horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   1       Ali's Glory    33.7    11.6   85 12/1    120.4
+    2   4 Take Charge Beach    31.7    11.3   61 15/1    111.9
+    3   5    Mahogany Dream    23.6     7.8   81  8/1    116.9
+    4  12           Apexion    22.1     7.4   51 10/1    110.7
+    ...
+ 5 15        Signature 21.4 7.0 51  9/2       
+ 6  2       Fonzarelli 21.0 7.2 51  7/2  111.6
+ 7  9        Henriques 20.7 6.8 55  8/1       
+ 8  7        Major Awe 19.2 6.4 51  8/1       
+ 9  6          Hickory 17.5 6.0 80  5/1  112.9
+10 10            Heise 16.9 5.1 51  8/1       
+11  8 Social Deception 16.5 5.2 49 10/1       
+12 14 My Birthday Gift 16.2 5.4 82 20/1  110.7
+13  3     See You Soon 15.0 5.0 84 20/1  111.6
+14 13       Inthe Hunt  9.6 3.0 78 30/1  110.7
+15 11           Chrome  7.8 2.4 78 20/1  106.1
+16 16    Jokes Reserve  7.2 2.1 60 30/1  102.8
+
+--- Race 8  (11 horses)  STAKES  1870  Turf  $175,000
+    feature coverage 80%
+ rank pgm          horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   4        Next Up    47.7    17.9   84 15/1    134.5
+    2   6      Lush Lips    45.4    16.0   84  2/5    151.9
+    3   2 She's Ona Roll    31.9    10.4   79 50/1    124.0
+    4  10          Icona    30.4     9.8   84 10/1    140.1
+    ...
+ 5  5 Streetwhereyoulive 29.7 9.5 82 30/1  123.4
+ 6  8        Daisy Flyer 26.4 8.4 85  8/1  137.9
+ 7  3  Totally Justified 23.6 7.4 79 10/1  129.7
+ 8 11            Devassa 23.2 7.7 52 15/1  129.0
+ 9  1           Sanctify 18.6 5.6 83 20/1  128.2
+10  7      Just Ruthless 14.7 4.6 80 12/1  136.1
+11  9            Asteria  8.4 2.7 84 50/1  117.3
+
+--- Race 9  (15 horses)  MAIDENOPTIONALCLAIMING  1210  Turf  $53,000
+    feature coverage 57%
+ rank pgm        horse  P(ITM)  P(win)  cov   ML PrimePwr
+    1   3   Ciarlatano    30.2    10.5   75  9/2    115.8
+    2   1   Coldspring    26.4     9.2   55  6/1         
+    3   8      Quigley    24.9     8.4   51  5/1         
+    4   2 Salty Viking    22.3     7.1   54 12/1    115.8
+    ...
+ 5  7        Shays Gray 22.1 7.4 54 12/1       
+ 6 12         No Mo Sun 21.9 7.2 78  6/1  111.3
+ 7  5            Sip It 21.8 7.3 51 10/1       
+ 8  4       Tiny Tapper 19.0 6.2 54 15/1       
+ 9 11    Platinum Power 18.4 6.3 46 12/1  111.3
+10 15       Line Astern 18.0 5.8 54 10/1       
+11  6          Mandalay 17.1 5.8 49 20/1       
+12 13 Smart N Centsible 16.7 5.4 51 10/1       
+13  9      El Enamorado 16.1 5.1 53 15/1  107.4
+14 14      Gut Reaction 13.0 4.3 48 10/1       
+15 10         Mega Blue 12.0 4.1 83  6/1  107.4
+
+========================================================================
+ CARD SUMMARY — top pick per race
+========================================================================
+ R            top pick  P(ITM)%   ML  cov%
+ 1      #4 Tiz Freedom     44.8  5/2    70
+ 2      #2 Honor Bound     45.0 12/1    75
+ 3  #2 Positive Equity     52.7         78
+ 4   #4 She's Gotta Go     41.4  6/1    77
+ 5     #1 Ever Forward     57.7  3/1    70
+ 6 #3 Military Cruiser     48.2  7/2    77
+ 7      #1 Ali's Glory     33.7 12/1    65
+ 8          #4 Next Up     47.7 15/1    80
+ 9       #3 Ciarlatano     30.2  9/2    57
+
+ Races with under 60% feature coverage: [9]. Treat those rankings as weak.
