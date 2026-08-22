@@ -35,11 +35,19 @@ in 56% of races. Weight the rankings by ``cov`` when you read them.
 
 What the model does not know
 ----------------------------
-It has never seen Ellis Park. DPv1 was trained on GP, CT and MNR, and
-``track_code`` is a one-hot feature, so an ELP row scores with that block all
-zeros — the model has no ELP coefficient and no ELP track-bias figures. It is
-generalising from three other tracks. That is a real limitation and it applies
-to every number on this page.
+As of Phase 6C, DPv1 is trained on GP, CT, MNR **and ELP**, so an Ellis Park
+row now scores with a real ``track_code`` coefficient rather than an all-zero
+block. Measured on held-out folds, that moved the ELP fundamental model from
+AUC 0.627 to 0.659 against 0.696 on the home tracks — better, still worse.
+Scoring any *other* track remains extrapolation and the runner says so.
+
+The binding limitation is no longer the track list, it is the corpus. ELP is a
+~30-day boutique meet and most of its runners ship in from Churchill, Indiana
+Grand and Kentucky Downs, none of which are loaded. 38% of ELP starters in
+*non-maiden* races have no prior start in ``racing_full.db`` — against 5-7% at
+GP/CT/MNR — so their history-derived features are blank and their ``cov`` is
+low. That is what the ``cov`` column is measuring here, and it is why it is the
+most important column on the page.
 """
 from __future__ import annotations
 
@@ -218,8 +226,9 @@ def _cli() -> int:
         print(" cov is how much of the 95-feature set was available; low cov "
               "means a")
         print(" near-prior guess, not a real assessment.")
-        if args.track.upper() not in ("GP", "CT", "MNR"):
-            print(f" NOTE: DPv1 was trained on GP/CT/MNR. "
+        trained = tuple(model.hyperparameters.get("tracks", ("GP", "CT", "MNR")))
+        if args.track.upper() not in trained:
+            print(f" NOTE: this model was trained on {'/'.join(trained)}. "
                   f"{args.track.upper()} is outside that set, so the model")
             print("       carries no track coefficient or track-bias figures "
                   "for it.")

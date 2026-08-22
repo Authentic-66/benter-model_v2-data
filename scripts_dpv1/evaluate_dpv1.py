@@ -132,7 +132,7 @@ def sample_race_json(df: pd.DataFrame, preds: pd.DataFrame, n_races: int = 3) ->
     conn_cols = ["entry_id", "race_id", "track", "race_date", "y_pred",
                  "p_fund", "p_market", "y_true", "finish_pos", "final_odds"]
     out = []
-    for track in ("GP", "CT", "MNR"):
+    for track in ("GP", "CT", "MNR", "ELP"):
         sl = preds[preds["track"] == track]
         if sl.empty:
             continue

@@ -76,6 +76,10 @@ DEFAULT_DB = REPO / "scripts" / "racing_full.db"
 DEFAULT_CONFIG = DPV1_DIR / "dpv1_feature_config.json"
 TRAIN_DATE_MIN = "2022-01-01"   # HISA era, Doug's scope decision
 
+# Phase 4C-5A trained on these three. Phase 6C tests adding ELP.
+TRACKS_3 = ("GP", "CT", "MNR")
+TRACKS_4 = ("GP", "CT", "MNR", "ELP")
+
 # Market-side features — held out of the fundamental model so the blend is a
 # genuine two-source combination rather than the market predicting itself.
 DPV1_MARKET_FEATURES: tuple[str, ...] = (
@@ -120,8 +124,17 @@ NON_FEATURE_COLS: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 def load_full_frame(db_path: str | Path = DEFAULT_DB,
-                    date_min: str = TRAIN_DATE_MIN) -> pd.DataFrame:
-    """Entry-grain DPv1 frame with the ITM label, 2022+, all three tracks."""
+                    date_min: str = TRAIN_DATE_MIN,
+                    tracks: tuple[str, ...] | None = None) -> pd.DataFrame:
+    """Entry-grain DPv1 frame with the ITM label, 2022+.
+
+    ``tracks`` restricts the corpus (``None`` = every track in the DB). Phase 4C
+    ran on the three tracks that were loaded at the time; Phase 6C added ELP, so
+    the track list is now explicit rather than implied by what happens to be in
+    ``racing_full.db``.
+
+    Unrun races are dropped — see ``drop_unrun_races``.
+    """
     conn = sqlite3.connect(str(db_path))
     df = pd.read_sql_query(
         """
@@ -138,10 +151,37 @@ def load_full_frame(db_path: str | Path = DEFAULT_DB,
         conn, params=(date_min,),
     )
     conn.close()
+    if tracks is not None:
+        df = df[df["track"].isin(tracks)]
     df["race_date"] = pd.to_datetime(df["race_date"])
+    df = drop_unrun_races(df)
     df["y_true"] = (df["finish_pos"] <= 3).astype(int)
     df = df.sort_values(["race_date", "race_id", "entry_id"]).reset_index(drop=True)
     return df
+
+
+def drop_unrun_races(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove races that have not been run yet.
+
+    ``y_true = (finish_pos <= 3)`` evaluates NaN to False, so a race loaded
+    ahead of time is silently labelled *every horse missed the board*. Phase 6A's
+    prediction runner loads upcoming cards into the same ``entries`` table the
+    trainer reads, so as of Phase 6C ``racing_full.db`` carries the ELP cards for
+    2026-08-22 and 2026-08-23 — 18 races, 206 entries, all fabricated negatives,
+    and all inside the 2026 validation fold.
+
+    The test is *zero* recorded finishers in the race, not a null ``finish_pos``
+    on the entry. A scratch is a null finish in a race that did run; those have
+    always been carried (0.6% of the 3-track corpus) and are left alone here so
+    the Phase 6C before/after comparison isolates one change.
+    """
+    finishers = df.groupby("race_id")["finish_pos"].transform("count")
+    unrun = finishers == 0
+    if unrun.any():
+        log.info("dropping %d entries in %d unrun races: %s",
+                 int(unrun.sum()), df.loc[unrun, "race_id"].nunique(),
+                 sorted(df.loc[unrun, "race_date"].dt.date.unique().tolist()))
+    return df[~unrun]
 
 
 def split_feature_columns(all_columns) -> tuple[list[str], list[str]]:

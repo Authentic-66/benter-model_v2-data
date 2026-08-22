@@ -46,6 +46,7 @@ from prepare_training_dpv1 import (  # noqa: E402
     load_full_frame, split_feature_columns, make_preprocessor,
     add_interaction_features, INTERACTION_FEATURES, YearFoldSplitter,
     load_config, rank1_features, DEFAULT_DB, DPV1_LEAKY_FEATURES,
+    TRACKS_3, TRACKS_4,
 )
 from prepare_training import time_decay_weights  # noqa: E402
 from fundamental_model_v2a import FundamentalModelITM  # noqa: E402
@@ -67,9 +68,38 @@ TRACK_SLICES = {
     "GP": lambda d: d["track"] == "GP",
     "CT": lambda d: d["track"] == "CT",
     "MNR": lambda d: d["track"] == "MNR",
+    "ELP": lambda d: d["track"] == "ELP",
     "CT+MNR": lambda d: d["track"].isin(["CT", "MNR"]),
+    # The Phase 4C corpus, so 3-track and 4-track runs stay comparable on the
+    # slice both of them were trained to serve.
+    "3TRACK": lambda d: d["track"].isin(TRACKS_3),
     "ALL": lambda d: pd.Series(True, index=d.index),
 }
+
+
+def _resolve_tracks(spec: str | None, default: tuple[str, ...]) -> tuple[str, ...]:
+    """``--tracks 4`` / ``--tracks 3`` / ``--tracks GP,CT`` -> a track tuple."""
+    if not spec:
+        return default
+    if spec == "3":
+        return TRACKS_3
+    if spec == "4":
+        return TRACKS_4
+    return tuple(t.strip().upper() for t in spec.split(",") if t.strip())
+
+
+def _restrict_train(df: pd.DataFrame, tr: np.ndarray,
+                    train_tracks: tuple[str, ...] | None) -> np.ndarray:
+    """Drop training rows outside ``train_tracks``, leaving validation intact.
+
+    This is what makes Phase 6C a controlled experiment rather than two
+    unrelated runs: both arms validate on exactly the same rows, and only the
+    training corpus differs.
+    """
+    if train_tracks is None:
+        return tr
+    keep = df["track"].to_numpy()[tr]
+    return tr[np.isin(keep, train_tracks)]
 
 
 def market_p_itm(df: pd.DataFrame) -> np.ndarray:
@@ -135,15 +165,19 @@ def run_fold(train_df: pd.DataFrame, val_df: pd.DataFrame,
 # ---------------------------------------------------------------------------
 
 def cmd_grid(args) -> int:
-    df = add_interaction_features(load_full_frame(args.db))
+    val_tracks = _resolve_tracks(args.tracks, TRACKS_4)
+    train_tracks = _resolve_tracks(args.train_tracks, val_tracks)
+    df = add_interaction_features(load_full_frame(args.db, tracks=val_tracks))
     fund_cols, market_cols = split_feature_columns(df.columns)
     if not args.with_interaction:
         fund_cols = [c for c in fund_cols if c not in INTERACTION_FEATURES]
+    log.info("corpus=%s  train_on=%s", list(val_tracks), list(train_tracks))
     log.info("rows=%d races=%d ITM=%.4f | fund=%d market=%d",
              len(df), df["race_id"].nunique(), df["y_true"].mean(),
              len(fund_cols), len(market_cols))
 
-    folds = list(YearFoldSplitter().split(df))
+    folds = [(n, _restrict_train(df, tr, train_tracks), vl)
+             for n, tr, vl in YearFoldSplitter().split(df)]
     combos = list(product([y * 365.25 for y in HALF_LIVES_YEARS], L2_VALUES))
     log.info("grid: %d combos x %d folds = %d fits",
              len(combos), len(folds), len(combos) * len(folds))
@@ -211,10 +245,13 @@ def _best_combo(grid: pd.DataFrame) -> tuple[float, float]:
 
 
 def cmd_final(args) -> int:
-    df = add_interaction_features(load_full_frame(args.db))
+    val_tracks = _resolve_tracks(args.tracks, TRACKS_4)
+    train_tracks = _resolve_tracks(args.train_tracks, val_tracks)
+    df = add_interaction_features(load_full_frame(args.db, tracks=val_tracks))
     fund_cols, _ = split_feature_columns(df.columns)
     if not args.with_interaction:
         fund_cols = [c for c in fund_cols if c not in INTERACTION_FEATURES]
+    log.info("corpus=%s  train_on=%s", list(val_tracks), list(train_tracks))
 
     grid = pd.read_csv(args.grid)
     hl, l2 = _best_combo(grid)
@@ -223,6 +260,7 @@ def cmd_final(args) -> int:
     # Retain out-of-sample fold predictions for all downstream evaluation.
     frames, infos = [], []
     for name, tr, vl in YearFoldSplitter().split(df):
+        tr = _restrict_train(df, tr, train_tracks)
         preds, info = run_fold(df.iloc[tr], df.iloc[vl], fund_cols, hl, l2,
                                max_iter=args.max_iter)
         preds["fold"] = name
@@ -234,21 +272,22 @@ def cmd_final(args) -> int:
     fold_preds.to_csv(args.fold_preds, index=False)
     log.info("wrote %s (%d val entries)", args.fold_preds, len(fold_preds))
 
-    # Final refit on ALL data for the shipped artifact.
-    pre = make_preprocessor().fit(df, fund_cols)
-    X = pre.transform(df)
-    w = time_decay_weights(df["race_date"], df["race_date"].max(), hl)
+    # Final refit for the shipped artifact, on the training corpus only.
+    fit_df = df[df["track"].isin(train_tracks)].reset_index(drop=True)
+    pre = make_preprocessor().fit(fit_df, fund_cols)
+    X = pre.transform(fit_df)
+    w = time_decay_weights(fit_df["race_date"], fit_df["race_date"].max(), hl)
     fund = FundamentalModelITM(l2=l2, max_iter=args.max_iter).fit(
-        X, df["y_true"].to_numpy(), sample_weight=w,
+        X, fit_df["y_true"].to_numpy(), sample_weight=w,
         feature_names=pre.output_names)
     p_f = fund.predict_probabilities(X)
-    p_m = market_p_itm(df)
-    blend = BenterBlendITM().fit(p_f, p_m, df["y_true"].to_numpy())
+    p_m = market_p_itm(fit_df)
+    blend = BenterBlendITM().fit(p_f, p_m, fit_df["y_true"].to_numpy())
 
     coefs = dict(sorted(zip(pre.output_names, fund.coef_),
                         key=lambda kv: -abs(kv[1])))
     model = DPv1Model(
-        version="dpv1.1.0",
+        version=args.version,
         trained_at=pd.Timestamp.now("UTC").isoformat(),
         fund_cols=fund_cols,
         preprocessor=pre,
@@ -257,10 +296,12 @@ def cmd_final(args) -> int:
         hyperparameters={"half_life_days": hl, "l2": l2,
                          "target": "ITM (finish_pos <= 3)",
                          "train_date_min": "2022-01-01",
-                         "tracks": ["GP", "CT", "MNR"],
+                         "tracks": list(train_tracks),
+                         "eval_tracks": list(val_tracks),
                          "with_interaction": bool(args.with_interaction)},
-        training_notes={"n_rows": len(df), "n_races": int(df["race_id"].nunique()),
-                        "itm_rate": float(df["y_true"].mean()),
+        training_notes={"n_rows": len(fit_df),
+                        "n_races": int(fit_df["race_id"].nunique()),
+                        "itm_rate": float(fit_df["y_true"].mean()),
                         "alpha": blend.alpha_, "beta": blend.beta_,
                         "gamma": blend.gamma_,
                         "fund_loss": fund.final_loss_,
@@ -280,10 +321,18 @@ def _cli() -> int:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
 
+    # "3" / "4" / an explicit "GP,CT" list. --tracks sets the corpus that is
+    # loaded and validated on; --train-tracks restricts only what is fit, so a
+    # 3-track model can be scored on ELP over identical validation rows.
+    def _track_args(p):
+        p.add_argument("--tracks", default=None)
+        p.add_argument("--train-tracks", default=None)
+
     g = sub.add_parser("grid")
     g.add_argument("--db", default=str(DEFAULT_DB))
     g.add_argument("--out", default=str(GRID_OUT))
     g.add_argument("--with-interaction", action="store_true")
+    _track_args(g)
     g.set_defaults(func=cmd_grid)
 
     f = sub.add_parser("final")
@@ -292,7 +341,9 @@ def _cli() -> int:
     f.add_argument("--model-out", default=str(MODEL_OUT))
     f.add_argument("--fold-preds", default=str(FOLD_PREDS))
     f.add_argument("--max-iter", type=int, default=400)
+    f.add_argument("--version", default="dpv1.1.0")
     f.add_argument("--with-interaction", action="store_true")
+    _track_args(f)
     f.set_defaults(func=cmd_final)
 
     args = p.parse_args()

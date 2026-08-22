@@ -1,0 +1,176 @@
+========================================================================
+ DPv1 dpv1.1.0 — ELP 2026-08-22
+ generated 2026-08-22 08:13
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 95-feature set was available; low cov means a
+ near-prior guess, not a real assessment.
+ NOTE: DPv1 was trained on GP/CT/MNR. ELP is outside that set, so the model
+       carries no track coefficient or track-bias figures for it.
+
+--- Race 1  (13 horses)  MAIDENCLAIMING  1540  Dirt  $50,000
+    feature coverage 70%
+ rank pgm         horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   1 Silver Sniper    45.5    16.5   86            
+    2   6        Mizzou    40.8    14.6   83            
+    3  11    Stoic Sage    29.3     9.7   82            
+    4   9     Boss'Deed    26.0     8.8   84            
+    ...
+ 5  5         Adhemar 22.2 7.0 45  
+ 6  7        Red Rage 21.7 6.8 46  
+ 7  8      Wicked Gun 21.4 6.6 83  
+ 8 12     Slip Strike 19.0 6.3 51  
+ 9  2   Harbor Prince 18.6 6.0 51  
+10  4 Lasting Quality 17.2 5.9 84  
+11 10           Nonno 15.7 5.1 48  
+12 13       Hyperlink 11.9 3.7 85  
+13  3   Maximum Honor 10.5 3.1 81  
+
+--- Race 2  (9 horses)  CLAIMING  1210  Turf  $25,000
+    feature coverage 80%
+ rank pgm          horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   9   Shadow Coast    48.5    18.1   86            
+    2   2 Bad Beat Brian    47.4    16.8   87            
+    3   8    Doctor Jeff    38.2    13.4   92            
+    4   1       Chiseler    35.1    12.2   73            
+    ...
+5 6         Catamount 35.0 10.9 80  
+6 7        Golden Ale 28.5  8.8 46  
+7 3     Joethe Tailor 24.7  7.7 83  
+8 4        BD Valeski 21.8  6.5 83  
+9 5 Curly Larryand Mo 20.7  5.7 85  
+
+--- Race 3  (10 horses)  ALLOWANCEOPTIONALCLAIMING  1540  Dirt  $38,750
+    feature coverage 74%
+ rank pgm          horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   5     Derby Date    41.1    14.7   92            
+    2   1   Lord Majesty    40.8    14.5   88            
+    3   4 American Cause    33.4    11.0   42            
+    4   2     Nip N Tuck    32.7    11.1   84            
+    ...
+ 5  7        Couperin 31.7 9.9 46  
+ 6  3     Swiss Guard 29.8 9.6 85  
+ 7  6       Bloodline 28.6 9.4 46  
+ 8 10 Bourbon's Fault 27.9 9.1 85  
+ 9  9  Imperial Ruler 21.7 7.0 83  
+10  8          Penrod 12.1 3.7 86  
+
+--- Race 4  (7 horses)  ALLOWANCEOPTIONALCLAIMING  1430  Dirt  $62,500
+    feature coverage 75%
+ rank pgm            horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   4           Steeze    58.4    21.3   92            
+    2   3     Zat'sthe One    57.9    20.8   88            
+    3   2 Jefferson Street    41.8    13.2   82            
+    4   6        Camp Hale    40.7    13.0   82            
+    ...
+5 5 Margin of Air 38.1 12.6 51  
+6 1     CK Wonder 34.9 10.6 86  
+7 7    Vital Mind 28.3  8.6 45  
+
+--- Race 5  (16 horses)  1320  Dirt  $100,000
+    feature coverage 42%
+ rank pgm           horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   6      Hex Appeal    24.7     8.6   45            
+    2  10    Harmoniously    23.5     7.8   45            
+    3   1   Make It Skate    22.4     7.3   40            
+    4   2 Special Liberty    21.2     7.1   37            
+    ...
+ 5  5             Missy 19.9 6.7 37  
+ 6  7         Jump Seat 19.8 6.8 41  
+ 7  4    Don't Tell Mom 19.7 6.6 40  
+ 8 13    Mayflower Girl 19.6 6.6 41  
+ 9  3       Frost Brite 19.1 6.3 45  
+10  8      Devious Lady 18.9 6.2 37  
+11 11        Tajin Time 16.3 5.5 41  
+12  9    Girl On a Tear 16.2 5.4 41  
+13 12 Jackie and Ginger 15.1 5.2 44  
+14 15 Won'tcatchmecryan 14.8 5.0 61  
+15 16  Ubiquitous Annie 14.5 4.2 41  
+16 14    Miss Moneyball 14.3 4.6 40  
+
+--- Race 6  (15 horses)  1320  Dirt  $53,000
+    feature coverage 53%
+ rank pgm          horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   6        Elewene    44.5    16.3   73            
+    2   5  Sweet Venture    42.5    14.9   77            
+    3   7 Callie's Dance    27.0     9.3   78            
+    4  15        Sharply    21.5     7.1   45            
+    ...
+ 5 13    A Sip of Vino 20.8 6.5 45  
+ 6 14        Tough Act 16.3 5.4 43  
+ 7  8    Placing Blame 16.2 5.1 47  
+ 8 10   Absolute Lea W 16.0 5.6 42  
+ 9  3        Belladore 15.7 4.8 42  
+10  1     Hipsofa Lady 15.6 5.0 69  
+11 12       Katie Jane 15.1 4.6 43  
+12  2       Insta Lane 14.9 4.7 41  
+13  4          Puzzled 14.2 4.5 42  
+14  9        Revereign 10.4 3.1 45  
+15 11 Speight Her Size  9.4 3.1 65  
+
+--- Race 7  (9 horses)  ALLOWANCE  1320  Dirt  $30,000
+    feature coverage 79%
+ rank pgm            horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   2    Trouble Ahead    46.6    16.4   87            
+    2   5           Skynet    43.6    15.2   87            
+    3   4        Just Asap    35.7    11.6   85            
+    4   3 Stormthe Streets    35.5    11.7   89            
+    ...
+5 8 Capital Connection 31.7 10.5 85  
+6 1  Nyquist Frequency 30.4 10.1 41  
+7 9 Cant Stop Munnings 30.4  9.9 83  
+8 7             Editor 27.2  8.7 81  
+9 6               Join 19.0  5.7 74  
+
+--- Race 8  (12 horses)  1760  Turf  $102,000
+    feature coverage 69%
+ rank pgm             horse  P(ITM)  P(win)  cov ML PrimePwr
+    1  10 Stunning Sapphire    38.3    13.3   78            
+    2   2  Miss Complicated    35.8    12.2   77            
+    3   4        Spina Tune    34.6    12.0   74            
+    4  12        La Cantera    34.2    11.7   81            
+    ...
+ 5 11       High South 32.8 11.0 76  
+ 6  1             Sy B 25.4  8.2 46  
+ 7  9           Jalila 24.8  8.0 85  
+ 8  8 Smell the Lilies 19.7  6.2 42  
+ 9  7   Easter Promise 18.6  6.2 42  
+10  3  French Mistress 15.5  4.9 74  
+11  5      Ring Rights 13.5  4.1 81  
+12  6    Shared Vision  6.9  2.0 71  
+
+--- Race 9  (14 horses)  1210  Turf  $100,000
+    feature coverage 66%
+ rank pgm           horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   5 Paradise Street    42.0    15.2   81            
+    2  11     Mundy Sweep    39.4    13.6   77            
+    3  10      Sugar Doll    24.5     8.2   75            
+    4   3 Hey Miss Olivia    24.1     7.6   77            
+    ...
+ 5  2         Lexi V. 23.6 7.8 76  
+ 6  8   Toastthe Star 23.0 7.1 74  
+ 7  7      By La Rina 22.4 7.9 73  
+ 8  1         Fregata 16.4 4.9 71  
+ 9  4      Conqueress 15.9 5.3 73  
+10 14 Wind Sand Stars 15.6 4.9 41  
+11 12     Secret Meet 15.3 5.0 41  
+12  6        Balright 14.4 4.8 44  
+13 13         Wangshu 12.8 4.1 45  
+14  9    Lolly Poppin 10.6 3.5 78  
+
+========================================================================
+ CARD SUMMARY — top pick per race
+========================================================================
+ R              top pick  P(ITM)% ML  cov%
+ 1      #1 Silver Sniper     45.5       70
+ 2       #9 Shadow Coast     48.5       80
+ 3         #5 Derby Date     41.1       74
+ 4             #4 Steeze     58.4       75
+ 5         #6 Hex Appeal     24.7       42
+ 6            #6 Elewene     44.5       53
+ 7      #2 Trouble Ahead     46.6       79
+ 8 #10 Stunning Sapphire     38.3       69
+ 9    #5 Paradise Street     42.0       66
+
+ Races with under 60% feature coverage: [5, 6]. Treat those rankings as weak.
