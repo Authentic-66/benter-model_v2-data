@@ -74,7 +74,7 @@ from simulate_race import simulate_prediction  # noqa: E402
 
 log = logging.getLogger("card_picks")
 
-TOP_N = 4
+
 
 
 def race_numbers(db, track: str, date: str) -> list[int]:
@@ -169,12 +169,7 @@ def print_race(r: dict) -> None:
     if "PrimePwr" in d.columns:
         d["PrimePwr"] = d["PrimePwr"].astype(object).where(
             d["PrimePwr"].notna(), "")
-    top = d.head(TOP_N)
-    rest = d.tail(max(0, len(d) - TOP_N))
-    print(top.to_string(index=False))
-    if len(rest):
-        print("    ...")
-        print(rest.to_string(index=False, header=False))
+        print(d.to_string(index=False))
 
 
 def _cli() -> int:
