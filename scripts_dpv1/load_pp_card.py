@@ -153,13 +153,20 @@ def parse_distance(conditions: str) -> tuple[float | None, int | None]:
     return None, None
 
 
+# Rendering artifacts Brisnet drops on the front of headers.
+# ™ ® curly-quotes ' ' " " prime marks — all common in y-format PPs.
+_HEAD_ARTIFACTS = "™®`´'\"\u2018\u2019\u201C\u201D\u201E\u2032\u2033\u00B4"
+
+
 def parse_race_type(conditions: str) -> str | None:
     """Map the PP class token onto the chart ``races.race_type`` vocabulary."""
     if not conditions:
         return None
     head = conditions.split()[0] if conditions.split() else ""
+    # Strip Unicode prefix artifacts (™ ' etc.) before any matching.
+    head = head.lstrip(_HEAD_ARTIFACTS)
     up = head.upper()
-    # Brisnet prefixes some headers with a page artefact ("TMMC", "TMMdn").
+    # ASCII "TM" prefix artifact (page rendering, "TMMC" -> "MC")
     if up.startswith("TM") and len(up) > 2:
         up = up[2:]
     for token, race_type in RACE_TYPE_TOKENS:
@@ -168,8 +175,10 @@ def parse_race_type(conditions: str) -> str | None:
     # A named stakes ("ElPTurfB175K", "LadyBird175k") — no class token at all.
     if re.search(r"\d+K$", up) or "STAKES" in up or up.endswith("S."):
         return "STAKES"
+    # Graded stakes without a purse suffix ("CTOaks-G2", "CTClssic-G2").
+    if re.search(r"-G[123]\b", up):
+        return "STAKES"
     return None
-
 
 def parse_claiming_price(conditions: str, race_type: str | None) -> int | None:
     """The claiming tag, for the claiming tiers of the class ladder."""
