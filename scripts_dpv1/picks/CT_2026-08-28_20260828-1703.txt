@@ -1,0 +1,71 @@
+========================================================================
+ DPv1 dpv1.2.0-4track — CT 2026-08-28
+ generated 2026-08-28 17:03
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 95-feature set was available; low cov means a
+ near-prior guess, not a real assessment.
+
+--- Race 2  (9 horses)  ALLOWANCE  1430  Dirt  $34,100
+    feature coverage 86%
+ rank pgm              horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   9            Box Top    60.6    24.1   85            
+        ↑ jockey win% on surface           +0.32
+        ↑ finish placement (last race)     +0.28
+        ↑ closeness to winner (last race)  +0.09
+        ↓ post position                    -0.10
+    2   5       Sunset House    41.6    14.0   85            
+        ↑ finish placement (last race)     +0.14
+        ↑ blinkers change                  +0.08
+        ↑ jockey win% on surface           +0.08
+        ↓ closeness to winner (last race)  -0.11
+        ↓ career win%                      -0.06
+        ↓ career ITM%                      -0.06
+    3   8             Lolita    38.4    12.7   91            
+        ↑ career ITM%                      +0.23
+        ↑ last race was maiden             +0.17
+        ↑ finish placement (last race)     +0.14
+        ↓ last race field size             -0.16
+        ↓ post position                    -0.08
+        ↓ closer last race                 -0.07
+    4   3        Belle Cause    37.7    12.1   89            
+        ↑ last race field size             +0.16
+        ↑ blinkers change                  +0.08
+        ↑ speed figure last race           +0.06
+        ↓ jockey win% on surface           -0.10
+        ↓ closeness to winner (last race)  -0.10
+    5   1       Zero Degrees    37.7    12.4   89            
+        ↑ finish placement (last race)     +0.28
+        ↑ speed figure last race           +0.23
+        ↑ post position                    +0.10
+        ↓ last race field size             -0.16
+        ↓ trainer win% on surface          -0.11
+        ↓ trainer win% at track            -0.08
+    6   4            Changes    33.9    10.2   91            
+        ↑ finish placement (last race)     +0.28
+        ↑ blinkers change                  +0.08
+        ↑ avg finish placement (last 3)    +0.06
+        ↓ purse change vs last             -0.19
+        ↓ class rating change vs last      -0.11
+        ↓ last race field size             -0.08
+    7   7       Macnick Time    18.0     5.1   81            
+        ↑ last race field size             +0.16
+        ↑ career ITM%                      +0.12
+        ↑ speed figure last race           +0.06
+        ↓ finish placement (last race)     -0.55
+        ↓ blinkers change                  -0.16
+        ↓ closeness to winner (last race)  -0.10
+    8   6       Jumping Jada    17.2     4.9   81            
+        ↑ last race field size             +0.16
+        ↑ jockey home = ELP                +0.09
+        ↓ finish placement (last race)     -0.28
+        ↓ career ITM%                      -0.22
+        ↓ blinkers change                  -0.16
+    9   2 Can You See Me Now    15.0     4.6   78            
+        ↑ closeness to winner (last race)  +0.51
+        ↑ last race was maiden             +0.17
+        ↑ trouble in last trip             +0.08
+        ↓ speed figure last race           -0.52
+        ↓ finish placement (last race)     -0.28
+        ↓ career ITM%                      -0.18

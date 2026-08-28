@@ -1,0 +1,848 @@
+========================================================================
+ DPv1 dpv1.1.0 — CT 2026-08-28
+ generated 2026-08-28 16:54
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 95-feature set was available; low cov means a
+ near-prior guess, not a real assessment.
+
+--- Race 1  (8 horses)  ALLOWANCE  990  Dirt  $34,100
+    feature coverage 81%
+ rank pgm           horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   8   Snitch Dorada    61.9    22.8   92            
+        ↑ finish position last race        +0.35
+        ↑ jockey win% on surface           +0.19
+        ↑ trainer win% on surface          +0.15
+        ↓ closer last race                 -0.10
+        ↓ trainer win% at other tracks     -0.10
+        ↓ class rating change vs last      -0.09
+    2   4       Navy Band    55.9    19.5   85            
+        ↑ career ITM%                      +0.31
+        ↑ finish position last race        +0.21
+        ↑ purse change vs last             +0.13
+        ↓ last race field size             -0.09
+        ↓ career win%                      -0.07
+        ↓ starts at this track             -0.05
+    3   7  Miss Fortunate    54.6    19.0   82            
+        ↑ finish position last race        +0.35
+        ↑ purse change vs last             +0.13
+        ↑ blinkers change                  +0.12
+        ↓ last race field size             -0.09
+        ↓ post position                    -0.06
+    4   1    Boss Lady KP    37.2    12.3   86            
+        ↑ purse change vs last             +0.13
+        ↑ post position                    +0.09
+        ↑ speed figure last race           +0.08
+        ↓ blinkers change                  -0.12
+        ↓ last race field size             -0.09
+        ↓ career ITM%                      -0.08
+    5   2     Queen Wiggy    31.9     9.3   44            
+        ↑ pace type last race    MISSING =  +0.16
+        ↑ purse change vs last             +0.13
+        ↑ starts at this track             +0.11
+        ↓ no data: won last race           -0.22
+        ↓ no data: finish position last race -0.22
+        ↓ blinkers change                  -0.12
+    6   5      Classy Bay    30.8     9.1   83            
+        ↑ career win% on surface           +0.09
+        ↑ purse change vs last             +0.09
+        ↑ jockey win% on surface           +0.08
+        ↓ finish position last race        -0.35
+        ↓ career win%                      -0.13
+        ↓ blinkers change                  -0.12
+    7   3 Sweet Manhattan    23.8     7.0   87            
+        ↑ blinkers change                  +0.12
+        ↑ career win%                      +0.11
+        ↑ no data: trainer win% off layoff +0.07
+        ↓ purse change vs last             -0.30
+        ↓ closer last race                 -0.10
+        ↓ class rating change vs last      -0.10
+    8   6 Uncaptured Ruby     3.8     1.1   88            
+        ↑ last race field size             +0.22
+        ↑ trouble in last trip             +0.08
+        ↑ career win%                      +0.06
+        ↓ finish position last race        -0.76
+        ↓ purse change vs last             -0.31
+        ↓ career ITM%                      -0.25
+
+--- Race 2  (9 horses)  ALLOWANCE  1430  Dirt  $34,100
+    feature coverage 86%
+ rank pgm              horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   9            Box Top    62.0    25.1   85            
+        ↑ jockey win% on surface           +0.32
+        ↑ finish position last race        +0.28
+        ↑ beaten lengths last race         +0.10
+        ↓ post position                    -0.10
+    2   5       Sunset House    41.8    13.9   85            
+        ↑ finish position last race        +0.14
+        ↑ jockey win% on surface           +0.08
+        ↑ blinkers change                  +0.08
+        ↓ beaten lengths last race         -0.11
+        ↓ mid-pack last race               -0.06
+        ↓ career win%                      -0.06
+    3   3        Belle Cause    36.8    11.6   89            
+        ↑ last race field size             +0.15
+        ↑ blinkers change                  +0.08
+        ↑ closer last race                 +0.06
+        ↓ beaten lengths last race         -0.10
+        ↓ jockey win% on surface           -0.10
+    4   1       Zero Degrees    36.1    11.7   89            
+        ↑ finish position last race        +0.28
+        ↑ speed figure last race           +0.24
+        ↑ post position                    +0.10
+        ↓ last race field size             -0.15
+        ↓ trainer win% at track            -0.09
+        ↓ trainer win% on surface          -0.09
+    5   8             Lolita    36.1    11.8   91            
+        ↑ career ITM%                      +0.23
+        ↑ last race was maiden             +0.15
+        ↑ finish position last race        +0.14
+        ↓ last race field size             -0.15
+        ↓ closer last race                 -0.08
+        ↓ post position                    -0.07
+    6   4            Changes    32.5     9.8   91            
+        ↑ finish position last race        +0.28
+        ↑ blinkers change                  +0.08
+        ↑ avg finish (last 3)              +0.07
+        ↓ purse change vs last             -0.21
+        ↓ class rating change vs last      -0.12
+        ↓ beaten lengths last race         -0.08
+    7   7       Macnick Time    20.9     6.2   81            
+        ↑ last race field size             +0.15
+        ↑ career ITM%                      +0.12
+        ↑ speed figure last race           +0.06
+        ↓ finish position last race        -0.55
+        ↓ blinkers change                  -0.15
+        ↓ beaten lengths last race         -0.10
+    8   2 Can You See Me Now    17.7     5.3   78            
+        ↑ beaten lengths last race         +0.53
+        ↑ last race was maiden             +0.15
+        ↑ trouble in last trip             +0.09
+        ↓ speed figure last race           -0.55
+        ↓ finish position last race        -0.28
+        ↓ career ITM%                      -0.18
+    9   6       Jumping Jada    16.2     4.6   81            
+        ↑ last race field size             +0.15
+        ↑ speed figure last race           +0.05
+        ↑ jockey home = CT                 +0.05
+        ↓ finish position last race        -0.28
+        ↓ career ITM%                      -0.22
+        ↓ blinkers change                  -0.15
+
+--- Race 3  (8 horses)  ALLOWANCE  1540  Dirt  $34,100
+    feature coverage 75%
+ rank pgm           horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   8       Municipal    63.9    24.4   92            
+        ↑ purse change vs last             +0.21
+        ↑ jockey win% on surface           +0.16
+        ↑ trainer win% on surface          +0.16
+        ↓ speed figure last race           -0.23
+        ↓ last race field size             -0.16
+        ↓ trainer win% at other tracks     -0.11
+    2   3           Finny    52.8    18.0   83            
+        ↑ finish position last race        +0.21
+        ↑ speed figure last race           +0.14
+        ↑ career win% on surface           +0.11
+        ↓ career win%                      -0.18
+        ↓ last race was maiden             -0.07
+    3   4 No Brake Needed    47.4    15.9   81            
+        ↑ career ITM%                      +0.20
+        ↑ speed figure last race           +0.13
+        ↑ blinkers change                  +0.09
+        ↓ starts at this track             -0.15
+        ↓ last race was maiden             -0.07
+        ↓ mid-pack last race               -0.06
+    4   2      Just Deeds    37.4    11.9   45            
+        ↑ jockey home = GP                 +0.24
+        ↑ pace type last race    MISSING =  +0.14
+        ↑ jockey win% on surface           +0.07
+        ↓ no data: won last race           -0.19
+        ↓ no data: finish position last race -0.19
+        ↓ blinkers change                  -0.14
+    5   1      Joel's Boy    35.2    11.3   88            
+        ↑ last race was maiden             +0.12
+        ↑ career win%                      +0.10
+        ↑ blinkers change                  +0.09
+        ↓ no data: trainer win% off layoff -0.09
+        ↓ career win% on surface           -0.07
+        ↓ finish position last race        -0.07
+    6   7  Charlie Hustle    27.5     8.6   41            
+        ↑ pace type last race    MISSING =  +0.14
+        ↑ last race field size             +0.07
+        ↑ no data: avg finish (last 3)     +0.05
+        ↓ no data: won last race           -0.19
+        ↓ no data: finish position last race -0.19
+        ↓ blinkers change                  -0.14
+    7   5           Jaker    20.2     5.6   89            
+        ↑ finish position last race        +0.35
+        ↑ last race was maiden             +0.12
+        ↑ blinkers change                  +0.09
+        ↓ purse change vs last             -0.46
+        ↓ won last race                    -0.18
+        ↓ class rating change vs last      -0.16
+    8   6         My Yoke    15.5     4.4   82            
+        ↑ trouble in last trip             +0.09
+        ↑ career win%                      +0.07
+        ↑ no data: won last race           +0.06
+        ↓ finish position last race        -0.49
+        ↓ blinkers change                  -0.14
+        ↓ avg finish (last 3)              -0.11
+
+--- Race 4  (7 horses)  STAKES  1540  Dirt  $50,000
+    feature coverage 89%
+ rank pgm            horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   4     Faster Gator    64.2    24.0   91            
+        ↑ jockey win% on surface           +0.21
+        ↑ speed figure last race           +0.21
+        ↑ finish position last race        +0.16
+        ↓ career ITM%                      -0.13
+        ↓ won last race                    -0.12
+        ↓ last race field size             -0.09
+    2   7   Pork Chop Pete    52.8    18.7   92            
+        ↑ career ITM%                      +0.25
+        ↑ jockey win% on surface           +0.24
+        ↑ wins at this track               +0.09
+        ↓ finish position last race        -0.12
+        ↓ speed figure last race           -0.09
+        ↓ starts at this track             -0.09
+    3   2 The Wine Steward    44.4    14.3   88            
+        ↑ purse change vs last             +0.35
+        ↑ jockey home = GP                 +0.23
+        ↑ finish position last race        +0.16
+        ↓ career ITM%                      -0.26
+        ↓ last race (days ago)             -0.20
+        ↓ days since last race             -0.20
+    4   5     Play It Loud    42.9    13.8   86            
+        ↑ speed figure last race           +0.19
+        ↑ won last race                    +0.09
+        ↑ no data: trainer win% off layoff +0.07
+        ↓ jockey win% on surface           -0.18
+        ↓ finish position last race        -0.12
+        ↓ last race field size             -0.09
+    5   6           Hammer    35.8    11.4   92            
+        ↑ career ITM%                      +0.15
+        ↑ pace progression last race       +0.10
+        ↑ won last race                    +0.09
+        ↓ speed figure last race           -0.13
+        ↓ closer last race                 -0.12
+        ↓ finish position last race        -0.12
+    6   1           Dorado    32.5     9.5   91            
+        ↑ career win%                      +0.12
+        ↑ won last race                    +0.09
+        ↑ post position                    +0.07
+        ↓ starts at this track             -0.12
+        ↓ finish position last race        -0.12
+        ↓ jockey win% on surface           -0.10
+    7   3    Midnight Show    27.4     8.3   87            
+        ↑ finish position last race        +0.16
+        ↑ last race field size             +0.14
+        ↑ career win% on surface           +0.14
+        ↓ purse change vs last             -0.31
+        ↓ career win%                      -0.20
+        ↓ jockey home = MNR                -0.20
+
+--- Race 5  (9 horses)  ALLOWANCE  1540  Dirt  $36,600
+    feature coverage 87%
+ rank pgm           horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   4     Coach Siggy    70.6    30.1   91            
+        ↑ beaten lengths last race         +0.30
+        ↑ purse change vs last             +0.15
+        ↑ jockey win% on surface           +0.15
+        ↓ speed figure last race           -0.13
+        ↓ last race field size             -0.09
+        ↓ trainer win% at other tracks     -0.09
+    2   6    Justa Wizard    42.9    13.5   85            
+        ↑ finish position last race        +0.32
+        ↑ speed figure last race           +0.13
+        ↑ career win% on surface           +0.09
+        ↓ career win%                      -0.13
+        ↓ closer last race                 -0.09
+        ↓ beaten lengths last race         -0.06
+    3   7      Rum N Coke    34.8    10.9   84            
+        ↑ career ITM%                      +0.07
+        ↑ speed figure last race           +0.06
+        ↑ jockey home = CT                 +0.06
+        ↓ jockey win% on surface           -0.11
+    4   9  Gimmethatsugar    31.2     9.6   89            
+        ↑ career ITM%                      +0.08
+        ↑ speed figure last race           +0.07
+        ↓ post position                    -0.10
+        ↓ finish position last race        -0.09
+    5   2    Swift Waters    29.6     8.9   85            
+        ↑ finish position last race        +0.18
+        ↑ career win%                      +0.12
+        ↑ trouble in last trip             +0.08
+        ↓ closer last race                 -0.09
+        ↓ career win% on surface           -0.08
+        ↓ avg finish (last 3)              -0.07
+    6   1  Annapolis Road    29.3     9.1   87            
+        ↑ post position                    +0.10
+        ↑ jockey win% on surface           +0.07
+        ↑ jockey win% (90d)                +0.07
+        ↓ finish position last race        -0.09
+        ↓ no data: trainer win% off layoff -0.09
+    7   8 Youthful Energy    25.6     8.0   87            
+        ↑ jockey home = CT                 +0.06
+        ↑ last race field size             +0.06
+        ↑ avg finish (last 3)              +0.06
+        ↓ no data: trainer win% off layoff -0.09
+        ↓ post position                    -0.07
+        ↓ jockey win% on surface           -0.07
+    8   5  Felicias Cinco    24.3     6.8   85            
+        ↑ career win%                      +0.10
+        ↑ trouble in last trip             +0.08
+        ↑ last race field size             +0.06
+        ↓ closer last race                 -0.09
+        ↓ finish position last race        -0.09
+        ↓ beaten lengths last race         -0.07
+    9   3   John's Notion    11.8     3.2   86            
+        ↓ finish position last race        -0.37
+        ↓ blinkers change                  -0.21
+        ↓ career ITM%                      -0.16
+
+--- Race 6  (8 horses)  STAKES  990  Dirt  $50,000
+    feature coverage 85%
+ rank pgm             horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   3     Maggie's Girl    57.8    20.3   82            
+        ↑ finish position last race        +0.35
+        ↑ career win% on surface           +0.28
+        ↑ career ITM%                      +0.28
+        ↓ career win%                      -0.43
+        ↓ blinkers change                  -0.17
+        ↓ won last race                    -0.13
+    2   8 Redhotchiliphilly    52.7    19.1   91            
+        ↑ finish position last race        +0.35
+        ↑ jockey win% on surface           +0.33
+        ↑ speed figure last race           +0.10
+        ↓ won last race                    -0.13
+        ↓ career win%                      -0.10
+        ↓ avg finish (last 3)              -0.09
+    3   5        Thelastsay    50.8    17.6   87            
+        ↑ speed figure last race           +0.21
+        ↑ finish position last race        +0.21
+        ↑ won last race                    +0.08
+        ↓ wins at this track               -0.08
+        ↓ career win% in these conditions  -0.05
+    4   4    Golden Circles    42.3    13.9   86            
+        ↑ purse change vs last             +0.18
+        ↑ career win%                      +0.12
+        ↑ won last race                    +0.08
+        ↓ career ITM%                      -0.13
+        ↓ career win% on surface           -0.09
+        ↓ speed figure last race           -0.06
+    5   6      Coal Country    38.8    12.2   84            
+        ↑ finish position last race        +0.35
+        ↑ avg finish (last 3)              +0.06
+        ↑ blinkers change                  +0.06
+        ↓ purse change vs last             -0.14
+        ↓ won last race                    -0.13
+        ↓ jockey win% on surface           -0.06
+    6   2  Party Timefor Me    27.9     8.4   82            
+        ↑ won last race                    +0.08
+        ↑ beaten lengths last race         +0.08
+        ↑ career ITM%                      +0.07
+        ↓ finish position last race        -0.35
+        ↓ blinkers change                  -0.17
+        ↓ closer last race                 -0.09
+    7   1   Here'sa Quarter    16.8     4.8   80            
+        ↑ post position                    +0.09
+        ↑ won last race                    +0.08
+        ↑ no data: trainer win% off layoff +0.06
+        ↓ finish position last race        -0.62
+        ↓ career ITM%                      -0.18
+        ↓ speed figure last race           -0.13
+    8   7      Lil Knockout    12.9     3.8   87            
+        ↑ career win%                      +0.32
+        ↑ won last race                    +0.08
+        ↑ blinkers change                  +0.06
+        ↓ finish position last race        -0.35
+        ↓ career win% on surface           -0.22
+        ↓ speed figure last race           -0.13
+
+--- Race 7  (9 horses)  STAKES  990  Dirt  $50,000
+    feature coverage 88%
+ rank pgm          horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   2     Honeyquist    53.5    19.1   92            
+        ↑ career ITM%                      +0.27
+        ↑ jockey win% on surface           +0.14
+        ↑ trainer win% on surface          +0.12
+        ↓ purse change vs last             -0.22
+        ↓ speed figure last race           -0.15
+        ↓ trainer win% at other tracks     -0.09
+    2   7   Duncan Idaho    52.8    19.3   87            
+        ↑ career win% on surface           +0.38
+        ↑ jockey win% on surface           +0.31
+        ↑ wins at this track               +0.27
+        ↓ career win%                      -0.56
+        ↓ won last race                    -0.14
+        ↓ starts at this track             -0.10
+    3   5    The Big Lep    49.9    17.9   91            
+        ↑ jockey home = GP                 +0.24
+        ↑ finish position last race        +0.14
+        ↑ trainer win% on surface          +0.12
+        ↓ career ITM%                      -0.15
+        ↓ won last race                    -0.14
+        ↓ trainer win% at other tracks     -0.09
+    4   3    Tico Grande    30.6     9.5   86            
+        ↑ beaten lengths last race         +0.15
+        ↑ won last race                    +0.07
+        ↑ pace progression last race       +0.07
+        ↓ jockey win% on surface           -0.11
+        ↓ closer last race                 -0.11
+        ↓ speed figure last race           -0.10
+    5   6          K.Bee    26.5     7.9   86            
+        ↑ finish position last race        +0.14
+        ↑ last race field size             +0.13
+        ↑ starts at this track             +0.08
+        ↓ blinkers change                  -0.18
+        ↓ career ITM%                      -0.15
+        ↓ won last race                    -0.14
+    6   1  Pleasenthanku    26.0     8.0   91            
+        ↑ post position                    +0.10
+        ↑ won last race                    +0.07
+        ↑ pace progression last race       +0.07
+        ↓ jockey win% on surface           -0.12
+        ↓ closer last race                 -0.11
+        ↓ speed figure last race           -0.10
+    7   4 Moonlit Notion    25.3     7.3   83            
+        ↑ purse change vs last             +0.10
+        ↑ career win% on surface           +0.10
+        ↑ career ITM%                      +0.08
+        ↓ finish position last race        -0.28
+        ↓ blinkers change                  -0.18
+        ↓ career win%                      -0.14
+    8   8    Bold Boomer    23.3     7.4   86            
+        ↑ career win%                      +0.43
+        ↑ speed figure last race           +0.08
+        ↑ won last race                    +0.07
+        ↓ career win% on surface           -0.29
+        ↓ career ITM%                      -0.21
+        ↓ jockey win% on surface           -0.17
+    9   9      Amidships    12.1     3.6   87            
+        ↑ career win%                      +0.15
+        ↑ won last race                    +0.07
+        ↑ jockey win% on surface           +0.05
+        ↓ purse change vs last             -0.27
+        ↓ finish position last race        -0.14
+        ↓ starts at this track             -0.11
+
+--- Race 8  (8 horses)  STAKES  1540  Dirt  $300,000
+    feature coverage 79%
+ rank pgm              horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   3        Mystic Lake    58.4    20.9   81            
+        ↑ purse change vs last             +0.37
+        ↑ career win% on surface           +0.21
+        ↑ jockey home = GP                 +0.14
+        ↓ career win%                      -0.28
+        ↓ last race field size             -0.15
+        ↓ blinkers change                  -0.12
+    2   1         Icona Mama    56.5    20.8   45            
+        ↑ purse change vs last             +0.83
+        ↑ pace type last race    MISSING =  +0.16
+        ↑ jockey home = GP                 +0.14
+        ↓ no data: finish position last race -0.22
+        ↓ no data: won last race           -0.22
+        ↓ speed figure last race           -0.12
+    3   7 Overcome Adversity    45.2    15.4   88            
+        ↑ finish position last race        +0.31
+        ↑ purse change vs last             +0.20
+        ↑ jockey win% on surface           +0.14
+        ↓ won last race                    -0.18
+        ↓ blinkers change                  -0.12
+        ↓ closer last race                 -0.10
+    4   5       Irish Maxima    38.9    12.3   78            
+        ↑ purse change vs last             +0.76
+        ↑ career win%                      +0.14
+        ↑ blinkers change                  +0.12
+        ↓ career ITM%                      -0.19
+        ↓ jockey home = GP                 -0.14
+        ↓ finish position last race        -0.10
+    5   6          Anakarina    33.2    10.0   79            
+        ↑ purse change vs last             +0.50
+        ↑ jockey home = GP                 +0.14
+        ↑ career win%                      +0.14
+        ↓ finish position last race        -0.52
+        ↓ career ITM%                      -0.19
+        ↓ avg finish (last 3)              -0.16
+    6   8          Foie Gras    31.9    10.2   88            
+        ↑ last race field size             +0.23
+        ↑ purse change vs last             +0.20
+        ↑ finish position last race        +0.17
+        ↓ jockey home = GP                 -0.14
+        ↓ speed figure last race           -0.12
+        ↓ blinkers change                  -0.12
+    7   2    Professor Grace    18.4     5.4   87            
+        ↑ career ITM%                      +0.19
+        ↑ finish position last race        +0.17
+        ↑ career win% on surface           +0.13
+        ↓ purse change vs last             -1.51
+        ↓ career win%                      -0.19
+        ↓ jockey home = GP                 -0.14
+    8   4        Serenade Me    17.5     5.0   82            
+        ↑ speed figure last race           +0.23
+        ↑ career ITM%                      +0.21
+        ↑ blinkers change                  +0.12
+        ↓ purse change vs last             -1.35
+        ↓ jockey home = GP                 -0.14
+        ↓ starts at this track             -0.10
+
+--- Race 9  (8 horses)  STAKES  1540  Dirt  $500,000
+    feature coverage 73%
+ rank pgm           horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   3   Solitude Dude    67.0    25.7   80            
+        ↑ purse change vs last             +0.52
+        ↑ jockey home = GP                 +0.17
+        ↑ beaten lengths last race         +0.15
+        ↓ speed figure last race           -0.12
+        ↓ career win%                      -0.11
+        ↓ no data: trainer win% off layoff -0.07
+    2   2         Bravaro    53.5    18.7   79            
+        ↑ purse change vs last             +0.52
+        ↑ career win%                      +0.17
+        ↑ jockey home = GP                 +0.17
+        ↓ finish position last race        -0.19
+        ↓ closer last race                 -0.12
+        ↓ career win% on surface           -0.12
+    3   1    Coronade Oro    47.7    16.4   81            
+        ↑ purse change vs last             +0.49
+        ↑ speed figure last race           +0.09
+        ↑ finish position last race        +0.09
+        ↓ last race field size             -0.18
+        ↓ jockey win% on surface           -0.12
+        ↓ jockey home = GP                 -0.10
+    4   6   Sculcos Folly    32.3     9.6   41            
+        ↑ purse change vs last             +0.58
+        ↑ career win%                      +0.15
+        ↑ pace type last race    MISSING =  +0.14
+        ↓ finish position last race        -0.19
+        ↓ no data: won last race           -0.19
+        ↓ no data: finish position last race -0.19
+    5   7 Tab At Zanzibar    31.7     9.9   48            
+        ↑ purse change vs last             +0.58
+        ↑ jockey home = GP                 +0.17
+        ↑ career win%                      +0.15
+        ↓ finish position last race        -0.19
+        ↓ no data: won last race           -0.19
+        ↓ no data: finish position last race -0.19
+    6   5      Ryan's Run    28.9     8.4   85            
+        ↑ jockey win% on surface           +0.30
+        ↑ career win% on surface           +0.25
+        ↑ speed figure last race           +0.24
+        ↓ purse change vs last             -1.27
+        ↓ career win%                      -0.37
+        ↓ won last race                    -0.16
+    7   4         Langvad    24.9     7.4   82            
+        ↑ finish position last race        +0.23
+        ↑ blinkers change                  +0.17
+        ↑ career win% on surface           +0.11
+        ↓ purse change vs last             -0.72
+        ↓ last race field size             -0.18
+        ↓ career win%                      -0.16
+    8   8        Volendam    14.1     3.9   85            
+        ↑ career win%                      +0.15
+        ↑ last race field size             +0.13
+        ↑ finish position last race        +0.09
+        ↓ purse change vs last             -0.69
+        ↓ jockey win% on surface           -0.12
+        ↓ career win% on surface           -0.10
+
+--- Race 10  (9 horses)  STAKES  1540  Dirt  $750,000
+    feature coverage 64%
+ rank pgm              horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   5  Luv Your Neighbor    63.8    24.5   49            
+        ↑ purse change vs last             +1.37
+        ↑ trainer home = GP                +0.19
+        ↑ jockey win% on surface           +0.12
+        ↓ no data: won last race           -0.11
+        ↓ no data: finish position last race -0.11
+        ↓ at trainer's home track          -0.10
+    2   4          Irish Jig    53.8    18.0   45            
+        ↑ purse change vs last             +1.37
+        ↑ jockey home = GP                 +0.12
+        ↑ pace type last race    MISSING =  +0.08
+        ↓ no data: won last race           -0.11
+        ↓ no data: finish position last race -0.11
+        ↓ trainer home = GP                -0.05
+    3   3              Niche    44.6    14.1   49            
+        ↑ purse change vs last             +1.37
+        ↑ jockey home = GP                 +0.12
+        ↑ pace type last race    MISSING =  +0.08
+        ↓ jockey win% on surface           -0.11
+        ↓ no data: won last race           -0.11
+        ↓ no data: finish position last race -0.11
+    4   7 Little Miss Curlin    43.7    14.2   45            
+        ↑ purse change vs last             +1.37
+        ↑ pace type last race    MISSING =  +0.08
+        ↑ career win%                      +0.06
+        ↓ jockey home = GP                 -0.15
+        ↓ no data: won last race           -0.11
+        ↓ no data: finish position last race -0.11
+    5   8   Now Or Nevermore    37.6    12.0   48            
+        ↑ purse change vs last             +1.37
+        ↑ trainer home = GP                +0.19
+        ↑ pace type last race    MISSING =  +0.08
+        ↓ jockey home = GP                 -0.15
+        ↓ no data: finish position last race -0.11
+        ↓ no data: won last race           -0.11
+    6   1         Tessellate    35.9    11.3   80            
+        ↑ purse change vs last             +0.31
+        ↑ no data: finish position last race +0.14
+        ↑ no data: won last race           +0.14
+        ↓ finish position last race        -0.26
+        ↓ career win%                      -0.15
+        ↓ pace type last race    MISSING =  -0.10
+    7   9        Ata Premium    13.9     4.0   88            
+        ↑ finish position last race        +0.43
+        ↑ speed figure last race           +0.35
+        ↑ career win% on surface           +0.24
+        ↓ purse change vs last             -1.55
+        ↓ career win%                      -0.36
+        ↓ last race field size             -0.28
+    8   2          Tahlequah     6.5     1.8   79            
+        ↑ finish position last race        +0.29
+        ↑ last race was maiden             +0.15
+        ↑ no data: won last race           +0.14
+        ↓ purse change vs last             -1.78
+        ↓ speed figure last race           -0.20
+        ↓ class rating change vs last      -0.11
+    9   6      Pearlof Pearl     0.3     0.0   89            
+        ↑ blinkers change                  +0.21
+        ↑ last race was maiden             +0.15
+        ↑ no data: won last race           +0.14
+        ↓ purse change vs last             -3.84
+        ↓ finish position last race        -0.54
+        ↓ class rating change vs last      -0.24
+
+--- Race 11  (10 horses)  STAKES  1760  Dirt  $1,000,000
+    feature coverage 80%
+ rank pgm              horse  P(ITM)  P(win)  cov ML PrimePwr
+    1  10 Skippylongstocking    82.9    37.6   79            
+        ↑ purse change vs last             +2.29
+        ↑ last race field size             +0.32
+        ↑ finish position last race        +0.26
+        ↓ career win%                      -0.37
+        ↓ won last race                    -0.15
+        ↓ blinkers change                  -0.14
+    2   2          Willy D's    63.1    20.9   85            
+        ↑ purse change vs last             +2.08
+        ↑ career win%                      +0.16
+        ↑ finish position last race        +0.12
+        ↓ jockey home = GP                 -0.16
+        ↓ career win% on surface           -0.11
+        ↓ jockey win% on surface           -0.10
+    3   7      Dragoon Guard    47.7    13.2   85            
+        ↑ purse change vs last             +1.75
+        ↑ finish position last race        +0.26
+        ↑ jockey home = GP                 +0.11
+        ↓ won last race                    -0.15
+        ↓ last race field size             -0.14
+        ↓ speed figure last race           -0.11
+    4   6            Bullard    40.3    11.1   47            
+        ↑ purse change vs last             +2.08
+        ↑ pace type last race    MISSING =  +0.16
+        ↑ career win%                      +0.16
+        ↓ days since jockey's last win     -0.26
+        ↓ no data: won last race           -0.22
+        ↓ no data: finish position last race -0.22
+    5   8          Banishing    35.1     9.2   89            
+        ↑ purse change vs last             +0.55
+        ↑ finish position last race        +0.26
+        ↑ career win% on surface           +0.15
+        ↓ career win%                      -0.22
+        ↓ jockey home = GP                 -0.16
+        ↓ won last race                    -0.15
+    6   1            Gigante    13.6     3.4   73            
+        ↑ purse change vs last             +0.96
+        ↑ career win%                      +0.16
+        ↑ jockey win% on surface           +0.15
+        ↓ finish position last race        -0.43
+        ↓ days since last race             -0.17
+        ↓ last race (days ago)             -0.17
+    7   5     Princeof Power    11.8     3.2   89            
+        ↑ career ITM%                      +0.13
+        ↑ finish position last race        +0.12
+        ↑ jockey home = GP                 +0.11
+        ↓ purse change vs last             -0.66
+        ↓ closer last race                 -0.11
+        ↓ jockey win% on surface           -0.09
+    8   4        Full Screen     2.8     0.7   81            
+        ↑ career win%                      +0.16
+        ↑ jockey home = GP                 +0.11
+        ↑ at trainer's home track          +0.09
+        ↓ purse change vs last             -1.17
+        ↓ career ITM%                      -0.16
+        ↓ finish position last race        -0.15
+    9   3     Xcellent Start     2.6     0.6   85            
+        ↑ speed figure last race           +0.19
+        ↑ last race field size             +0.17
+        ↑ wins at this track               +0.17
+        ↓ purse change vs last             -1.93
+        ↓ finish position last race        -0.43
+        ↓ starts at this track             -0.28
+   10   9   Barbadian Runner     0.1     0.0   87            
+        ↑ finish position last race        +0.12
+        ↑ at trainer's home track          +0.09
+        ↑ blinkers change                  +0.09
+        ↓ purse change vs last             -5.95
+        ↓ jockey home = GP                 -0.16
+        ↓ last race field size             -0.14
+
+--- Race 12  (8 horses)  STAKES  1540  Dirt  $75,000
+    feature coverage 87%
+ rank pgm             horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   3 Teachintherelease    61.2    22.3   86            
+        ↑ purse change vs last             +0.27
+        ↑ last race field size             +0.23
+        ↑ trainer win% on surface          +0.16
+        ↓ speed figure last race           -0.27
+        ↓ career win%                      -0.19
+        ↓ won last race                    -0.13
+    2   2    Rayof Sunshine    45.8    15.4   89            
+        ↑ trainer win% on surface          +0.16
+        ↑ trainer win% at track            +0.16
+        ↑ trainer win% (1yr)               +0.14
+        ↓ blinkers change                  -0.12
+        ↓ purse change vs last             -0.10
+        ↓ last race field size             -0.08
+    3   4    Catchthe Humor    44.7    15.1   82            
+        ↑ purse change vs last             +0.27
+        ↑ last race field size             +0.23
+        ↑ starts at this track             +0.10
+        ↓ blinkers change                  -0.12
+        ↓ jockey win% on surface           -0.10
+        ↓ career ITM%                      -0.09
+    4   5      Spotafreeone    37.8    12.1   86            
+        ↑ jockey win% on surface           +0.28
+        ↑ career win% on surface           +0.16
+        ↑ finish position last race        +0.14
+        ↓ career win%                      -0.24
+        ↓ won last race                    -0.13
+        ↓ purse change vs last             -0.10
+    5   1           Runaldo    36.6    12.1   86            
+        ↑ finish position last race        +0.14
+        ↑ speed figure last race           +0.13
+        ↑ jockey win% on surface           +0.12
+        ↓ won last race                    -0.13
+        ↓ pace progression last race       -0.12
+        ↓ purse change vs last             -0.10
+    6   7    Jubawithatwist    31.7    10.0   91            
+        ↑ career win% on surface           +0.14
+        ↑ speed figure last race           +0.10
+        ↑ trouble in last trip             +0.09
+        ↓ career win%                      -0.21
+        ↓ last race field size             -0.15
+        ↓ blinkers change                  -0.12
+    7   8       Social Chic    31.2     9.9   86            
+        ↑ career ITM%                      +0.13
+        ↑ blinkers change                  +0.12
+        ↑ career win%                      +0.09
+        ↓ starts at this track             -0.15
+        ↓ purse change vs last             -0.10
+        ↓ post position                    -0.09
+    8   6     Direct Appeal    10.8     3.1   87            
+        ↑ career win%                      +0.46
+        ↑ blinkers change                  +0.12
+        ↑ won last race                    +0.08
+        ↓ finish position last race        -0.42
+        ↓ career win% on surface           -0.31
+        ↓ avg finish (last 3)              -0.15
+
+--- Race 13  (11 horses)  STAKES  1540  Dirt  $75,000
+    feature coverage 86%
+ rank pgm              horse  P(ITM)  P(win)  cov ML PrimePwr
+    1   1        Edy's Flame    49.8    18.7   91            
+        ↑ finish position last race        +0.23
+        ↑ trainer win% on surface          +0.15
+        ↑ trainer win% at track            +0.15
+        ↓ career win%                      -0.15
+        ↓ won last race                    -0.13
+        ↓ trainer win% at other tracks     -0.11
+    2   5          Zip Start    44.0    15.2   85            
+        ↑ jockey win% on surface           +0.31
+        ↑ blinkers change                  +0.13
+        ↑ purse change vs last             +0.10
+        ↓ avg finish (last 3)              -0.10
+        ↓ career win%                      -0.10
+        ↓ mid-pack last race               -0.06
+    3   6    Shewonttalktome    43.2    15.0   82            
+        ↑ purse change vs last             +0.46
+        ↑ last race field size             +0.20
+        ↑ career ITM%                      +0.16
+        ↓ blinkers change                  -0.10
+        ↓ jockey win% on surface           -0.08
+        ↓ no data: trainer win% off layoff -0.07
+    4   8  Overnight Pow Wow    34.6    11.4   86            
+        ↑ career win% on surface           +0.36
+        ↑ career ITM%                      +0.32
+        ↑ finish position last race        +0.23
+        ↓ career win%                      -0.53
+        ↓ won last race                    -0.13
+        ↓ blinkers change                  -0.10
+    5   2       Malibu Years    27.4     8.8   83            
+        ↑ finish position last race        +0.23
+        ↑ post position                    +0.10
+        ↑ purse change vs last             +0.10
+        ↓ won last race                    -0.13
+        ↓ pace progression last race       -0.11
+        ↓ blinkers change                  -0.10
+    6   9        God's Pride    21.6     6.6   87            
+        ↑ career win%                      +0.19
+        ↑ starts at this track             +0.16
+        ↑ speed figure last race           +0.16
+        ↓ wins at this track               -0.13
+        ↓ career win% on surface           -0.13
+        ↓ career ITM%                      -0.12
+    7   3      Juba's Parade    21.5     6.6   85            
+        ↑ beaten lengths last race         +0.26
+        ↑ purse change vs last             +0.16
+        ↑ blinkers change                  +0.13
+        ↓ finish position last race        -0.33
+        ↓ starts at this track             -0.15
+        ↓ jockey win% on surface           -0.14
+    8  10 The Sky Is Falling    21.1     6.6   85            
+        ↑ career win% on surface           +0.14
+        ↑ wins at this track               +0.14
+        ↑ blinkers change                  +0.13
+        ↓ finish position last race        -0.47
+        ↓ career win%                      -0.21
+        ↓ post position                    -0.10
+    9   7    Somesugarnspice    18.0     5.4   88            
+        ↑ career win%                      +0.21
+        ↑ blinkers change                  +0.13
+        ↑ purse change vs last             +0.12
+        ↓ career win% on surface           -0.16
+        ↓ career ITM%                      -0.16
+        ↓ closer last race                 -0.10
+   10   4       Skie's Music    17.2     5.2   87            
+        ↑ finish position last race        +0.23
+        ↑ career win%                      +0.08
+        ↑ shipping in today                +0.08
+        ↓ purse change vs last             -0.32
+        ↓ speed figure last race           -0.24
+        ↓ won last race                    -0.13
+   11  11         Modest Kay     1.5     0.5   89            
+        ↑ career win%                      +0.38
+        ↑ blinkers change                  +0.13
+        ↑ won last race                    +0.08
+        ↓ purse change vs last             -1.04
+        ↓ career ITM%                      -0.36
+        ↓ career win% on surface           -0.26
+
+========================================================================
+ CARD SUMMARY — top pick per race
+========================================================================
+ R               top pick  P(ITM)% ML  cov%
+ 1       #8 Snitch Dorada     61.9       81
+ 2             #9 Box Top     62.0       86
+ 3           #8 Municipal     63.9       75
+ 4        #4 Faster Gator     64.2       89
+ 5         #4 Coach Siggy     70.6       87
+ 6       #3 Maggie's Girl     57.8       85
+ 7          #2 Honeyquist     53.5       88
+ 8         #3 Mystic Lake     58.4       79
+ 9       #3 Solitude Dude     67.0       73
+10   #5 Luv Your Neighbor     63.8       64
+11 #10 Skippylongstocking     82.9       80
+12   #3 Teachintherelease     61.2       87
+13         #1 Edy's Flame     49.8       86

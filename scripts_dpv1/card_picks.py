@@ -72,6 +72,259 @@ from dpv1_runtime import (  # noqa: E402
 from pp_feature_bridge import apply_to_card, pp_index  # noqa: E402
 from simulate_race import simulate_prediction  # noqa: E402
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Human-readable feature labels for the "reasons" block.
+# Add entries as you learn which features come up. Anything not listed falls
+# back to the raw name. Run this to see what's showing up:
+#   python -c "import pickle; m=pickle.load(open('scripts_dpv1/dpv1.pkl','rb')); \
+#              print('\n'.join(m.fundamental.feature_names_[:40]))"
+# ─────────────────────────────────────────────────────────────────────────────
+# Human-readable feature labels for the "reasons" block.
+PLAIN_LABELS: dict[str, str] = {
+    # ── Class ───────────────────────────────────────────────────────
+    "class_score": "class rating",
+    "class_score_change_from_last": "class rating change vs last",
+    "class_change_from_last__UP": "moving up in class",
+    "class_change_from_last__DOWN": "dropping in class",
+    "class_change_from_last__SAME": "same class as last",
+    "claiming_price": "claiming price",
+    "purse_change_from_last": "purse change vs last",
+
+    # ── Speed / recent form ─────────────────────────────────────────
+    "last_race_speed_figure": "speed figure last race",
+    "speed_trajectory_3_races": "speed trend (last 3)",
+   "last_race_beaten_lengths": "closeness to winner (last race)",
+    "last_race_finish_pos": "finish placement (last race)",
+    "last_race_won": "won last race",
+    "last_3_avg_finish": "avg finish placement (last 3)",
+    "last_race_troubled_trip": "trouble in last trip",
+    "second_race_back_pattern": "2nd-back off layoff pattern",
+    "last_race_was_maiden": "last race was maiden",
+    "last_race_field_size": "last race field size",
+    "condition_change_from_last_race": "track-condition change vs last",
+
+    # ── Distance ────────────────────────────────────────────────────
+    "distance_furlongs": "distance (furlongs)",
+    "distance_yards": "distance (yards)",
+    "distance_specialist_flag": "distance specialist",
+    "distance_change_from_last_race": "distance change vs last",
+    "distance_change_bucket__sprint_to_route": "sprint → route stretch-out",
+    "distance_change_bucket__route_to_sprint": "route → sprint cutback",
+    "distance_change_bucket__sprint_to_sprint": "sprint → sprint",
+    "distance_change_bucket__route_to_route": "route → route",
+
+    # ── Surface ─────────────────────────────────────────────────────
+    "surface_specialist_flag": "surface specialist",
+    "surface_change_from_last_race": "surface change vs last",
+    "surface__Dirt": "on dirt",
+    "surface__Turf": "on turf",
+    "surface__AllWeather": "on all-weather",
+    "historical_surface_winrate_shrunk": "career win% on surface",
+    "historical_condition_winrate_shrunk": "career win% in these conditions",
+
+    # ── Jockey ──────────────────────────────────────────────────────
+    "jockey_30d_winrate_shrunk": "jockey win% (30d)",
+    "jockey_90d_winrate_shrunk": "jockey win% (90d)",
+    "jockey_365d_winrate_shrunk": "jockey win% (1yr)",
+    "jockey_at_track_winrate_shrunk": "jockey win% at track",
+    "jockey_at_distance_winrate_shrunk": "jockey win% at distance",
+    "jockey_at_surface_winrate_shrunk": "jockey win% on surface",
+    "jockey_at_other_tracks_winrate": "jockey win% at other tracks",
+    "jockey_at_other_tracks_starts": "jockey starts at other tracks",
+    "jockey_starts_30d": "jockey starts (30d)",
+    "days_since_jockey_last_win": "jockey recency (days since win)",
+    "is_at_jockey_home_track": "at jockey's home track",
+    "jockey_home_track__CT": "jockey home = CT",
+    "jockey_home_track__ELP": "jockey home = ELP",
+    "jockey_home_track__GP": "jockey home = GP",
+    "jockey_home_track__MNR": "jockey home = MNR",
+
+    # ── Trainer ─────────────────────────────────────────────────────
+    "trainer_30d_winrate_shrunk": "trainer win% (30d)",
+    "trainer_90d_winrate_shrunk": "trainer win% (90d)",
+    "trainer_365d_winrate_shrunk": "trainer win% (1yr)",
+    "trainer_at_track_winrate_shrunk": "trainer win% at track",
+    "trainer_at_distance_winrate_shrunk": "trainer win% at distance",
+    "trainer_at_surface_winrate_shrunk": "trainer win% on surface",
+    "trainer_at_other_tracks_winrate": "trainer win% at other tracks",
+    "trainer_at_other_tracks_starts": "trainer starts at other tracks",
+    "trainer_starts_30d": "trainer starts (30d)",
+    "days_since_trainer_last_win": "trainer recency (days since win)",
+    "trainer_dropping_class_win_pct": "trainer win% dropping class",
+    "trainer_rising_class_win_pct": "trainer win% rising class",
+    "trainer_off_layoff_win_pct": "trainer win% off layoff",
+    "trainer_first_time_starters_win_pct": "trainer win% first-time starters",
+    "trainer_recent_form_trend": "trainer recent form trend",
+    "new_trainer_flag": "new trainer",
+    "is_at_trainer_home_track": "at trainer's home track",
+    "trainer_home_track__CT": "trainer home = CT",
+    "trainer_home_track__ELP": "trainer home = ELP",
+    "trainer_home_track__GP": "trainer home = GP",
+    "trainer_home_track__MNR": "trainer home = MNR",
+
+    # ── Career ──────────────────────────────────────────────────────
+    "career_starts": "career starts",
+    "career_wins": "career wins",
+    "career_win_pct_shrunk": "career win%",
+    "career_itm_pct_shrunk": "career ITM%",
+
+    # ── Shipping ────────────────────────────────────────────────────
+    "is_shipping_today": "shipping in today",
+    "horse_shipping_starts": "prior shipping starts",
+    "horse_shipping_success_rate": "shipping success rate",
+
+    # ── Layoff / recency ────────────────────────────────────────────
+    "days_since_last_race": "days since last (recency)",
+    "last_race_days_ago": "last race (days ago)",
+
+    # ── Equipment / meds ────────────────────────────────────────────
+    "blinkers_change_flag": "blinkers change",
+    "is_first_time_blinkers": "first-time blinkers",
+    "equipment_change_flag": "equipment change",
+    "lasix_first_time": "first-time Lasix",
+    "is_first_time_lasix": "first-time Lasix",
+    "lasix_off": "Lasix off",
+
+    # ── Physical / draw ─────────────────────────────────────────────
+    "weight_lbs": "weight (lbs)",
+    "weight_change_from_last_race": "weight change vs last",
+    "gate_break_avg_last_3": "avg gate break (last 3)",
+    "post_position": "post position",
+    "field_size": "field size",
+
+    # ── Pace ────────────────────────────────────────────────────────
+    "pace_progression_last_race": "pace progression last race",
+    "pace_type_last_race__front": "front-runner last race",
+    "pace_type_last_race__stalk": "stalker last race",
+    "pace_type_last_race__mid": "mid-pack last race",
+    "pace_type_last_race__close": "closer last race",
+    "early_pace_position_projected__front": "projected early: on the lead",
+    "early_pace_position_projected__press": "projected early: pressing",
+    "early_pace_position_projected__off": "projected early: off the pace",
+    "expected_pace_shape__hot": "expected hot pace",
+    "expected_pace_shape__moderate": "expected moderate pace",
+    "expected_pace_shape__slow": "expected slow pace",
+    "pace_pressure_in_race__hot": "pace pressure: hot",
+    "pace_pressure_in_race__moderate": "pace pressure: moderate",
+    "pace_pressure_in_race__slow": "pace pressure: slow",
+    "running_style_last_3__front": "front-runner style",
+    "running_style_last_3__stalk": "stalking style",
+    "running_style_last_3__mid": "mid-pack style",
+    "running_style_last_3__close": "closer style",
+
+    # ── Track / bias ────────────────────────────────────────────────
+    "track_dirt_bias_90d": "track dirt bias (90d)",
+    "track_turf_bias_90d": "track turf bias (90d)",
+    "outside_bias_flag": "outside bias flag",
+    "rail_bias_flag": "rail bias flag",
+    "is_sealed_track": "sealed track",
+    "track_specialist_flag": "track specialist",
+    "starts_at_track": "starts at this track",
+    "wins_at_track": "wins at this track",
+    "track_distance_par_time_sec": "par time at distance",
+    "track_bias_running_style__front": "track bias favors front",
+    "track_bias_running_style__stalk": "track bias favors stalkers",
+    "track_bias_running_style__mid": "track bias favors mid-pack",
+    "track_bias_running_style__close": "track bias favors closers",
+    "track_condition__Fast": "track: fast",
+    "track_condition__Firm": "track: firm",
+    "track_condition__Good": "track: good",
+    "track_condition__Muddy": "track: muddy",
+    "track_condition__Sloppy": "track: sloppy",
+    "track_condition__Heavy": "track: heavy",
+    "track_condition__WetFast": "track: wet-fast",
+    "track_condition__Yielding": "track: yielding",
+    "track_code__CT": "at CT",
+    "track_code__ELP": "at ELP",
+    "track_code__GP": "at GP",
+    "track_code__MNR": "at MNR",
+
+    # ── Race type ──────────────────────────────────────────────────
+    "race_type__ALLOWANCE": "allowance race",
+    "race_type__ALLOWANCEOPTIONALCLAIMING": "allowance optional claiming",
+    "race_type__CLAIMING": "claiming race",
+    "race_type__HANDICAP": "handicap race",
+    "race_type__MAIDENCLAIMING": "maiden claiming",
+    "race_type__MAIDENOPTIONALCLAIMING": "maiden optional claiming",
+    "race_type__MAIDENSPECIALWEIGHT": "maiden special weight",
+    "race_type__STAKES": "stakes race",
+    "race_type__STARTERALLOWANCE": "starter allowance",
+    "race_type__STARTERHANDICAP": "starter handicap",
+    "race_type__STARTEROPTIONALCLAIMING": "starter optional claiming",
+
+}
+
+
+def _label(raw: str) -> str:
+    """Map an internal feature name to something readable.
+
+    Handles three patterns:
+      1. Direct lookup in PLAIN_LABELS.
+      2. ``__missing`` suffix — resolve the base name, then wrap.
+      3. Anything else — swap underscores for spaces.
+    """
+    if raw in PLAIN_LABELS:
+        return PLAIN_LABELS[raw]
+
+    if raw.endswith("__missing"):
+        base = raw[: -len("__missing")]
+        base_label = PLAIN_LABELS.get(base, base.replace("_", " "))
+        return f"no data: {base_label}"
+
+    # Categorical one-hot Claude doesn't have an explicit label for
+    # ("something____MISSING__", "foo__bar_baz"): render cleanly.
+    if "__" in raw:
+        head, _, tail = raw.rpartition("__")
+        head_label = PLAIN_LABELS.get(head, head.replace("_", " "))
+        tail_clean = tail.replace("_", " ").strip()
+        if tail_clean.upper() == "MISSING":
+            return f"no data: {head_label}"
+        return f"{head_label} = {tail_clean}"
+
+        return raw.replace("_", " ")
+
+
+def compute_reasons(card, model, top_k: int = 3,
+                    threshold: float = 0.05) -> list[dict]:
+    """For each horse, return the top pushes above/below the race baseline.
+
+    Returned value is a list (one per horse, in card order) of dicts with
+    ``pos`` and ``neg`` lists of ``(label, log_odds_delta)`` tuples.
+
+    The delta is in log-odds relative to this race's average horse. A +0.20
+    push roughly means "this feature makes the horse ~20% more likely to hit
+    the board than the field average, before other effects."
+    """
+    X = np.asarray(model.preprocessor.transform(card.frame), dtype=float)
+    coef = np.asarray(model.fundamental.coef_, dtype=float)
+    names = list(model.fundamental.feature_names_)
+
+    # (n_horses × n_features) contribution to each horse's log-odds
+    contribs = X * coef
+    # This race's baseline horse (the field average)
+    baseline = contribs.mean(axis=0)
+    # How each horse differs from that baseline
+    deltas = contribs - baseline
+
+    out = []
+    for h in range(X.shape[0]):
+        d = deltas[h]
+        order = np.argsort(-np.abs(d))
+        pos: list[tuple[str, float]] = []
+        neg: list[tuple[str, float]] = []
+        for idx in order:
+            val = float(d[idx])
+            if abs(val) < threshold:
+                continue
+            if len(pos) >= top_k and len(neg) >= top_k:
+                break
+            if val > 0 and len(pos) < top_k:
+                pos.append((_label(names[idx]), val))
+            elif val < 0 and len(neg) < top_k:
+                neg.append((_label(names[idx]), val))
+        out.append({"pos": pos, "neg": neg})
+    return out
+
 log = logging.getLogger("card_picks")
 
 
@@ -141,6 +394,9 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
         pps.append(v[2])
     d["ML"] = mls
     d["PrimePwr"] = pps
+    # Explainability: what pushes this horse up/down vs the race baseline?
+    reasons = compute_reasons(card, model)
+    d["_reasons"] = reasons  # list of dicts, aligned to card order
     if "finish_pos" in card.frame.columns and card.frame["finish_pos"].notna().any():
         d["actual"] = card.frame["finish_pos"].to_numpy()
 
@@ -169,7 +425,19 @@ def print_race(r: dict) -> None:
     if "PrimePwr" in d.columns:
         d["PrimePwr"] = d["PrimePwr"].astype(object).where(
             d["PrimePwr"].notna(), "")
-        print(d.to_string(index=False))
+           # We want the pandas table for alignment, but with per-row reasons under
+    # each line. Format the table, then interleave.
+    display_cols = [c for c in d.columns if not c.startswith("_")]
+    table_lines = d[display_cols].to_string(index=False).splitlines()
+    header, body = table_lines[0], table_lines[1:]
+    print(header)
+    for row_line, (_, row) in zip(body, d.iterrows()):
+        print(row_line)
+        r = row["_reasons"]
+        for label, val in r["pos"]:
+            print(f"        ↑ {label:<32} {val:+.2f}")
+        for label, val in r["neg"]:
+            print(f"        ↓ {label:<32} {val:+.2f}")
 
 
 def _cli() -> int:
