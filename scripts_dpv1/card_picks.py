@@ -63,6 +63,7 @@ import numpy as np
 import pandas as pd
 
 DPV1_DIR = Path(__file__).resolve().parent
+LOG_DIR = DPV1_DIR / "logs"
 sys.path.insert(0, str(DPV1_DIR))
 
 from dpv1_runtime import (  # noqa: E402
@@ -440,6 +441,104 @@ def print_race(r: dict) -> None:
             print(f"        ↓ {label:<32} {val:+.2f}")
 
 
+# -----------------------------------------------------------------------------
+# Phase 6E piece 1: prediction logging.
+#
+# Every --save run appends one row per horse to logs/predictions.jsonl. That
+# file is the audit trail the post-race scorer and the health dashboard read,
+# so it is append-only: nothing here ever rewrites a row that is already down.
+# It is also never fatal. A card that generates picks but fails to log costs us
+# one row; a card that crashes because the log volume is full costs an
+# afternoon, so every failure below is a warning, not an exception.
+# -----------------------------------------------------------------------------
+
+
+def _jsonable(v):
+    """Coerce a numpy/pandas scalar to a plain JSON type.
+
+    NaN and the empty strings the display table uses for "no morning line"
+    both become None, so a missing value reads the same way downstream however
+    it went missing.
+    """
+    if v is None:
+        return None
+    if isinstance(v, np.integer):
+        return int(v)
+    if isinstance(v, (np.floating, float)):
+        f = float(v)
+        return None if np.isnan(f) else f
+    if isinstance(v, (np.bool_, bool)):
+        return bool(v)
+    if isinstance(v, str):
+        return v.strip() or None
+    if pd.isna(v):
+        return None
+    return v
+
+
+def _round(v, nd: int):
+    v = _jsonable(v)
+    return None if v is None else round(float(v), nd)
+
+
+def prediction_rows(results: list[dict], *, track: str, race_date: str,
+                    model, model_pkl: str, picks_file: str,
+                    generated_at: datetime, stamp: str) -> list[dict]:
+    """Build one JSONL row per horse per race for a single --save run.
+
+    ``prediction_id`` carries ``stamp``, so re-running a card produces a
+    fresh, non-colliding set of rows rather than shadowing the earlier ones.
+    Which run was right is exactly the question the scorer exists to answer.
+    Pass a second-resolution stamp: the picks *filename* is stamped to the
+    minute and two runs in one minute are routine (re-run one race after a
+    scratch), which is fine for a file that gets overwritten and fatal for an
+    id that has to stay unique.
+    """
+    rows: list[dict] = []
+    for r in results:
+        race_num = int(r["race_num"])
+        table = r["table"]
+        n_horses = int(len(table))
+        for _, h in table.iterrows():
+            pgm = _jsonable(h.get("pgm"))
+            rows.append({
+                "prediction_id": (f"{track.upper()}_{race_date}_R{race_num}"
+                                  f"_pgm{pgm}_{stamp}"),
+                "generated_at": generated_at.isoformat(timespec="seconds"),
+                "track": track.upper(),
+                "race_date": race_date,
+                "race_num": race_num,
+                "pgm": pgm,
+                "horse_name": _jsonable(h.get("horse")),
+                "p_itm": _round(h.get("P(ITM)"), 4),
+                "p_win": _round(h.get("P(win)"), 4),
+                "coverage": _round(h.get("cov"), 4),
+                "race_coverage": _round(r.get("coverage"), 4),
+                "ml_odds": _jsonable(h.get("ML")),
+                "prime_power": _jsonable(h.get("PrimePwr")),
+                "model_version": getattr(model, "version", None),
+                "model_pkl": model_pkl,
+                "rank": _jsonable(h.get("rank")),
+                "n_horses_in_race": n_horses,
+                "picks_file": picks_file,
+            })
+    return rows
+
+
+def append_predictions(rows: list[dict], path: Path | None = None) -> int:
+    """Append ``rows`` to predictions.jsonl. Returns rows written; never raises."""
+    path = Path(path) if path else LOG_DIR / "predictions.jsonl"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            for row in rows:
+                print(json.dumps(row, ensure_ascii=False), file=f)
+        return len(rows)
+    except OSError as exc:
+        log.warning("prediction log not written (%s): %s", path, exc)
+        return 0
+
+
 def _cli() -> int:
     p = argparse.ArgumentParser(
         description="Top-4 ITM rankings for a card (Phase 6B deliverable).")
@@ -454,6 +553,8 @@ def _cli() -> int:
     p.add_argument("--save", action="store_true",
                    help="write a timestamped copy of this output")
     p.add_argument("--outdir", default=str(DPV1_DIR / "picks"))
+    p.add_argument("--log-file", default=None,
+                   help="override logs/predictions.jsonl (--save only)")
     args = p.parse_args()
 
     logging.basicConfig(level=logging.WARNING,
@@ -529,7 +630,8 @@ def _cli() -> int:
     if args.save:
         outdir = Path(args.outdir)
         outdir.mkdir(parents=True, exist_ok=True)
-        stamp = datetime.now().strftime("%Y%m%d-%H%M")
+        generated_at = datetime.now()
+        stamp = generated_at.strftime("%Y%m%d-%H%M")
         base = outdir / f"{args.track.upper()}_{args.date}_{stamp}"
         base.with_suffix(".txt").write_text(buf.getvalue(), encoding="utf-8")
         frames = []
@@ -541,6 +643,29 @@ def _cli() -> int:
             pd.concat(frames).to_csv(base.with_suffix(".csv"), index=False)
         print(f"\nsaved {base.with_suffix('.txt')}")
         print(f"saved {base.with_suffix('.csv')}")
+
+        # Phase 6E: the machine-readable twin of the card above.
+        # Best effort by design -- a logging failure is reported
+        # but never costs us the picks we just wrote.
+        picks_file = base.with_suffix('.txt')
+        try:
+            picks_rel = picks_file.relative_to(DPV1_DIR).as_posix()
+        except ValueError:
+            picks_rel = picks_file.as_posix()
+        log_path = Path(args.log_file) if args.log_file else (
+            LOG_DIR / 'predictions.jsonl')
+        try:
+            rows = prediction_rows(
+                results, track=args.track, race_date=args.date,
+                model=model, model_pkl=Path(args.model).name,
+                picks_file=picks_rel, generated_at=generated_at,
+                stamp=generated_at.strftime('%Y%m%d-%H%M%S'))
+        except Exception as exc:  # noqa: BLE001 -- picks come first
+            log.warning('prediction log rows not built: %s', exc)
+            rows = []
+        n_logged = append_predictions(rows, log_path)
+        if n_logged:
+            print(f'logged {n_logged} predictions -> {log_path}')
     return 0
 
 
