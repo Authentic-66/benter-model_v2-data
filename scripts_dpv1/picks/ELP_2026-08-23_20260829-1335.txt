@@ -1,0 +1,8 @@
+========================================================================
+ DPv1 dpv1.2.0-4track — ELP 2026-08-23
+ generated 2026-08-29 13:34
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 95-feature set was available; low cov means a
+ near-prior guess, not a real assessment.

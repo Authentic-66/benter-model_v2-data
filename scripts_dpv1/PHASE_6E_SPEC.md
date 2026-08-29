@@ -140,6 +140,26 @@ Any track's ITM diverges >15pp from the overall average
 
 Print alerts inline, don't email/notify. This is diagnostic, not operational.
 
+## Corpus Awareness for Piece 3
+
+Current dpv1.pkl trained on data through 2026-08-22. This means:
+Corpus membership is determined by CHART LOAD TIME vs model TRAINED_AT, 
+not race date. A race can occur before training but its chart can be 
+loaded after — in which case it's out-of-corpus. Piece 3 determines 
+this by joining parsed_files.loaded_at against the model artifact's 
+trained_at metadata. Use --training-cutoff DATE as a manual override 
+when needed.Piece 3 must distinguish these when reporting headline metrics. In-corpus 
+numbers measure code correctness only; out-of-corpus numbers measure model 
+performance.
+
+As of Piece 2 completion (2026-08-29):
+- In-corpus scored cards: CT 7/25, ELP 8/21 (18 races)
+- Out-of-corpus scored cards: CT 8/28, ELP 8/22, ELP 8/23 (30 races)
+- Missing from log: CT 8/29 (results not yet published)
+
+Every time dpv1.pkl is promoted (Piece 4), this cutoff shifts. Piece 3 
+should probably read the cutoff from a metadata source, not hardcode it.
+
 🎯 Piece 4: Weekly Retrain Pipeline
 
 File: new scripts_dpv1/retrain_pipeline.py
