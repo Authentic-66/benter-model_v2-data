@@ -505,3 +505,25 @@ realistic figure for Piece 4 to treat as the expected baseline. Neither number
 is enough sample to gate a promotion on. Piece 4 should require a materially
 larger window before its recommendation means anything, and should say so in
 its output rather than reporting a delta on 29 races as if it were decisive.
+
+---
+
+## Addendum: `shipper_flag` and `corpus_coverage` (Phase 6D groundwork)
+
+`card_picks.py` gained two more logged fields on 2026-08-29. Piece 3 does not
+read them yet; they are logged now so that a window exists to analyse later.
+
+| field | type | notes |
+|---|---|---|
+| `shipper_flag` | bool | corpus coverage < 60% **and** < 2 prior starts across CT/ELP/GP/MNR |
+| `corpus_coverage` | float | per-horse coverage **before** the PP bridge runs |
+
+`coverage` remains the post-bridge figure shown in the table, so a row can
+legitimately read `shipper_flag: true` with `coverage: 0.64` — the flag was
+decided on `corpus_coverage: 0.46`. The two are different measurements and
+both are kept.
+
+Rationale and the underlying gap are in `PHASE_6D_ROADMAP.md`. When enough
+cards accumulate, the question worth asking is the ITM rate of flagged horses
+against unflagged — that is the empirical case for or against wiring
+`pp_entries_raw` into the feature builder.

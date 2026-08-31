@@ -328,6 +328,77 @@ def compute_reasons(card, model, top_k: int = 3,
 
 log = logging.getLogger("card_picks")
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Shipper detection (Phase 6D gap #1, interim warning only).
+#
+# DPv1's history features are built from ``entries`` and
+# ``computed_speed_figures_dpv1``, and both hold rows for the four training
+# tracks and nothing else. A horse whose whole career has been at Laurel, Parx
+# or Churchill is therefore invisible to the model: not "a horse with a weak
+# record" but "a horse with no record", which the feature block renders as a
+# near-prior guess and the ranking treats as a bad one.
+#
+# The PP file has that horse's full past performances, parsed and sitting right
+# there. Wiring them into the feature builder is Phase 6D proper. Until then
+# this flags the horses where the ranking is least trustworthy so a reader
+# knows to open the PP rather than believe the number.
+# ─────────────────────────────────────────────────────────────────────────────
+TRAINING_TRACKS = ("CT", "ELP", "GP", "MNR")
+SHIPPER_COV_MAX = 0.60
+SHIPPER_MIN_PRIOR_STARTS = 2
+
+
+def prior_start_counts(db, horse_ids: list[int], before_date: str,
+                       tracks: tuple[str, ...] = TRAINING_TRACKS) -> dict[int, int]:
+    """Starts each horse has in the corpus strictly before ``before_date``.
+
+    The horse's row for *today's* race is already in ``entries`` when a card is
+    loaded for prediction, so the date bound is strict — otherwise every runner
+    would show at least one "prior" start, which is the race being predicted.
+    """
+    if not horse_ids:
+        return {}
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        qh = ",".join("?" * len(horse_ids))
+        qt = ",".join("?" * len(tracks))
+        rows = conn.execute(
+            f"""
+            SELECT e.horse_id, COUNT(*)
+            FROM entries e
+            JOIN races r      ON r.id  = e.race_id
+            JOIN race_days rd ON rd.id = r.race_day_id
+            JOIN tracks t     ON t.id  = rd.track_id
+            WHERE e.horse_id IN ({qh})
+              AND t.code IN ({qt})
+              AND rd.race_date < ?
+            GROUP BY e.horse_id
+            """, (*horse_ids, *tracks, before_date)).fetchall()
+    finally:
+        conn.close()
+    counts = {int(h): 0 for h in horse_ids}
+    counts.update({int(h): int(n) for h, n in rows})
+    return counts
+
+
+def shipper_flags(card, per_horse_cov, db, race_date: str) -> list[bool]:
+    """Which horses the model is probably blind to. Aligned to card order.
+
+    Two conditions, both required. Low coverage alone catches first-time
+    starters, who are genuinely unknown to everyone and not a model failure.
+    No corpus history alone catches horses the feature block still covers well
+    through today's-race fields. It is the pair -- thin features *and* no
+    history here -- that says the ranking is guessing.
+    """
+    if "horse_id" not in card.frame.columns:
+        log.warning("no horse_id on the card frame; shipper detection skipped")
+        return [False] * len(per_horse_cov)
+    ids = [int(h) for h in card.frame["horse_id"]]
+    counts = prior_start_counts(db, ids, race_date)
+    return [bool(cov < SHIPPER_COV_MAX
+                 and counts.get(hid, 0) < SHIPPER_MIN_PRIOR_STARTS)
+            for hid, cov in zip(ids, per_horse_cov)]
+
 
 
 
@@ -370,6 +441,14 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     if card.n < 2:
         return None
 
+    # Shipper detection reads coverage *before* the PP bridge fills anything
+    # in. The bridge lifts a shipper's coverage substantially -- Outdoor Cat on
+    # CT 2026-08-29 goes 46% -> 64% -- which would push the horse back over the
+    # threshold and silence the warning on exactly the runs where a reader has
+    # the PP open. What the warning is about is what the *corpus* knows, and
+    # that is the pre-bridge number.
+    base_cov = coverage_report(card, model)["per_horse"]
+
     if pp_file:
         try:
             apply_to_card(card, pp_file, model)
@@ -398,6 +477,12 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     # Explainability: what pushes this horse up/down vs the race baseline?
     reasons = compute_reasons(card, model)
     d["_reasons"] = reasons  # list of dicts, aligned to card order
+    d["_shipper"] = shipper_flags(card, base_cov, db, date)
+    # Kept alongside the displayed post-bridge figure so a reader of the log
+    # can see why the flag fired: the PP bridge can lift a shipper well over
+    # the threshold, and shipper_flag=true beside cov=64% otherwise reads as
+    # a bug rather than as the two different measurements it is.
+    d["_corpus_cov"] = base_cov
     if "finish_pos" in card.frame.columns and card.frame["finish_pos"].notna().any():
         d["actual"] = card.frame["finish_pos"].to_numpy()
 
@@ -439,6 +524,9 @@ def print_race(r: dict) -> None:
             print(f"        ↑ {label:<32} {val:+.2f}")
         for label, val in r["neg"]:
             print(f"        ↓ {label:<32} {val:+.2f}")
+        if row.get("_shipper"):
+            print("        ⚠ SHIPPER — check PP directly, model may be blind "
+                  "to prior form")
 
 
 # -----------------------------------------------------------------------------
@@ -521,6 +609,8 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
                 "rank": _jsonable(h.get("rank")),
                 "n_horses_in_race": n_horses,
                 "picks_file": picks_file,
+                "corpus_coverage": _round(h.get("_corpus_cov"), 4),
+                "shipper_flag": bool(h.get("_shipper", False)),
             })
     return rows
 
