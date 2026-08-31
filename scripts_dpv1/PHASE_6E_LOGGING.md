@@ -517,6 +517,7 @@ read them yet; they are logged now so that a window exists to analyse later.
 |---|---|---|
 | `shipper_flag` | bool | corpus coverage < 60% **and** < 2 prior starts across CT/ELP/GP/MNR |
 | `corpus_coverage` | float | per-horse coverage **before** the PP bridge runs |
+| `maiden_flag` | bool | **race-level**, repeated on every row in the race: race type starts with `MAIDEN` **and** ≥1 starter has < 3 corpus career starts (NULL counts as under) |
 
 `coverage` remains the post-bridge figure shown in the table, so a row can
 legitimately read `shipper_flag: true` with `coverage: 0.64` — the flag was

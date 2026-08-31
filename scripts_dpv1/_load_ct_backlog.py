@@ -68,15 +68,26 @@ def _sha(p: Path) -> str:
 
 def pending_pdfs(conn: sqlite3.Connection) -> tuple[list[Path], list[tuple[Path, Path]]]:
     """Unparsed charts, deduplicated by content. Returns (to_load, skipped)."""
-    known = {r[0].replace("\\", "/").lower()
-             for r in conn.execute(
-                 "SELECT source_pdf FROM parsed_files WHERE success = 1")}
+    rows = conn.execute(
+        "SELECT source_pdf, file_sha256 FROM parsed_files WHERE success = 1"
+    ).fetchall()
+    known = {r[0].replace("\\", "/").lower() for r in rows}
     known_names = {Path(k).name for k in known}
+    # Content hashes matter as much as paths. Once the canonical copy of a
+    # duplicated chart is loaded, its '(1)' twin no longer groups with it --
+    # the canonical gets filtered out as known before the grouping runs -- so
+    # the twin looks like a fresh chart and would purge and reload a day that
+    # is already correct. Skip anything whose bytes are already in the DB.
+    known_shas = {r[1] for r in rows if r[1]}
 
     candidates = []
     for f in sorted(PDF_DIR.glob("*.pdf")):
         if (str(f.relative_to(ROOT)).replace("\\", "/").lower() in known
                 or f.name.lower() in known_names):
+            continue
+        if _sha(f) in known_shas:
+            print(f"SKIP  {f.name}")
+            print(f"      content already loaded under another filename")
             continue
         candidates.append(f)
 

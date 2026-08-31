@@ -348,6 +348,63 @@ SHIPPER_COV_MAX = 0.60
 SHIPPER_MIN_PRIOR_STARTS = 2
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Maiden-race variance warning (Phase 6D gap #6, interim warning only).
+#
+# A maiden race is where the model has least to work with by construction:
+# the horses have barely run, so the history block that carries most of DPv1's
+# signal is thin or empty for a large share of the field. The damage is not
+# confined to the underraced horses either -- pace projection and
+# class-of-field are computed across the whole field, so a few blank runners
+# degrade the estimate for the experienced horses beside them.
+#
+# The flag is race-level, because that is the level at which the warning is
+# true: it is the race that is a coin flip, not one horse in it.
+# ─────────────────────────────────────────────────────────────────────────────
+MAIDEN_MIN_CAREER_STARTS = 3
+# Share of the field that must be underraced before a maiden race is flagged.
+#
+# The first version of this rule fired on *any* underraced starter, which
+# turned out to be 98.4% of maiden races -- a category label, not a
+# discriminator. Keying on the share of the field instead cuts that to 58.4%
+# and separates the compound-chaos maiden from the mostly-experienced one.
+#
+# The comparison is >=, not >, and that is load-bearing rather than incidental:
+# CT 2026-08-29 R6 -- the worked compound case in the roadmap, six underraced
+# of ten -- sits at exactly 0.60, so a strict > would drop the very race the
+# threshold was chosen to catch.
+MAIDEN_UNDERRACED_SHARE = 0.60
+
+
+def underraced_starters(card) -> list[tuple[str, str, int | None]]:
+    """``(program, name, career_starts)`` for every horse under the threshold.
+
+    A NULL ``career_starts`` counts as underraced: the feature builder writes
+    NULL when it found no history at all, which is the most underraced a horse
+    can be, not a missing measurement to be skipped.
+
+    Note this is *corpus* career starts. A shipper with twenty runs at Laurel
+    reads as zero here, so this flag and the shipper flag fire together on a
+    maiden race full of ship-ins -- correctly, since both describe the same
+    blindness, but the count is "starts this model can see", not "starts".
+    """
+    if "career_starts" not in card.frame.columns:
+        return []
+    out = []
+    for pgm, name, cs in zip(card.frame.get("program_num", []),
+                             card.frame.get("horse_name", []),
+                             card.frame["career_starts"]):
+        if pd.isna(cs) or float(cs) < MAIDEN_MIN_CAREER_STARTS:
+            out.append((str(pgm), str(name),
+                        None if pd.isna(cs) else int(cs)))
+    return out
+
+
+def is_maiden_race(conditions: dict) -> bool:
+    rt = (conditions or {}).get("race_type")
+    return bool(rt) and str(rt).strip().upper().startswith("MAIDEN")
+
+
 def prior_start_counts(db, horse_ids: list[int], before_date: str,
                        tracks: tuple[str, ...] = TRAINING_TRACKS) -> dict[int, int]:
     """Starts each horse has in the corpus strictly before ``before_date``.
@@ -489,8 +546,15 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     d = d.sort_values("P(ITM)", ascending=False).reset_index(drop=True)
     d.insert(0, "rank", np.arange(1, len(d) + 1))
 
+    under = underraced_starters(card)
+    under_share = len(under) / card.n if card.n else 0.0
+    maiden = (is_maiden_race(card.conditions)
+              and under_share >= MAIDEN_UNDERRACED_SHARE)
+
     return {"race_num": race_num, "n": card.n,
             "conditions": card.conditions, "coverage": cov["overall"],
+            "maiden_flag": maiden, "underraced": under,
+            "underraced_share": under_share,
             "table": d}
 
 
@@ -502,6 +566,12 @@ def print_race(r: dict) -> None:
             bits.append(f"{c[k]}" if k != "purse" else f"${c[k]:,}")
     print(f"\n--- Race {r['race_num']}  ({r['n']} horses)  "
           f"{'  '.join(str(b) for b in bits)}")
+    if r.get("maiden_flag"):
+        print("    ⚠ MAIDEN with underraced horses — high variance, model "
+              "recommends handicapping directly")
+        print(f"      ({len(r.get('underraced', []))} of {r['n']} = "
+              f"{r.get('underraced_share', 0) * 100:.0f}% have under "
+              f"{MAIDEN_MIN_CAREER_STARTS} career starts)")
     print(f"    feature coverage {r['coverage'] * 100:.0f}%")
 
     d = r["table"].copy()
@@ -587,6 +657,8 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
         race_num = int(r["race_num"])
         table = r["table"]
         n_horses = int(len(table))
+        maiden = bool(r.get("maiden_flag"))
+        maiden_share = _round(r.get("underraced_share"), 4)
         for _, h in table.iterrows():
             pgm = _jsonable(h.get("pgm"))
             rows.append({
@@ -611,6 +683,8 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
                 "picks_file": picks_file,
                 "corpus_coverage": _round(h.get("_corpus_cov"), 4),
                 "shipper_flag": bool(h.get("_shipper", False)),
+                "maiden_flag": maiden,   # race-level, repeated on each row
+                "underraced_share": maiden_share,
             })
     return rows
 
