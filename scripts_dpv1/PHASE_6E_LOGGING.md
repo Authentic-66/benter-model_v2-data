@@ -1,13 +1,15 @@
 # Phase 6E — what got built
 
+**Phase 6E is complete.** Piece 1 (prediction logging), Piece 2
+(`score_predictions.py`), Piece 3 (`model_health.py`) and Piece 4
+(`retrain_pipeline.py`), in that order below, plus the Phase 6D groundwork
+addendum. Nothing here promotes a model; that stays a human decision.
+
 ## Piece 1: Prediction logging (done)
 
 `card_picks.py --save` now writes a third artifact alongside the `.txt` and
 `.csv` in `picks/`: one JSON line per horse appended to
 `scripts_dpv1/logs/predictions.jsonl`. The directory is created on demand.
-
-Pieces 3 (`model_health.py`) and 4 (`retrain_pipeline.py`) are **not** built
-yet. Piece 2 is below.
 
 ### Row schema
 
@@ -528,3 +530,338 @@ Rationale and the underlying gap are in `PHASE_6D_ROADMAP.md`. When enough
 cards accumulate, the question worth asking is the ITM rate of flagged horses
 against unflagged — that is the empirical case for or against wiring
 `pp_entries_raw` into the feature builder.
+
+---
+
+## Piece 4: Weekly retrain pipeline (done)
+
+`scripts_dpv1/retrain_pipeline.py`. Dry run is the default; `--execute` does the
+work. **It never promotes** — it prints the copy command and stops.
+
+```
+python scripts_dpv1/retrain_pipeline.py              # dry run, touches nothing
+python scripts_dpv1/retrain_pipeline.py --execute    # load, rebuild, train, compare
+```
+
+Flags: `--db`, `--model`, `--all-tracks`, `--skip-load`, `--version`, `--keep`.
+
+Eight phases: discover charts → report loaded upcoming cards → purge+load →
+rebuild features → label guard → train candidate → compare → prune + log.
+
+### The three orderings it enforces
+
+1. **Purge before load** — `entries` has `UNIQUE(race_id, program_num)` and the
+   loader uses `INSERT OR IGNORE`, so a chart loaded onto an already-populated
+   day is silently discarded while reporting success.
+2. **Rebuild features after load** — purging cascades to `entry_features_dpv1`
+   and `computed_speed_figures_dpv1`; skip it and `card_picks.py` refuses the
+   reloaded cards.
+3. **Dedupe by sha256, not filename** — inherited from the backlog-loader fix.
+   Every candidate chart is checked against `parsed_files.file_sha256`.
+
+### Deviation: the label guard checks the labels, not the row count
+
+The spec says to refuse the retrain when loaded upcoming cards are found. Taken
+literally that blocks every retrain in normal operation, because a card loaded
+for tonight's picks *is* an upcoming card and is supposed to be there. And
+`prepare_training_dpv1.drop_unrun_races` has removed them from the labels since
+Phase 6C.
+
+So the guard checks the thing that actually matters instead of the proxy: it
+builds the training frame and asserts that no race in it has zero finishers.
+If one survives, it refuses with exit code 2. Upcoming cards are still listed
+in phase 2, and any with a chart on disk get purged and reloaded in phase 3.
+
+### Deviation: `model_health --model <new>` cannot work as specified
+
+The spec asks for `model_health.py --model <candidate>` against the current
+model. `model_health` reads *scored live predictions*, and a model trained
+ninety seconds ago has never made a pick — its live sample is zero by
+construction and stays zero for weeks.
+
+The primary comparison is therefore **cross-validated fold predictions**: the
+out-of-sample predictions `train_dpv1.py final` writes for every race, on the
+same year-fold splits, restricted to races both models scored. Ranked by
+`p_fund`, because that is what `card_picks.py` ranks by — using the blended
+`y_pred` would measure a model nobody picks horses with.
+
+The live block is still printed, filtered **by `model_version`, never by
+`model_pkl`** (null on back-filled rows), and reports its true `n`. For a fresh
+candidate it says "no scored races" rather than dressing up an empty set.
+
+### Sample-size gate
+
+No promote recommendation below **500 shared fold races**, and a metric must
+move more than **0.5pp** to count as changed rather than fold noise. Outcomes
+are `insufficient_evidence`, `do_not_promote`, `no_material_change`, or
+`candidate_better` — and even the last one only prints a copy command.
+
+### Track scope
+
+Only the four training tracks are loaded by default. The repo also holds 607
+charts for Delta Downs, Evangeline, Fair Grounds and Fairmount Park; loading
+those would expand the corpus into tracks the model does not train on, which is
+a human's decision. They are reported as skipped, with `--all-tracks` to
+include them.
+
+*(Loading them would materially reduce Gap #1 — many CT/ELP shippers come from
+exactly these tracks. That is an argument for doing it deliberately, not for
+doing it as a side effect of a retrain.)*
+
+### First execute run — 2026-08-31
+
+Backup at `scripts/racing_full.db.pre-retrain.bak`.
+
+| | |
+|---|---|
+| charts pending | 16 (GP 15, MNR 1) |
+| charts loaded | **12** — +118 races, +830 entries |
+| load errors | **4** (see below) |
+| features rebuilt | yes, 221,399 rows |
+| label guard | PASSED — 151,902 rows / 20,380 races, no unrun race in labels |
+| candidate | `dpv1_20260831.pkl` (`dpv1.2.1-4track`) |
+| elapsed | 165s |
+
+Comparison on 15,561 shared fold races:
+
+| Metric | Current | Candidate | Delta |
+|---|---|---|---|
+| ITM (top pick) | 64.0897% (9973/15561) | 64.1090% (9976/15561) | +0.019pp |
+| Win (top pick) | 28.4865% (4406/15467) | 28.5252% (4412/15467) | +0.039pp |
+| Fundamental log loss | 0.615307 | 0.615292 | -0.000015 |
+
+**Outcome: `no_material_change`. Not promoted.**
+
+The candidate is a hair better on all three, and the movement is far below the
+0.5pp floor. That is the expected result: 830 new entries on 151,902 is +0.55%
+more data. The predictions genuinely differ — mean absolute change in `p_fund`
+is 0.0019 with a maximum of 0.278 — so this is a real comparison, not two reads
+of the same file.
+
+Worth noting separately: the candidate's corpus carries **265 more races** than
+the current model's fold set. 118 are the GP charts loaded here; the other 147
+are the CT backlog, CT 8/28-8/29 and ELP 8/22-8/23 loaded across the previous
+sessions. The corpus grew by 265 races and the model barely moved.
+
+The current model's live record now reads 33/55 = 60.0% ITM, ROI -9.6%, up from
+the 29-race baseline in the carry-forward notes now that CT 8/29 is scored.
+
+### The four charts that failed to load
+
+They are on disk, unparsed, and will be retried on every future run:
+
+| file | problem |
+|---|---|
+| `20190214-usa-gp-a-d.standard.pdf` | valid PDF, Ascii85 stream corruption |
+| `20240314-usa-gp-a-d.standard.pdf` | valid PDF, Ascii85 stream corruption |
+| `20240518-usa-gp-a-d.standard.pdf` | valid PDF, Ascii85 stream corruption |
+| `20260426-usa-mnr-a-d.standard.pdf` | **0 bytes** — failed download |
+
+None of those four race days has any data in the database, so those cards are
+genuinely missing from the corpus. The MNR one just needs re-downloading. A
+loader failure does not abort the run — the other 12 charts loaded fine — but
+nothing currently records the failure, so they are retried forever. Options for
+later: record them in `parsed_files` with `success=0` so a resume skips them,
+or fix the source files.
+
+### Audit trail
+
+Every `--execute` run appends to `logs/retrain_history.jsonl`: start/finish
+times (UTC), duration, charts pending/loaded/errored, races and entries added,
+entries purged, whether features were rebuilt, training rows and races, guard
+result, shared fold races, outcome, `promoted: false`, and pruned models.
+
+Dated artifacts are pruned to the newest 5. `dpv1.pkl` and `dpv1_3track.pkl`
+are never candidates for deletion.
+
+### `to_utc()` added to `dpv1_runtime.py`
+
+Per the carry-forward note. Three clocks meet in this codebase —
+`parsed_files.parsed_at` (naive UTC), `DPv1Model.trained_at` (offset-aware
+UTC), and picks stamps / file mtimes (naive **local**, UTC-5 here) — and
+comparing them unconverted is what produced the wrong provenance conclusion on
+2026-08-29. Naive input is assumed UTC, so convert local values at their source
+rather than passing a naive local timestamp in.
+
+### Promotion decision, 2026-08-31: HELD
+
+`dpv1.pkl` stays at **`dpv1.2.0-4track`** (trained 2026-08-22). The candidate
+`dpv1.2.1-4track` was not promoted.
+
+Doug's reasoning, recorded because it is the precedent for future runs:
+
+* +0.019pp on ITM is noise, not signal.
+* The 55-race live baseline on `2.0-4track` is worth more than banking a
+  non-material update. Promoting resets that window to zero, because Piece 3
+  filters the scored log by `model_version`.
+* Save the baseline reset for a retrain that earns it — the Phase 6D work
+  (field-experience features, PP ingest) is the change that should carry a
+  version bump.
+
+**The candidate artifacts are kept, not deleted.** Not for rollback safety —
+nothing was promoted, so there is nothing to roll back from. They are kept as a
+**control for the Phase 6D comparison**: `dpv1.2.1-4track` is "same features,
+bigger corpus". When the Phase 6D retrain lands, comparing it against 2.1
+isolates the effect of the new features, whereas comparing against 2.0
+conflates features with 265 races of corpus growth. The fold-prediction CSV is
+the artifact that actually enables that comparison, so both are retained:
+
+| file | size | why |
+|---|---|---|
+| `dpv1_20260831.pkl` | 21 KB | the control model |
+| `dpv1_fold_predictions_20260831.csv` | 15 MB | its out-of-sample predictions |
+
+Storage is not a concern at this size, and `prune_models` already caps dated
+artifacts at the newest 5 automatically, so the store cannot grow without
+bound whatever we decide here.
+
+### Follow-ups, not started
+
+Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
+
+1. **Stop retrying the 4 unloadable charts.** `retrain_pipeline.py` catches
+   loader failures and moves on, but records nothing, so all four are re-parsed
+   on every run and fail again. Write a `parsed_files` row with `success=0` and
+   the error text, and have `discover_charts` skip shas already recorded as
+   failed. Note the sha of a 0-byte file is still a valid sha, so the existing
+   hash check will work once a row exists.
+2. **Re-download MNR `20260426-usa-mnr-a-d.standard.pdf`** from Equibase — the
+   local copy is 0 bytes. Then load it; nothing else is wrong with that date.
+3. **Decide the fate of the 3 corrupt GP charts** — `20190214-usa-gp`,
+   `20240314-usa-gp`, `20240518-usa-gp`. Valid PDFs with Ascii85 stream
+   corruption. Either re-download or mark permanently unloadable. None of these
+   three dates has any data in the corpus, so each is a genuinely missing race
+   day, not a duplicate.
+4. ~~**Piece 4 candidate-path collision.**~~ **RESOLVED 2026-09-02** — see below. `retrain_pipeline.py` names the
+   candidate `dpv1_YYYYMMDD.pkl`, so a second retrain on the same day silently
+   overwrites the first — including a control model one might be holding
+   deliberately. Hit on 2026-08-31 when the Gap #6 field-experience retrain
+   would have overwritten the corpus-only control; worked around by renaming
+   the control to `dpv1_20260831_corpus_only.pkl` first. Fix with a
+   `%Y%m%d-%H%M%S` suffix or a collision-detection rename. Not urgent. Note
+   that `prune_models` only recognises artifacts whose stem after `dpv1_` is
+   all digits, so whatever suffix is chosen should keep that property or the
+   pruner will stop seeing them.
+
+Related, already documented elsewhere and still open:
+
+* ~~**Routine PP ingest**~~ **DONE** (`load_pp_card.py` stages at load time, and `parse_pp_files.py --incremental` sweeps the catalogue). Was a hard
+  prerequisite for Gap #1 Option A and for the third component of Gap #6
+  Option C. See `PHASE_6D_ROADMAP.md`.
+* **607 charts for Delta Downs, Evangeline, Fair Grounds and Fairmount Park**
+  sit unloaded on disk. Loading them would materially reduce Gap #1, since many
+  CT/ELP shippers come from exactly those tracks — but it expands the corpus
+  into tracks the model does not train on, so it wants a deliberate decision.
+  `retrain_pipeline.py --all-tracks` would pull them in.
+
+---
+
+## Resolved traps (2026-09-02)
+
+Three recurring hazards, each of which had cost real work, closed in one pass.
+
+### RESOLVED: log-corruption on an already-scored card
+
+**The trap.** `card_picks.py --save` appended to `predictions.jsonl` regardless
+of whether the card's results were already loaded. Re-running picks on a scored
+card predicts the *post-scratch* field, and logging that made it the newest run
+— the one `latest_run_only` keeps — silently superseding the genuine pre-race
+prediction the live record was built on. It bit three times, most recently when
+a verification run on CT 2026-08-29 overwrote a scored 3/8 record.
+
+**The fix.** `card_is_scored()` checks the DB before anything is written. If any
+race on the card has a recorded finishing position and neither `--log-file` nor
+the new `--force` is set, the run refuses with **exit code 3** and prints the
+two ways forward. The check happens *before* the `.txt`/`.csv` are written, so a
+refused run leaves nothing behind at all.
+
+| invocation | behaviour |
+|---|---|
+| scored card, no flags | refuses, exit 3, nothing written |
+| scored card, `--log-file <path>` | proceeds, writes to the scratch log |
+| scored card, `--force` | proceeds, prints a warning that the audit trail is being superseded |
+| unscored card | proceeds normally, no message |
+
+Verified on CT 2026-08-29 (8 of 8 races scored) for the first three, and against
+a DB copy with that card's finishing positions nulled for the fourth.
+`predictions.jsonl` stayed at 956 lines throughout except where a test
+deliberately exercised the writing paths, and the scored record still reads
+3/8 = 37.5%.
+
+### RESOLVED: Piece 4 candidate-path collision
+
+**The trap.** `retrain_pipeline.py` named its candidate `dpv1_YYYYMMDD.pkl`, so
+a second retrain on the same day silently overwrote the first. It bit on
+2026-08-31 when a feature-set retrain would have destroyed the corpus-only
+control being held deliberately as a comparison baseline; that run only
+survived because the control was renamed by hand first. Separately,
+`prune_models()` recognised only all-digit suffixes, so suffixed research
+artifacts were invisible to it.
+
+**The fix.** Candidates are now `dpv1_YYYYMMDD_HHMMSS.pkl` — collision-free by
+construction. `is_pipeline_candidate()` recognises both shapes:
+
+| artifact | classified |
+|---|---|
+| `dpv1_20260831.pkl` | candidate (old form, still honoured) |
+| `dpv1_20260902_123252.pkl` | candidate (new form) |
+| `dpv1_20260831_corpus_only.pkl` | **protected** |
+| `dpv1_20260901_interact.pkl` | **protected** |
+| `dpv1.pkl`, `dpv1_3track.pkl`, `dpv1_pp_reranker.pkl` | **protected** |
+
+The suffixed research artifacts are deliberately excluded rather than
+accidentally: they are controls kept for later comparison, and a pruner that
+reaped them would quietly destroy the only baseline that makes a feature change
+legible. Existing files were left exactly as they are — nothing was renamed.
+
+Lexicographic sort on the stem is chronological for both shapes because the
+timestamps are zero-padded and fixed-width, and a date-only artifact correctly
+sorts before a same-day timestamped one.
+
+Verified in a temp directory with 7 candidates and 5 protected files at
+`keep=5`: the two oldest candidates were deleted, five survived, every
+protected file remained. A dry run now reports
+`dpv1_20260902_123252.pkl` as the candidate name.
+
+### RESOLVED: parse_pp_files.py could not run incrementally
+
+**The trap.** `parse_pp_files.py parse` was `DROP TABLE IF EXISTS` on both
+`pp_entries_raw` and `pp_parsed_files`, so adding one newly acquired PP file
+meant re-parsing the entire catalogue. That made routine ingest impractical and
+was why the table sat untouched from 2026-08-21 to 2026-09-01. It also had no
+per-card dedup, which is how GP 2026-05-09 accumulated 425 rows for an 85-horse
+card from five Brisnet products.
+
+**The fix.** A `--incremental` flag on `parse`. Default behaviour is untouched.
+
+| mode | table | per card |
+|---|---|---|
+| default | dropped and rebuilt | every parsed product accumulates |
+| `--incremental` | `CREATE TABLE IF NOT EXISTS`, rows kept | the card being parsed is replaced, others untouched |
+
+**Card-grain replacement, not row-grain UPSERT.** The brief suggested
+`INSERT ... ON CONFLICT` on `(track, race_date, race_num, program_num)`. That
+needs a UNIQUE constraint the table does not have, and adding one is unsafe:
+the parser has been observed emitting **two horses on the same program number**
+in one race (`gpx0509a.pdf`), so a unique index would convert a mis-parse into
+a hard insert failure. Row-grain upserting also strands rows when a re-parse
+yields a different set of horses — a scratch dropped, a program number
+corrected. Replacing the card reaches the same end state for that key while
+handling the horses that disappear, and matches what
+`load_pp_card.stage_pp_entries` already does, so the two writers agree.
+
+`INCREMENTAL_DDL` is derived from `DDL` by string substitution rather than
+copied, so the column list has exactly one definition and the two modes cannot
+drift into different schemas.
+
+**Verified on a copy of the live database.**
+
+* `--incremental`: 4,266 rows before and after, 57 cards, CT 2026-08-29 still
+  71 rows. **Zero duplicated natural keys, zero cards with more than one
+  source.** The competing-source warning fired five times for GP 2026-05-09,
+  naming each superseded file.
+* default: reproduces the old state exactly — 4,606 rows, GP 2026-05-09 back at
+  425, one card with multiple sources. Backward compatible.
+
+This unblocks the PP acquisition automation follow-up: new files can now be
+staged without a full rebuild.

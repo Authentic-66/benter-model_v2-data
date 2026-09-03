@@ -1,0 +1,455 @@
+========================================================================
+ DPv1 dpv1.2.0-4track — CT 2026-08-29
+ generated 2026-09-01 18:22
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 95-feature set was available; low cov means a
+ near-prior guess, not a real assessment.
+
+--- Race 1  (7 horses)  CLAIMING  1540  Dirt  $19,600
+    feature coverage 94%
+ rank pgm             horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual  +/-
+    1   7          Cat Fast    67.0  61.7    26.2   94  9/5    110.7       4 +5.3
+        ↑ jockey win% on surface           +0.15
+        ↑ trainer win% on surface          +0.15
+        ↑ speed figure last race           +0.15
+        ↓ career ITM%                      -0.11
+        ↓ closeness to winner (last race)  -0.10
+        ↓ 2nd-back off layoff pattern      -0.06
+    2   3      Market Watch    55.5  54.8    19.0   94  9/2    107.2       3     
+        ↑ finish placement (last race)     +0.18
+        ↑ career ITM%                      +0.08
+        ↑ trainer win% on surface          +0.07
+        ↓ last race field size             -0.08
+        ↓ closeness to winner (last race)  -0.07
+        ↓ class rating change vs last      -0.06
+    3   6     Policy Change    52.2  50.1    17.7   95  2/1    113.1       2 +2.1
+        ↑ speed figure last race           +0.14
+        ↑ career ITM%                      +0.13
+        ↑ purse change vs last             +0.11
+        ↓ jockey win% on surface           -0.11
+        ↓ closeness to winner (last race)  -0.11
+        ↓ finish placement (last race)     -0.10
+    4   5          Abdicate    44.2  46.8    13.8   94 10/1    105.8       7 -2.5
+        ↑ finish placement (last race)     +0.32
+        ↑ career ITM%                      +0.18
+        ↑ last race field size             +0.16
+        ↓ purse change vs last             -0.16
+        ↓ weight (lbs)                     -0.13
+        ↓ jockey win% on surface           -0.08
+    5   8       York Tavern    35.3  35.0    10.7   94  5/1     99.8       1     
+        ↑ closeness to winner (last race)  +0.51
+        ↑ career win%                      +0.10
+        ↑ weight (lbs)                     +0.07
+        ↓ finish placement (last race)     -0.24
+        ↓ speed figure last race           -0.23
+        ↓ last race field size             -0.08
+    6   4 C'Est La Vie Nick    27.6  33.8     8.2   94 20/1     96.1       5 -6.2
+        ↑ last race field size             +0.16
+        ↑ career win% on surface           +0.07
+        ↓ finish placement (last race)     -0.24
+        ↓ purse change vs last             -0.16
+        ↓ closeness to winner (last race)  -0.11
+    7   2          Town Hot    18.1  17.8     4.6   95 30/1     85.4       6     
+        ↑ career win%                      +0.13
+        ↑ purse change vs last             +0.11
+        ↑ class rating change vs last      +0.08
+        ↓ career ITM%                      -0.29
+        ↓ trainer win% on surface          -0.17
+        ↓ last race field size             -0.16
+
+--- Race 2  (7 horses)  ALLOWANCE  990  Dirt  $34,100
+    feature coverage 93%
+ rank pgm          horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual  +/-
+    1   3     Candied Up    64.2  65.2    24.4   95  5/2    110.5       5     
+        ↑ finish placement (last race)     +0.20
+        ↑ last race was maiden             +0.19
+        ↑ trainer win% on surface          +0.18
+        ↓ won last race                    -0.16
+        ↓ last race field size             -0.10
+        ↓ trainer win% at other tracks     -0.07
+    2   6   Holiday Cash    51.3  52.5    17.2   94  2/1    115.1       1     
+        ↑ career ITM%                      +0.15
+        ↑ trainer win% on surface          +0.10
+        ↑ career win%                      +0.09
+        ↓ career win% on surface           -0.06
+        ↓ class rating change vs last      -0.06
+        ↓ speed figure last race           -0.05
+    3   2  Fortunate Son    47.8  51.7    15.8   94  9/2    112.8       2 -3.9
+        ↑ career ITM%                      +0.20
+        ↑ speed figure last race           +0.09
+        ↑ trouble in last trip             +0.06
+        ↓ career win%                      -0.08
+        ↓ finish placement (last race)     -0.08
+    4   1      Culminate    46.6  42.3    14.9   95  7/2    113.6       3 +4.4
+        ↑ finish placement (last race)     +0.20
+        ↑ last race field size             +0.14
+        ↑ post position                    +0.08
+        ↓ purse change vs last             -0.20
+        ↓ won last race                    -0.16
+        ↓ career ITM%                      -0.12
+    5   7       El Pacho    46.0  43.0    15.1   92  6/1    104.4       4 +2.9
+        ↑ purse change vs last             +0.10
+        ↑ class rating change vs last      +0.08
+        ↑ moving up in class               +0.07
+        ↓ career ITM%                      -0.10
+        ↓ post position                    -0.08
+        ↓ trainer win% on surface          -0.07
+    6   5 Directthe Show    22.5  22.7     6.6   92 20/1    101.8       6     
+        ↑ purse change vs last             +0.10
+        ↑ class rating change vs last      +0.08
+        ↑ moving up in class               +0.07
+        ↓ finish placement (last race)     -0.22
+        ↓ jockey win% on surface           -0.19
+        ↓ career ITM%                      -0.17
+    7   4   Juba's Heart    21.5  22.5     6.1   92 20/1    101.8       6     
+        ↑ won last race                    +0.06
+        ↑ career ITM%                      +0.06
+        ↑ last race field size             +0.06
+        ↓ finish placement (last race)     -0.22
+        ↓ purse change vs last             -0.15
+        ↓ weight (lbs)                     -0.09
+
+--- Race 3  (7 horses)  MAIDENSPECIALWEIGHT  1430  Dirt  $32,900
+    ⚠ MAIDEN with underraced horses — high variance, model recommends handicapping directly
+      (5 of 7 = 71% have under 3 career starts)
+    feature coverage 74%
+ rank pgm              horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual  +/-
+    1   3    Stettie Hayesen    70.9  68.2    28.6   91  9/5    109.2     5.0 +2.6
+        ↑ finish placement (last race)     +0.12
+        ↑ career ITM%                      +0.10
+        ↑ last race was maiden             +0.09
+        ↓ pace type last race    MISSING =  -0.06
+    2   6  Pedro's Fancy Man    55.8  53.0    19.0   91  3/1    103.3     2.0 +2.8
+        ↑ finish placement (last race)     +0.12
+        ↑ last race was maiden             +0.09
+        ↑ no data: won last race           +0.08
+        ↓ trainer win% on surface          -0.07
+        ↓ pace type last race    MISSING =  -0.06
+        ↓ trainer win% at track            -0.06
+    3   7   A Notable Nature    51.8  55.0    17.3   92  5/2    104.3     4.0 -3.2
+        ↑ finish placement (last race)     +0.26
+        ↑ last race was maiden             +0.09
+        ↑ no data: finish placement (last race) +0.08
+        ↓ last race field size             -0.16
+        ↓ post position                    -0.08
+        ↓ pace type last race    MISSING =  -0.06
+    4   1     Ajax the Great    36.7  38.9    10.7   55  8/1     93.0     6.0 -2.2
+        ↑ pace type last race    MISSING =  +0.08
+        ↑ post position                    +0.08
+        ↓ last race was maiden             -0.12
+        ↓ no data: finish placement (last race) -0.10
+        ↓ no data: won last race           -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    5   2 Reportittourlawyer    34.5  32.2    10.1   87 20/1     93.0     3.0 +2.3
+        ↑ last race was maiden             +0.09
+        ↑ last race field size             +0.08
+        ↑ no data: won last race           +0.08
+        ↓ finish placement (last race)     -0.43
+        ↓ career ITM%                      -0.12
+        ↓ closer last race                 -0.11
+    6   5   DQ-Conejo Dorado    29.5  30.1     8.7   51                   NaN     
+        ↑ pace type last race    MISSING =  +0.08
+        ↓ last race was maiden             -0.12
+        ↓ no data: finish placement (last race) -0.10
+        ↓ no data: won last race           -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    7   4        Jubas Ridge    20.9  22.5     5.6   56 12/1              7.0     
+        ↑ pace type last race    MISSING =  +0.08
+        ↑ jockey starts at other tracks    +0.06
+        ↑ jockey home = CT                 +0.06
+        ↓ trainer home = MNR               -0.27
+        ↓ jockey home = MNR                -0.19
+        ↓ last race was maiden             -0.12
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+
+--- Race 4  (8 horses)  ALLOWANCE  1430  Dirt  $35,300
+    feature coverage 92%
+ rank pgm             horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual  +/-
+    1   3       Edy's Flame    61.3  63.1    22.7   93  9/5    121.5       1     
+        ↑ finish placement (last race)     +0.22
+        ↑ career win% on surface           +0.20
+        ↑ trainer win% on surface          +0.17
+        ↓ career win%                      -0.31
+        ↓ won last race                    -0.14
+        ↓ closeness to winner (last race)  -0.07
+    2   1       Wynsome Cat    48.9  49.4    17.5   93  7/2    116.0       2     
+        ↑ career win%                      +0.20
+        ↑ career ITM%                      +0.19
+        ↑ post position                    +0.09
+        ↓ career win% on surface           -0.13
+    3   6    Princess Blame    43.8  39.1    14.0   92  5/1    113.4       8 +4.7
+        ↑ trainer win% on surface          +0.09
+        ↑ trainer win% (1yr)               +0.09
+        ↑ won last race                    +0.08
+        ↓ speed figure last race           -0.11
+        ↓ no data: trainer win% off layoff -0.09
+        ↓ 2nd-back off layoff pattern      -0.06
+    4   5  Belle Ofthe Wood    41.9  38.8    13.6   93  9/2    117.7       6 +3.1
+        ↑ finish placement (last race)     +0.22
+        ↑ last race field size             +0.19
+        ↑ career win% on surface           +0.11
+        ↓ career win%                      -0.17
+        ↓ won last race                    -0.14
+        ↓ career ITM%                      -0.11
+    5   7 Langleyswaterfall    33.2  34.8    10.8   93  5/1    113.1       4     
+        ↑ finish placement (last race)     +0.22
+        ↑ career ITM%                      +0.11
+        ↓ won last race                    -0.14
+        ↓ closeness to winner (last race)  -0.07
+        ↓ post position                    -0.06
+    6   2   Forever Hustlin    30.9  31.5     9.4   92 15/1    108.3       7     
+        ↑ speed figure last race           +0.14
+        ↑ won last race                    +0.08
+        ↑ pace progression last race       +0.07
+        ↓ finish placement (last race)     -0.19
+        ↓ closer last race                 -0.11
+        ↓ career ITM%                      -0.07
+    7   8        Yesto Love    25.2  27.4     7.8   94 10/1    112.0       3 -2.2
+        ↑ career win%                      +0.12
+        ↑ speed figure last race           +0.08
+        ↑ won last race                    +0.08
+        ↓ jockey win% on surface           -0.15
+        ↓ starts at this track             -0.12
+        ↓ career starts                    -0.12
+    8   4        Slow No Mo    14.9  16.0     4.3   92 30/1    103.6       5     
+        ↑ closeness to winner (last race)  +0.21
+        ↑ career win%                      +0.13
+        ↑ won last race                    +0.08
+        ↓ finish placement (last race)     -0.47
+        ↓ career ITM%                      -0.27
+        ↓ speed figure last race           -0.19
+
+--- Race 5  (8 horses)  MAIDENSPECIALWEIGHT  990  Dirt  $32,900
+    ⚠ MAIDEN with underraced horses — high variance, model recommends handicapping directly
+      (5 of 8 = 62% have under 3 career starts)
+    feature coverage 89%
+ rank pgm             horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual  +/-
+    1  10       Knight Sage    64.1  63.9    24.0   93  6/5    111.5       1     
+        ↑ finish placement (last race)     +0.38
+        ↑ career ITM%                      +0.27
+        ↑ avg finish placement (last 3)    +0.13
+        ↓ closer last race                 -0.09
+        ↓ blinkers change                  -0.09
+        ↓ post position                    -0.06
+    2   7           Goldeck    62.3  58.3    22.7   88  7/2    100.9       4 +4.0
+        ↑ trainer win% on surface          +0.25
+        ↑ trainer win% at track            +0.17
+        ↑ trainer win% (1yr)               +0.17
+        ↓ first-time blinkers              -0.20
+        ↓ career ITM%                      -0.06
+        ↓ no data: distance specialist     -0.06
+    3   1         Untangled    46.2  41.5    15.6   88 10/1    100.6       3 +4.7
+        ↑ finish placement (last race)     +0.10
+        ↑ post position                    +0.09
+        ↑ first-time blinkers              +0.07
+        ↓ blinkers change                  -0.09
+    4   9     Brother Moses    45.8  45.8    14.7   89 10/1     98.7       2     
+        ↑ finish placement (last race)     +0.24
+        ↑ career ITM%                      +0.09
+        ↑ speed figure last race           +0.07
+        ↓ blinkers change                  -0.09
+    5   3          Revision    33.5  32.1    10.0   88 20/1     95.7       5     
+        ↑ blinkers change                  +0.15
+        ↑ jockey win% on surface           +0.13
+        ↑ last race field size             +0.12
+        ↓ finish placement (last race)     -0.31
+        ↓ first-time blinkers              -0.20
+        ↓ weight (lbs)                     -0.09
+    6   8 Feeling Enchanted    17.8  24.3     4.6   88 30/1     81.0       7 -6.4
+        ↑ blinkers change                  +0.15
+        ↑ first-time blinkers              +0.07
+        ↓ finish placement (last race)     -0.17
+        ↓ speed figure last race           -0.17
+        ↓ jockey win% on surface           -0.10
+    7   4         Juba Jack    16.8  17.2     4.7   88 30/1     87.0       8     
+        ↑ first-time blinkers              +0.07
+        ↓ finish placement (last race)     -0.31
+        ↓ trainer win% on surface          -0.11
+        ↓ closer last race                 -0.09
+    8  11      Twister City    13.6  16.9     3.6   89 30/1     85.7       6 -3.3
+        ↑ finish placement (last race)     +0.10
+        ↑ weight (lbs)                     +0.08
+        ↑ trouble in last trip             +0.08
+        ↓ purse change vs last             -0.15
+        ↓ class rating change vs last      -0.12
+        ↓ jockey win% on surface           -0.12
+
+--- Race 6  (10 horses)  MAIDENSPECIALWEIGHT  1430  Dirt  $32,900
+    ⚠ MAIDEN with underraced horses — high variance, model recommends handicapping directly
+      (6 of 10 = 60% have under 3 career starts)
+    feature coverage 79%
+ rank pgm              horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual   +/-
+    1   7       Saint Shance    52.3  36.3    18.9   91  2/1    116.3       2 +16.0
+        ↑ trainer win% on surface          +0.20
+        ↑ jockey win% on surface           +0.17
+        ↑ blinkers change                  +0.17
+        ↓ finish placement (last race)     -0.32
+        ↓ first-time blinkers              -0.21
+        ↓ class rating change vs last      -0.11
+    2   6   Improbable Dream    36.5  48.0    12.5   69 15/1     95.9       6 -11.4
+        ↑ jockey win% on surface           +0.32
+        ↑ closeness to winner (last race)  +0.22
+        ↑ finish placement (last race)     +0.10
+        ↓ last race was maiden             -0.13
+        ↓ no data: finish placement (last race) -0.11
+        ↓ no data: won last race           -0.11
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    3   8          Zaptastic    34.1  28.3    11.4   93 12/1     94.7       1  +5.8
+        ↑ finish placement (last race)     +0.37
+        ↑ career win%                      +0.15
+        ↑ speed figure last race           +0.09
+        ↓ last race field size             -0.14
+        ↓ starts at this track             -0.13
+        ↓ career starts                    -0.12
+    4   4          Mi Gamble    32.4  35.4    10.6   86 15/1     95.3       3  -3.0
+        ↑ speed figure last race           +0.12
+        ↑ finish placement (last race)     +0.10
+        ↑ last race was maiden             +0.09
+        ↓ last race field size             -0.14
+        ↓ closeness to winner (last race)  -0.11
+        ↓ jockey win% on surface           -0.07
+    5   1             Awegod    29.7  28.5     9.8   93  8/1    101.0       5      
+        ↑ blinkers change                  +0.17
+        ↑ closeness to winner (last race)  +0.13
+        ↑ post position                    +0.11
+        ↓ finish placement (last race)     -0.32
+        ↓ weight (lbs)                     -0.16
+        ↓ class rating change vs last      -0.12
+    6   2 Gil the Trail Boss    28.4  31.5     9.3   58 10/1     94.6       9  -3.1
+        ↑ finish placement (last race)     +0.10
+        ↑ last race field size             +0.10
+        ↑ post position                    +0.09
+        ↓ last race was maiden             -0.13
+        ↓ no data: finish placement (last race) -0.11
+        ↓ no data: won last race           -0.11
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    7   9  Let Da Blood Talk    25.6  28.6     8.3   58 15/1    114.2      10  -3.0
+        ↑ finish placement (last race)     +0.10
+        ↑ last race field size             +0.10
+        ↑ pace type last race    MISSING =  +0.09
+        ↓ last race was maiden             -0.13
+        ↓ no data: finish placement (last race) -0.11
+        ↓ no data: won last race           -0.11
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    8   5      Honorthe Bull    20.7  21.2     6.9   91 30/1     96.0       7      
+        ↑ closeness to winner (last race)  +0.24
+        ↑ last race was maiden             +0.09
+        ↑ no data: finish placement (last race) +0.07
+        ↓ jockey win% on surface           -0.20
+        ↓ finish placement (last race)     -0.18
+        ↓ career ITM%                      -0.18
+    9   3               Ojin    20.5  17.1     6.2   87 20/1     94.6       4  +3.4
+        ↑ last race was maiden             +0.09
+        ↑ no data: won last race           +0.07
+        ↑ no data: finish placement (last race) +0.07
+        ↓ jockey win% on surface           -0.17
+        ↓ last race field size             -0.14
+        ↓ closeness to winner (last race)  -0.11
+   10  10  Honorary American    19.7  25.0     6.2   64  7/5    114.2       8  -5.3
+        ↑ blinkers change                  +0.17
+        ↑ finish placement (last race)     +0.10
+        ↑ last race field size             +0.10
+        ↓ first-time blinkers              -0.21
+        ↓ last race was maiden             -0.13
+        ↓ post position                    -0.11
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+
+--- Race 7  (6 horses)  ALLOWANCE  1540  Dirt  $34,100
+    feature coverage 91%
+ rank pgm            horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual +/-
+    1   7    Life Is Daily    70.8  71.0    26.9   91  8/5    127.2       2    
+        ↑ jockey win% on surface           +0.24
+        ↑ career win% on surface           +0.16
+        ↑ finish placement (last race)     +0.12
+        ↓ career win%                      -0.24
+    2   3    Mr.Dumbledore    58.5  57.3    20.0   92  6/1    118.4       3    
+        ↑ finish placement (last race)     +0.25
+        ↑ career win%                      +0.11
+        ↑ avg finish placement (last 3)    +0.06
+        ↓ won last race                    -0.15
+        ↓ starts at this track             -0.07
+        ↓ career win% on surface           -0.07
+    3   6 Tricks Rfor Juba    58.4  59.0    20.4   93  9/5    121.4       1    
+        ↑ finish placement (last race)     +0.25
+        ↑ career win% on surface           +0.12
+        ↑ career ITM%                      +0.08
+        ↓ career win%                      -0.18
+        ↓ won last race                    -0.15
+        ↓ closeness to winner (last race)  -0.07
+    4   8     Noble Ruling    43.1  44.8    12.7   91 10/1    115.0       4    
+        ↑ won last race                    +0.07
+        ↓ career ITM%                      -0.07
+        ↓ post position                    -0.06
+        ↓ weight (lbs)                     -0.06
+    5   4           WV Lad    37.0  37.1    10.9   91 12/1    113.1       6    
+        ↑ closeness to winner (last race)  +0.07
+        ↑ won last race                    +0.07
+        ↑ career win%                      +0.07
+        ↓ finish placement (last race)     -0.30
+        ↓ speed figure last race           -0.08
+    6   1    Direct Appeal    32.3  30.8     9.0   91 12/1    115.5       5    
+        ↑ career win%                      +0.22
+        ↑ won last race                    +0.07
+        ↑ career ITM%                      +0.06
+        ↓ finish placement (last race)     -0.30
+        ↓ jockey win% on surface           -0.16
+        ↓ career win% on surface           -0.14
+
+--- Race 8  (6 horses)  CLAIMING  1430  Dirt  $15,700
+    feature coverage 90%
+ rank pgm           horse  P(ITM)  base  P(win)  cov   ML PrimePwr  actual  +/-
+    1   2     Outdoor Cat    68.7  64.1    24.6   71  3/5    123.0     NaN +4.6
+        ↑ career starts                    +0.17
+        ↑ career win%                      +0.13
+        ↑ pace type last race    MISSING =  +0.12
+        ↓ no data: finish placement (last race) -0.15
+        ↓ no data: won last race           -0.15
+        ↓ career ITM%                      -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    2  10   Solomons Gold    68.5  70.1    24.6   93 10/1    116.1     2.0     
+        ↑ career ITM%                      +0.25
+        ↑ trainer win% on surface          +0.18
+        ↑ jockey win% on surface           +0.15
+        ↓ career win%                      -0.19
+        ↓ last race field size             -0.16
+        ↓ trainer win% at other tracks     -0.07
+    3   7   Jester's Song    60.1  54.1    20.2   94 12/1    111.9     1.0 +6.0
+        ↑ finish placement (last race)     +0.14
+        ↑ career ITM%                      +0.11
+        ↑ career starts                    +0.10
+        ↓ jockey win% on surface           -0.11
+        ↓ career win% on surface           -0.06
+    4   8   Absolute Grit    58.5  59.1    19.0   95 20/1    109.1     5.0     
+        ↑ career ITM%                      +0.27
+        ↑ career win% on surface           +0.08
+        ↑ starts at this track             +0.07
+        ↓ career win%                      -0.14
+        ↓ weight (lbs)                     -0.08
+    5   9     Smooth Rico    22.4  29.0     5.8   94 20/1    100.1     4.0 -6.7
+        ↑ career win%                      +0.20
+        ↑ finish placement (last race)     +0.14
+        ↓ career ITM%                      -0.35
+        ↓ career win% on surface           -0.18
+        ↓ purse change vs last             -0.15
+    6   4 Cowboy At Heart    21.9  23.5     5.9   94 30/1    103.4     3.0     
+        ↑ wins at this track               +0.14
+        ↑ last race field size             +0.08
+        ↑ speed figure last race           +0.06
+        ↓ finish placement (last race)     -0.28
+        ↓ starts at this track             -0.21
+        ↓ career ITM%                      -0.18
+
+========================================================================
+ CARD SUMMARY — top pick per race
+========================================================================
+ R           top pick  P(ITM)%  ML  cov%
+ 1        #7 Cat Fast     67.0 9/5    94
+ 2      #3 Candied Up     64.2 5/2    93
+ 3 #3 Stettie Hayesen     70.9 9/5    74
+ 4     #3 Edy's Flame     61.3 9/5    92
+ 5    #10 Knight Sage     64.1 6/5    89
+ 6    #7 Saint Shance     52.3 2/1    79
+ 7   #7 Life Is Daily     70.8 8/5    91
+ 8     #2 Outdoor Cat     68.7 3/5    90

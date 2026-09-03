@@ -395,6 +395,63 @@ def alerts(races: list[dict]) -> list[str]:
     return out
 
 
+def print_reranker_split(scored: list[dict]) -> None:
+    """Live base-only vs with-reranker top-pick ITM, on reranked races only.
+
+    Both arms are recomputed from the same scored rows: the reranked arm takes
+    the horse with the highest ``final_p_itm``, the base arm the highest
+    ``base_p_itm``. That is a genuine paired comparison on identical races and
+    identical outcomes -- the only thing that differs is which horse the
+    ranking selected.
+
+    It reads 0/0 until reranked cards have been run *and* scored, which is the
+    honest state until roughly 50-100 races accumulate.
+    """
+    rows = [r for r in scored if r.get("reranker_version")
+            and r.get("base_p_itm") is not None
+            and r.get("final_p_itm") is not None]
+    print("\n=== Reranker: base-only vs with-reranker (live) ===")
+    if not rows:
+        print("No scored races carry reranker output yet.")
+        print("Picks made before the reranker shipped have no base_p_itm, and")
+        print("cards run since then are not scored until their charts load.")
+        return
+
+    by_race: dict[tuple, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_race[(r["track"], r["race_date"], r["race_num"])].append(r)
+
+    arms = {"base only": "base_p_itm", "with reranker": "final_p_itm"}
+    hits = {k: 0 for k in arms}
+    n = changed = 0
+    for g in by_race.values():
+        if g[0].get("top_pick_scratched"):
+            continue
+        n += 1
+        picks = {}
+        for label, key in arms.items():
+            top = max(g, key=lambda r: r[key])
+            picks[label] = top
+            hits[label] += bool(top["hit_itm"])
+        changed += (picks["base only"]["prediction_id"]
+                    != picks["with reranker"]["prediction_id"])
+
+    if not n:
+        print("No scorable reranked races yet.")
+        return
+    versions = sorted({r["reranker_version"] for r in rows})
+    print(f"reranker {', '.join(versions)}   {n} scored race(s), "
+          f"top pick differs in {changed}")
+    for label in arms:
+        print(f"  {label:<16} {hits[label]}/{n} = {_pct(hits[label], n)}")
+    d = hits["with reranker"] - hits["base only"]
+    print(f"  difference       {d:+d} race(s)")
+    if n < 50:
+        print(f"\n  {n} races is far below the ~50-100 needed to read this as")
+        print("  evidence. The standalone cross-validated estimate was +3.9pp")
+        print("  (p=0.064); this line exists to accumulate the live check.")
+
+
 def print_corpus_split(races: list[dict]) -> None:
     ins = [r for r in races if r["in_corpus"] is True]
     outs = [r for r in races if r["in_corpus"] is False]
@@ -502,6 +559,7 @@ def _cli() -> int:
         window += "   [" + "; ".join(bits) + "]"
 
     print_report(races, label, window)
+    print_reranker_split(scored)
     if attributed:
         by_src: dict[str, set[str]] = defaultdict(set)
         for r in attributed:

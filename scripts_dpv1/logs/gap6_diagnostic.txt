@@ -1,0 +1,85 @@
+
+==============================================================================
+ GAP #6 FIELD-EXPERIENCE FEATURES -- DISTRIBUTION DIAGNOSTIC
+==============================================================================
+ races: 29,285   maiden: 9,126   non-maiden: 20,159
+ nulls in the new features: 0
+
+==============================================================================
+ 1. OVERALL DISTRIBUTION (per race)
+==============================================================================
+                              mean     std  min    10%    25%     50%     75%     90%     max
+field_avg_career_starts      7.048   5.901  0.0  0.875  2.375   5.625  10.333  15.167  47.500
+field_median_career_starts   6.210   5.833  0.0  0.500  2.000   4.500   9.000  14.000  47.000
+field_max_career_starts     15.275  11.912  0.0  2.000  6.000  13.000  22.000  32.000  77.000
+field_min_career_starts      1.550   2.701  0.0  0.000  0.000   0.000   2.000   5.000  33.000
+field_pct_debut              0.166   0.233  0.0  0.000  0.000   0.100   0.250   0.500   1.000
+field_pct_underraced         0.383   0.331  0.0  0.000  0.125   0.286   0.625   1.000   1.000
+field_experience_variance    4.612   3.608  0.0  0.816  1.761   3.731   6.619   9.723  23.498
+
+==============================================================================
+ 2. BY RACE TYPE -- maiden vs non-maiden
+==============================================================================
+ field_avg_career_starts        non-maiden mean    9.048 (med   8.20)   maiden mean    2.630 (med   2.11)   sep   -6.418
+ field_median_career_starts     non-maiden mean    8.094 (med   7.00)   maiden mean    2.047 (med   1.50)   sep   -6.047
+ field_max_career_starts        non-maiden mean   19.025 (med  17.00)   maiden mean    6.992 (med   5.00)   sep  -12.033
+ field_min_career_starts        non-maiden mean    2.132 (med   1.00)   maiden mean    0.263 (med   0.00)   sep   -1.869
+ field_pct_debut                non-maiden mean    0.095 (med   0.00)   maiden mean    0.322 (med   0.25)   sep   +0.226
+ field_pct_underraced           non-maiden mean    0.261 (med   0.17)   maiden mean    0.653 (med   0.67)   sep   +0.392
+ field_experience_variance      non-maiden mean    5.680 (med   5.06)   maiden mean    2.254 (med   1.77)   sep   -3.426
+
+ Separation is what matters here: a feature whose maiden and
+ non-maiden means coincide carries no information about the thing
+ Gap #6 describes, however interesting its overall spread.
+
+ By specific maiden type:
+                       field_pct_underraced       field_pct_debut       field_avg_career_starts      
+                                       mean count            mean count                    mean count
+race_type                                                                                            
+MAIDENCLAIMING                        0.547  4917           0.220  4917                   3.386  4917
+MAIDENOPTIONALCLAIMING                0.699   338           0.333   338                   2.112   338
+MAIDENSPECIALWEIGHT                   0.785  3871           0.450  3871                   1.715  3871
+
+==============================================================================
+ 3. THE THREE CT 2026-08-29 MAIDEN RACES
+==============================================================================
+ Gap #6's observed cases. If these features work, these races sit in
+ the underraced tail of the corpus.
+
+ CT 2026-08-29 R3  (MAIDENSPECIALWEIGHT, 7 runners)
+    field_avg_career_starts           1.429   pctile: all races  15.6   among maidens  36.6
+    field_median_career_starts        2.000   pctile: all races  23.3   among maidens  51.3
+    field_max_career_starts           3.000   pctile: all races  10.1   among maidens  22.9
+    field_min_career_starts           0.000   pctile: all races   0.0   among maidens   0.0
+    field_pct_debut                   0.429   pctile: all races  86.5   among maidens  68.0
+    field_pct_underraced              0.714   pctile: all races  78.4   among maidens  52.0
+    field_experience_variance         1.294   pctile: all races  17.6   among maidens  37.1
+
+ CT 2026-08-29 R5  (MAIDENSPECIALWEIGHT, 8 runners)
+    field_avg_career_starts           2.500   pctile: all races  25.8   among maidens  56.3
+    field_median_career_starts        2.000   pctile: all races  23.3   among maidens  51.3
+    field_max_career_starts           6.000   pctile: all races  24.1   among maidens  50.2
+    field_min_career_starts           1.000   pctile: all races  51.4   among maidens  81.1
+    field_pct_debut                   0.000   pctile: all races   0.0   among maidens   0.0
+    field_pct_underraced              0.625   pctile: all races  73.9   among maidens  43.6
+    field_experience_variance         1.658   pctile: all races  23.3   among maidens  46.9
+
+ CT 2026-08-29 R6  (MAIDENSPECIALWEIGHT, 10 runners)
+    field_avg_career_starts           4.600   pctile: all races  43.1   among maidens  82.5
+    field_median_career_starts        1.500   pctile: all races  21.0   among maidens  47.1
+    field_max_career_starts          26.000   pctile: all races  81.2   among maidens  98.5
+    field_min_career_starts           0.000   pctile: all races   0.0   among maidens   0.0
+    field_pct_debut                   0.400   pctile: all races  85.1   among maidens  65.5
+    field_pct_underraced              0.600   pctile: all races  72.5   among maidens  41.7
+    field_experience_variance         7.539   pctile: all races  80.5   among maidens  97.9
+
+
+==============================================================================
+ 4. WHERE THE FLAG THRESHOLD SITS
+==============================================================================
+ all races       27.5% have field_pct_underraced >= 0.60   (n=29,285)
+ maiden races    58.3% have field_pct_underraced >= 0.60   (n=9,126)
+ non-maiden      13.5% have field_pct_underraced >= 0.60   (n=20,159)
+
+ That is the card_picks maiden-warning threshold, shown here against
+ the continuous feature the model will now see instead of a boolean.

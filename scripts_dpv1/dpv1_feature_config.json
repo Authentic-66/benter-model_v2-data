@@ -134,7 +134,7 @@
     },
     "cross_track_priors": true,
     "class_ladder": {
-      "source": "derived — races.class_level is NULL corpus-wide",
+      "source": "derived \u2014 races.class_level is NULL corpus-wide",
       "score": "tier * 10 + within-tier offset (0-9)",
       "claiming_offset_breaks": [
         2500,
@@ -181,14 +181,14 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "days_since_last_workout": {
       "active": false,
       "bucket": 1,
       "bucket_name": "Race-Level Context",
       "type": "numeric",
-      "description": "Days between most recent workout and race — deferred until PP integration.",
+      "description": "Days between most recent workout and race \u2014 deferred until PP integration.",
       "doug_rank": 3,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -203,7 +203,7 @@
       "bucket": 1,
       "bucket_name": "Race-Level Context",
       "type": "categorical",
-      "description": "Sprint→sprint, sprint→route, route→sprint, route→route.",
+      "description": "Sprint\u2192sprint, sprint\u2192route, route\u2192sprint, route\u2192route.",
       "doug_rank": 2,
       "doug_notes": "Distance changes can be significant.  If a horse has ran route races then moves to a sprint, they will 'hopefully' be more fit for the shorter distance.  But, if they have not had any workouts it is questionable.  Horses who have run sprints unsuccesfully and move to a route sometimes do better, but breeding and workouts are a factor for them.",
       "phase3c_status": "BUILT",
@@ -251,7 +251,7 @@
       "bucket": 1,
       "bucket_name": "Race-Level Context",
       "type": "boolean",
-      "description": "Sealed-track proxy — dirt tracks are typically sealed in wet.",
+      "description": "Sealed-track proxy \u2014 dirt tracks are typically sealed in wet.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -269,7 +269,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "log_purse": {
       "active": false,
@@ -282,7 +282,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "month_of_year": {
       "active": false,
@@ -295,7 +295,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "purse": {
       "active": false,
@@ -308,7 +308,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "race_type": {
       "active": true,
@@ -370,7 +370,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": false,
-      "skipped_reason": "Rank 4 — skipped per Doug's ranking."
+      "skipped_reason": "Rank 4 \u2014 skipped per Doug's ranking."
     },
     "days_since_foaled": {
       "active": false,
@@ -461,33 +461,33 @@
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Career average — often dominated by outliers.",
+      "description": "Career average \u2014 often dominated by outliers.",
       "doug_rank": 3,
       "doug_notes": null,
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "career_earnings_usd": {
       "active": false,
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Cumulative gross earnings — proxy for class.",
+      "description": "Cumulative gross earnings \u2014 proxy for class.",
       "doug_rank": 4,
       "doug_notes": null,
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": false,
-      "skipped_reason": "Rank 4 — skipped per Doug's ranking."
+      "skipped_reason": "Rank 4 \u2014 skipped per Doug's ranking."
     },
     "career_itm_pct_shrunk": {
       "active": true,
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Bayesian-shrunk in-the-money (finish ≤ 3) rate.",
+      "description": "Bayesian-shrunk in-the-money (finish \u2264 3) rate.",
       "doug_rank": 1,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -560,7 +560,7 @@
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Signed magnitude of the class move. Doug: 'A significant change in class, up or down, is a big factor' — the categorical alone loses the magnitude.",
+      "description": "Signed magnitude of the class move. Doug: 'A significant change in class, up or down, is a big factor' \u2014 the categorical alone loses the magnitude.",
       "doug_rank": null,
       "doug_notes": null,
       "phase3c_status": "DPV1_NEW",
@@ -573,7 +573,7 @@
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Same as last_race_days_ago — kept for legacy names.",
+      "description": "Same as last_race_days_ago \u2014 kept for legacy names.",
       "doug_rank": 1,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -597,7 +597,7 @@
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Mean of finish_pos over last ≤ 3 starts; requires ≥ 1 prior start.",
+      "description": "Mean of finish_pos over last \u2264 3 starts; requires \u2265 1 prior start.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -615,7 +615,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "last_race_beaten_lengths": {
       "active": true,
@@ -652,14 +652,14 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": false,
-      "skipped_reason": "Rank 4 — skipped per Doug's ranking."
+      "skipped_reason": "Rank 4 \u2014 skipped per Doug's ranking."
     },
     "last_race_field_size": {
       "active": true,
       "bucket": 3,
       "bucket_name": "Recent Form",
       "type": "numeric",
-      "description": "Field size in last race — contextualizes the finish.",
+      "description": "Field size in last race \u2014 contextualizes the finish.",
       "doug_rank": 1,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -749,7 +749,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": false,
-      "blocked_reason": "No workout data in Equibase result charts. Needs Brisnet/DRF PP feed. Doug ranked this 2 — highest-value gap that a PP feed would close.",
+      "blocked_reason": "No workout data in Equibase result charts. Needs Brisnet/DRF PP feed. Doug ranked this 2 \u2014 highest-value gap that a PP feed would close.",
       "unblocked_by": "pp_has_recent_bullet",
       "unblocked_phase": "5A"
     },
@@ -851,7 +851,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "jockey_30d_winrate_shrunk": {
       "active": true,
@@ -936,7 +936,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "jockey_starts_30d": {
       "active": true,
@@ -961,7 +961,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "jockey_won_last_race": {
       "active": false,
@@ -974,7 +974,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "new_jockey_flag": {
       "active": false,
@@ -987,7 +987,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "new_trainer_flag": {
       "active": true,
@@ -1012,7 +1012,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": false,
-      "skipped_reason": "Rank 4 — skipped per Doug's ranking."
+      "skipped_reason": "Rank 4 \u2014 skipped per Doug's ranking."
     },
     "trainer_30d_winrate_shrunk": {
       "active": true,
@@ -1121,20 +1121,20 @@
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "trainer_jockey_combo_starts": {
       "active": false,
       "bucket": 4,
       "bucket_name": "Connections (Trainer/Jockey)",
       "type": "numeric",
-      "description": "How many times this combo has run before — signals familiarity.",
+      "description": "How many times this combo has run before \u2014 signals familiarity.",
       "doug_rank": 3,
       "doug_notes": null,
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "trainer_jockey_combo_winrate_shrunk": {
       "active": false,
@@ -1147,7 +1147,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "trainer_off_layoff_win_pct": {
       "active": true,
@@ -1190,7 +1190,7 @@
       "bucket": 4,
       "bucket_name": "Connections (Trainer/Jockey)",
       "type": "numeric",
-      "description": "Trainer's starter volume in the last 30 days — activity proxy.",
+      "description": "Trainer's starter volume in the last 30 days \u2014 activity proxy.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1208,7 +1208,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "trainer_workout_pattern": {
       "active": false,
@@ -1310,7 +1310,7 @@
       "bucket": 5,
       "bucket_name": "Pedigree (Sire/Dam)",
       "type": "boolean",
-      "description": "First start with Lasix — often a positive signal.",
+      "description": "First start with Lasix \u2014 often a positive signal.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1350,7 +1350,7 @@
       "bucket": 5,
       "bucket_name": "Pedigree (Sire/Dam)",
       "type": "numeric",
-      "description": "Sire progeny win rate on this surface — Phase 3F.",
+      "description": "Sire progeny win rate on this surface \u2014 Phase 3F.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1580,7 +1580,7 @@
       "bucket": 6,
       "bucket_name": "Race Dynamics (Post/Pace/Weight)",
       "type": "numeric",
-      "description": "Average start_pos over last ≤ 3 starts (lower = sharper break).",
+      "description": "Average start_pos over last \u2264 3 starts (lower = sharper break).",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1598,7 +1598,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "is_outside_post": {
       "active": false,
@@ -1611,7 +1611,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "lasix_first_time": {
       "active": true,
@@ -1667,7 +1667,7 @@
       "bucket": 6,
       "bucket_name": "Race Dynamics (Post/Pace/Weight)",
       "type": "categorical",
-      "description": "front / stalk / mid / close — bucketed by early call position.",
+      "description": "front / stalk / mid / close \u2014 bucketed by early call position.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1697,7 +1697,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "post_rank_in_field": {
       "active": false,
@@ -1710,7 +1710,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "running_style_last_3": {
       "active": true,
@@ -1735,7 +1735,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "surface_change_from_last_race": {
       "active": true,
@@ -1784,7 +1784,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "final_odds": {
       "active": true,
@@ -1815,7 +1815,7 @@
       "bucket": 7,
       "bucket_name": "Market Signals (Tote)",
       "type": "boolean",
-      "description": "Chart flag — post-time favorite.",
+      "description": "Chart flag \u2014 post-time favorite.",
       "doug_rank": 1,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1827,7 +1827,7 @@
       "bucket": 7,
       "bucket_name": "Market Signals (Tote)",
       "type": "numeric",
-      "description": "Log-transformed final odds — smoother distribution.",
+      "description": "Log-transformed final odds \u2014 smoother distribution.",
       "doug_rank": 1,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1851,7 +1851,7 @@
       "bucket": 7,
       "bucket_name": "Market Signals (Tote)",
       "type": "numeric",
-      "description": "Morning line — leads to price-drift features.",
+      "description": "Morning line \u2014 leads to price-drift features.",
       "doug_rank": 3,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -1885,7 +1885,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "odds_ratio_to_favorite": {
       "active": false,
@@ -1898,7 +1898,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "YES",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "condition_change_from_last_race": {
       "active": true,
@@ -1953,7 +1953,7 @@
       "bucket": 8,
       "bucket_name": "Track-Specific Dynamics",
       "type": "numeric",
-      "description": "Number of prior shipping starts — sample size behind horse_shipping_success_rate.",
+      "description": "Number of prior shipping starts \u2014 sample size behind horse_shipping_success_rate.",
       "doug_rank": null,
       "doug_notes": null,
       "phase3c_status": "DPV1_NEW",
@@ -2063,7 +2063,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": false,
-      "skipped_reason": "Rank 4 — skipped per Doug's ranking."
+      "skipped_reason": "Rank 4 \u2014 skipped per Doug's ranking."
     },
     "outside_bias_flag": {
       "active": true,
@@ -2100,7 +2100,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "starts_at_track": {
       "active": true,
@@ -2127,7 +2127,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "track_bias_running_style": {
       "active": true,
@@ -2158,7 +2158,7 @@
       "bucket": 8,
       "bucket_name": "Track-Specific Dynamics",
       "type": "numeric",
-      "description": "Par time for this (surf, dist, cond) cell — signal about race speed.",
+      "description": "Par time for this (surf, dist, cond) cell \u2014 signal about race speed.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "BUILT",
@@ -2189,7 +2189,7 @@
       "phase3c_status": "BUILT",
       "v2_active": "NO",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "track_turf_bias_90d": {
       "active": true,
@@ -2214,7 +2214,7 @@
       "phase3c_status": "CANDIDATE",
       "v2_active": "N/A",
       "implemented": true,
-      "inactive_reason": "Rank 3 — built but held inactive; flip 'active' to include."
+      "inactive_reason": "Rank 3 \u2014 built but held inactive; flip 'active' to include."
     },
     "trainer_at_other_tracks_starts": {
       "active": true,
@@ -2285,7 +2285,7 @@
       "bucket": 9,
       "bucket_name": "PP Data",
       "type": "numeric",
-      "description": "Brisnet morning-line odds as decimal (fraction + 1). A FEATURE, never an anchor — see module docstring.",
+      "description": "Brisnet morning-line odds as decimal (fraction + 1). A FEATURE, never an anchor \u2014 see module docstring.",
       "doug_rank": 3,
       "doug_notes": null,
       "phase3c_status": "NOT_IN_CATALOG",
@@ -2481,7 +2481,7 @@
       "bucket": 9,
       "bucket_name": "PP Data",
       "type": "numeric",
-      "description": "OLS slope of speed figures over recent starts — form trajectory.",
+      "description": "OLS slope of speed figures over recent starts \u2014 form trajectory.",
       "doug_rank": 2,
       "doug_notes": null,
       "phase3c_status": "NOT_IN_CATALOG",
@@ -3199,6 +3199,162 @@
       "availability": "PP_AVAILABLE",
       "pp_coverage_pct": 100.0,
       "activation_blocked_reason": "PP catalogue covers 220 of 28,105 races (Phase 5A). Activate in the main pipeline only when PP coverage is broad enough that the column is not null for most of the corpus."
+    },
+    "field_avg_career_starts": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Mean career starts across the field (corpus-visible starts; absent counts as 0).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "field_median_career_starts": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Median career starts across the field; less sensitive to one veteran than the mean.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "field_max_career_starts": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Most experienced runner in the field.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "field_min_career_starts": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Least experienced runner in the field; 0 whenever any debut/unseen horse is entered.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "field_pct_debut": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Share of the field with 0 corpus-visible career starts (true first-timers AND shippers).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "field_pct_underraced": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Share of the field with fewer than 3 corpus-visible career starts.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "field_experience_variance": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Population std dev of career starts across the field; separates uniformly-green fields from mixed ones.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6: field-experience composition.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "career_starts_vs_field_mean": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Own career starts minus the field mean; experience edge over rivals.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "career_starts_pctile_in_field": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Within-race percentile rank of own career starts (0-1, ordinal).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "is_most_experienced_in_field": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "1 if this horse has the most corpus-visible starts in the field (max>0).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "career_starts_x_field_pct_underraced": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Own career starts x share of field under 3 starts.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "career_starts_x_field_variance": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Own career starts x spread of field experience.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "experience_edge_x_pct_underraced": {
+      "active": true,
+      "bucket": 1,
+      "bucket_name": "Race-Level Context",
+      "type": "numeric",
+      "description": "Experience edge over field mean, weighted by how green the field is.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
     }
   }
 }

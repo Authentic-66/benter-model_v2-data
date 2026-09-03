@@ -311,6 +311,114 @@ def build_card(pdf: str | Path, track_code: str | None = None) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# PP staging (Phase 6D, Gap #1 Option A prerequisite)
+#
+# Loading a card used to write only races + resultless entries, so the ~57
+# Brisnet-derived columns the parser produces were used once for prediction
+# and then thrown away. ``pp_entries_raw`` was populated solely by
+# ``parse_pp_files.py parse``, a manual batch job last run 2026-08-21, which is
+# why cards loaded since then had no PP history to query.
+#
+# Staging now happens as part of the load, in the same transaction, so a card
+# that is loaded is a card whose PP data is queryable.
+#
+# Two compatibility rules with parse_pp_files.py, both load-bearing:
+#
+#   * The schema comes from that module's own ``_feature_ddl()`` rather than a
+#     copy, so the two writers cannot drift apart.
+#   * ``horse_norm`` uses that module's ``normalize_name``. The ``match`` step
+#     joins on it, and a second normalisation would silently fail to match.
+#
+# Note ``parse_pp_files.py parse`` is DROP-and-replace: running it rebuilds the
+# whole table from its directory walk. Rows staged here survive that only if
+# the PP file lives under one of its ``PP_DIRS``, which in practice it does.
+# ---------------------------------------------------------------------------
+
+from parse_pp_files import (  # noqa: E402
+    RAW_TABLE as PP_RAW_TABLE, _feature_ddl as _pp_feature_ddl,
+    normalize_name as pp_normalize_name,
+)
+from brisnet_pp_parser import PP_FEATURE_COLUMNS  # noqa: E402
+
+PP_STAGE_COLS = (["source_pdf", "track", "race_date", "race_num",
+                  "program_num", "horse_name", "horse_norm", "pp_trainer",
+                  "pp_jockey", "pp_sire", "pp_ml_text", "pp_surface",
+                  "pp_conditions"] + list(PP_FEATURE_COLUMNS))
+
+
+def ensure_pp_raw_table(conn: sqlite3.Connection) -> None:
+    """Create ``pp_entries_raw`` if absent, matching parse_pp_files' schema."""
+    conn.executescript(f"""
+        CREATE TABLE IF NOT EXISTS {PP_RAW_TABLE} (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_pdf    TEXT NOT NULL,
+            track         TEXT NOT NULL,
+            race_date     TEXT NOT NULL,
+            race_num      INTEGER NOT NULL,
+            program_num   TEXT,
+            horse_name    TEXT,
+            horse_norm    TEXT,
+            pp_trainer    TEXT,
+            pp_jockey     TEXT,
+            pp_sire       TEXT,
+            pp_ml_text    TEXT,
+            pp_surface    TEXT,
+            pp_conditions TEXT,
+            entry_id      INTEGER,
+            match_status  TEXT,
+            match_method  TEXT,
+            {_pp_feature_ddl()}
+        );
+        CREATE INDEX IF NOT EXISTS idx_{PP_RAW_TABLE}_key
+            ON {PP_RAW_TABLE}(track, race_date, race_num, horse_norm);
+        CREATE INDEX IF NOT EXISTS idx_{PP_RAW_TABLE}_entry
+            ON {PP_RAW_TABLE}(entry_id);
+    """)
+
+
+def stage_pp_entries(conn: sqlite3.Connection, card: dict) -> int:
+    """Persist every parsed starter of ``card`` to ``pp_entries_raw``.
+
+    Idempotent at card grain: every existing row for this
+    ``(track, race_date)`` is deleted first, then the card is written fresh.
+    Card-level rather than row-level replacement because a re-parse can legally
+    produce a *different* set of horses — a late scratch removed, a program
+    number corrected — and upserting row by row would strand the originals.
+
+    Scratched horses are staged like any other. The PP file is a pre-race
+    document and lists everyone entered; which of them went to post is a
+    question for ``entries``, and keeping the rest is the point of a staging
+    table.
+    """
+    ensure_pp_raw_table(conn)
+    track, race_date = card["track"], card["race_date"]
+    conn.execute(f"DELETE FROM {PP_RAW_TABLE} WHERE track = ? AND race_date = ?",
+                 (track, race_date))
+
+    source = Path(card["source_pdf"]).name
+    rows = []
+    for race in card["races"]:
+        for h in race.get("horses", []):
+            # The parser returns the pp_* columns directly on the horse dict.
+            # (brisnet_pp_parser.horse_to_pp_features expects an older dict
+            # shape and returns almost all NULL against this one -- do not use
+            # it here.)
+            rows.append(
+                [source, track, race_date, int(race["race_num"]),
+                 str(h.get("program_num")), h.get("horse_name"),
+                 pp_normalize_name(h.get("horse_name")), h.get("trainer"),
+                 h.get("jockey"), h.get("sire"), h.get("ml"),
+                 race.get("surface"), race.get("conditions")]
+                + [h.get(c) for c in PP_FEATURE_COLUMNS]
+            )
+    if rows:
+        conn.executemany(
+            f"INSERT INTO {PP_RAW_TABLE} ({','.join(PP_STAGE_COLS)}) "
+            f"VALUES ({','.join('?' * len(PP_STAGE_COLS))})", rows)
+    return len(rows)
+
+
+# ---------------------------------------------------------------------------
 # Database write
 # ---------------------------------------------------------------------------
 
@@ -425,12 +533,16 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
                      str(h.get("program_num")),
                      _to_int(h.get("program_num"))))
                 n_entries += 1
+
+        # Same transaction as the entries insert: a card is either loaded and
+        # queryable, or neither.
+        n_staged = stage_pp_entries(conn, card)
         conn.commit()
     finally:
         conn.close()
 
     return {"track": card["track"], "race_date": card["race_date"],
-            "races": n_races, "entries": n_entries}
+            "races": n_races, "entries": n_entries, "pp_staged": n_staged}
 
 
 def _to_int(v):
@@ -503,7 +615,7 @@ def _cli() -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    for name in ("inspect", "load"):
+    for name in ("inspect", "load", "stage"):
         s = sub.add_parser(name)
         s.add_argument("pdf")
         s.add_argument("--track", default=None)
@@ -529,6 +641,22 @@ def _cli() -> int:
         return 0
 
     card = build_card(args.pdf, args.track)
+
+    if args.cmd == "stage":
+        # PP staging only -- races and entries are left alone. This is the
+        # backfill path for a card whose results are already loaded: running
+        # `load` on one of those would (correctly) be refused by remove_card,
+        # and there is no reason to touch entries just to capture PP history.
+        conn = sqlite3.connect(args.db)
+        try:
+            n = stage_pp_entries(conn, card)
+            conn.commit()
+        finally:
+            conn.close()
+        print(f"staged {n} PP starters for {card['track']} "
+              f"{card['race_date']} into {PP_RAW_TABLE}")
+        return 0
+
     _print_card(card)
 
     hist = known_horse_rate(args.db, card)

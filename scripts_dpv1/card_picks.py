@@ -240,6 +240,21 @@ PLAIN_LABELS: dict[str, str] = {
     "track_code__GP": "at GP",
     "track_code__MNR": "at MNR",
 
+    # ── Field experience (Phase 6D gap #6) ─────────────────────────
+    "field_avg_career_starts": "field avg career starts",
+    "field_median_career_starts": "field median career starts",
+    "field_max_career_starts": "most experienced rival",
+    "field_min_career_starts": "least experienced rival",
+    "field_pct_debut": "share of field unraced (debut or shipper)",
+    "field_pct_underraced": "share of field under 3 starts",
+    "field_experience_variance": "spread of field experience",
+    "career_starts_vs_field_mean": "experience vs field average",
+    "career_starts_pctile_in_field": "experience rank within field",
+    "is_most_experienced_in_field": "most experienced in the field",
+    "career_starts_x_field_pct_underraced": "experience in a green field",
+    "career_starts_x_field_variance": "experience in a mixed-experience field",
+    "experience_edge_x_pct_underraced": "experience edge, weighted by field greenness",
+
     # ── Race type ──────────────────────────────────────────────────
     "race_type__ALLOWANCE": "allowance race",
     "race_type__ALLOWANCEOPTIONALCLAIMING": "allowance optional claiming",
@@ -282,7 +297,12 @@ def _label(raw: str) -> str:
             return f"no data: {head_label}"
         return f"{head_label} = {tail_clean}"
 
-        return raw.replace("_", " ")
+    # Case 3 from the docstring. This line was indented one level too far and
+    # sat after a return, so it was unreachable: any name without a "__" and
+    # without a PLAIN_LABELS entry fell off the end and rendered as the string
+    # "None" in the reasons block. Found 2026-09-01 via the field-experience
+    # interaction terms, which are exactly that shape.
+    return raw.replace("_", " ")
 
 
 def compute_reasons(card, model, top_k: int = 3,
@@ -346,6 +366,128 @@ log = logging.getLogger("card_picks")
 TRAINING_TRACKS = ("CT", "ELP", "GP", "MNR")
 SHIPPER_COV_MAX = 0.60
 SHIPPER_MIN_PRIOR_STARTS = 2
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PP reranker (Phase 6D Gap #1, shipped 2026-09-01).
+#
+# A second-stage logistic model over the base model's fundamental logit, fitted
+# on the rows where Brisnet PP data exists. It corrects a measured bias: the
+# base model OVER-rates horses the corpus cannot see, because a blank history
+# block is median-imputed and flagged, which pulls the estimate toward a
+# population prior of ~0.35-0.41 while those horses actually hit at 0.286-0.324.
+#
+# Standalone cross-validated effect: +3.9pp top-pick ITM over 259 races
+# (p=0.064). Positive on every track with data. See PHASE_6D_ROADMAP.md.
+#
+# Applied per horse and only where PP data exists. On a live card handed a PP
+# file that is every horse; a horse without PP data passes through untouched,
+# so the runner degrades exactly to base behaviour rather than failing.
+# ─────────────────────────────────────────────────────────────────────────────
+RERANK_SHOW_DELTA_PP = 2.0      # show the +/- marker at this many points
+
+_RERANKER = None
+_RERANKER_TRIED = False
+
+
+def get_reranker(path=None):
+    """Load the reranker once. Returns None if unavailable, never raises.
+
+    ``load_reranker`` rather than ``pickle.load``: the artifact is written by
+    its training script run as ``__main__``, so the class is pickled as
+    ``__main__.PPReranker`` and a bare load elsewhere raises AttributeError.
+    """
+    global _RERANKER, _RERANKER_TRIED
+    if _RERANKER_TRIED:
+        return _RERANKER
+    _RERANKER_TRIED = True
+    try:
+        from dpv1_pp_reranker_train import load_reranker
+        _RERANKER = load_reranker(path) if path else load_reranker()
+        log.debug("loaded reranker %s", _RERANKER.version)
+    except Exception as exc:  # noqa: BLE001 - picks must survive a bad artifact
+        log.warning("PP reranker unavailable (%s); using base model only", exc)
+        _RERANKER = None
+    return _RERANKER
+
+
+def pp_rows_for_race(db, track: str, date: str, race_num: int) -> dict:
+    """``normalised program number -> pp_entries_raw row`` for one race."""
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            """
+            SELECT program_num, pp_career_starts, pp_days_off, pp_races_in_60d,
+                   pp_running_style, pp_best_speed
+            FROM pp_entries_raw
+            WHERE track = ? AND race_date = ? AND race_num = ?
+            """, (track.upper(), date, int(race_num))).fetchall()
+    except sqlite3.OperationalError as exc:
+        log.warning("pp_entries_raw not readable (%s)", exc)
+        return {}
+    finally:
+        conn.close()
+    return {_norm_pgm(r["program_num"]): dict(r) for r in rows}
+
+
+def _norm_pgm(v) -> str:
+    return str(v).strip().upper() if v is not None else ""
+
+
+def rerank_probabilities(card, p_fund, db, track, date, race_num):
+    """Adjusted fundamental P(ITM) plus the per-horse logit delta.
+
+    Returns ``(p_adjusted, delta, n_applied)``. Horses with no PP row keep
+    their base probability and a delta of NaN, which is what the log records
+    as "the reranker had nothing to say about this horse".
+    """
+    import numpy as _np
+    p_fund = _np.asarray(p_fund, dtype=float)
+    delta = _np.full(len(p_fund), _np.nan)
+    rr = get_reranker()
+    if rr is None:
+        return p_fund, delta, 0
+
+    pp = pp_rows_for_race(db, track, date, race_num)
+    if not pp:
+        return p_fund, delta, 0
+
+    programs = [_norm_pgm(p) for p in card.programs()]
+    have = [i for i, pg in enumerate(programs) if pg in pp]
+    if not have:
+        return p_fund, delta, 0
+
+    from dpv1_pp_reranker_train import build_features, logit as _rr_logit
+    corpus = (card.frame["career_starts"].to_numpy()
+              if "career_starts" in card.frame.columns
+              else _np.zeros(len(p_fund)))
+    base_logit = _rr_logit(p_fund)
+
+    # Build through the training module's own feature builder so inference and
+    # training cannot drift apart.
+    sub = pd.DataFrame({
+        "corpus_starts": [corpus[i] for i in have],
+        "pp_career_starts": [pp[programs[i]]["pp_career_starts"] for i in have],
+        "pp_days_off": [pp[programs[i]]["pp_days_off"] for i in have],
+        "pp_races_in_60d": [pp[programs[i]]["pp_races_in_60d"] for i in have],
+        "pp_running_style": [pp[programs[i]]["pp_running_style"] for i in have],
+        "pp_best_speed": [pp[programs[i]]["pp_best_speed"] for i in have],
+        "base_logit": [base_logit[i] for i in have],
+    })
+    X, names = build_features(sub, rr.mode,
+                              rr.training_notes.get("style_spec", "explicit-na"),
+                              rr.training_notes.get("impute"))
+    if list(names) != list(rr.feature_names):
+        log.warning("reranker feature mismatch (built %s, expected %s); "
+                    "skipping rerank", names, rr.feature_names)
+        return p_fund, delta, 0
+
+    adj_logit = rr.adjust_logit(sub["base_logit"].to_numpy(), X.to_numpy())
+    out = p_fund.copy()
+    for k, i in enumerate(have):
+        delta[i] = adj_logit[k] - base_logit[i]
+        out[i] = 1.0 / (1.0 + _np.exp(-adj_logit[k]))
+    return out, delta, len(have)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -459,6 +601,41 @@ def shipper_flags(card, per_horse_cov, db, race_date: str) -> list[bool]:
 
 
 
+def card_is_scored(db, track: str, date: str) -> tuple[int, int]:
+    """``(races with a recorded finish, races on the card)`` for one card.
+
+    A card whose results are loaded has already been predicted, scored and
+    folded into the live record. Re-running picks on it produces a *different*
+    opinion -- the field is now the post-scratch starter list -- and logging
+    that opinion makes it the newest run, which is the one
+    ``score_predictions.latest_run_only`` keeps. The earlier, genuine pre-race
+    prediction is then silently superseded and the scored record changes.
+
+    This has happened three times, most recently when a verification run on
+    CT 2026-08-29 overwrote a scored 3/8 record with a post-scratch re-read.
+    """
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        row = conn.execute(
+            """
+            SELECT COUNT(DISTINCT CASE WHEN e.finish_pos IS NOT NULL
+                                       THEN r.id END),
+                   COUNT(DISTINCT r.id)
+            FROM races r
+            JOIN race_days rd ON rd.id = r.race_day_id
+            JOIN tracks t     ON t.id  = rd.track_id
+            LEFT JOIN entries e ON e.race_id = r.id
+            WHERE t.code = ? AND rd.race_date = ?
+            """, (track.upper(), date)).fetchone()
+        return (int(row[0] or 0), int(row[1] or 0))
+    except sqlite3.OperationalError as exc:
+        log.warning("could not check whether %s %s is scored (%s)",
+                    track, date, exc)
+        return (0, 0)
+    finally:
+        conn.close()
+
+
 def race_numbers(db, track: str, date: str) -> list[int]:
     conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     try:
@@ -513,17 +690,37 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
             log.warning("R%s: PP bridge failed (%s)", race_num, exc)
 
     pred = predict_card(card, model, use="fundamental")
-    sim = simulate_prediction(pred, n_iter=iters, seed=seed)
+    base_sim = simulate_prediction(pred, n_iter=iters, seed=seed)
     cov = coverage_report(card, model)
+
+    # PP reranker. The adjustment is applied to the fundamental probability and
+    # then pushed back through normalisation and the Harville inversion, so the
+    # win probabilities and the simulator stay consistent with the reranked
+    # P(ITM) rather than describing a different race.
+    p_adj, rr_delta, n_reranked = rerank_probabilities(
+        card, pred.p_fund, db, track, date, race_num)
+    if n_reranked:
+        from dpv1_runtime import Prediction, invert_harville, normalise_itm
+        p_norm = normalise_itm(p_adj)
+        p_win, info = invert_harville(p_norm)
+        pred = Prediction(card=card, p_fund=pred.p_fund, p_market=pred.p_market,
+                          p_blend=pred.p_blend, p_used=p_adj,
+                          used_name="fundamental+reranker",
+                          p_itm_normalised=p_norm, p_win=p_win, inversion=info)
+        sim = simulate_prediction(pred, n_iter=iters, seed=seed)
+    else:
+        sim = base_sim
 
     names = card.names()
     d = pd.DataFrame({
         "pgm": card.programs(),
         "horse": names,
         "P(ITM)": sim.p_itm(),
+        "base": base_sim.p_itm(),
         "P(win)": sim.position_matrix()[:, 0],
         "cov": cov["per_horse"],
     })
+    d["_rr_delta"] = rr_delta
     mls, pps = [], []
     for nm in names:
         v = ml_map.get((race_num, normalize_name(nm)), (None, None, None))
@@ -555,6 +752,7 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
             "conditions": card.conditions, "coverage": cov["overall"],
             "maiden_flag": maiden, "underraced": under,
             "underraced_share": under_share,
+            "n_reranked": n_reranked,
             "table": d}
 
 
@@ -575,7 +773,14 @@ def print_race(r: dict) -> None:
     print(f"    feature coverage {r['coverage'] * 100:.0f}%")
 
     d = r["table"].copy()
+    # "+/-" makes visible WHEN the reranker acted and in WHICH direction, so a
+    # reader is never left guessing whether a pick is the base model's opinion
+    # or an adjusted one. Blank below the threshold to keep the page quiet.
+    shown = (d["P(ITM)"] - d["base"]) * 100
+    d["+/-"] = [f"{v:+.1f}" if pd.notna(v) and abs(v) >= RERANK_SHOW_DELTA_PP
+                else "" for v in shown]
     d["P(ITM)"] = (d["P(ITM)"] * 100).round(1)
+    d["base"] = (d["base"] * 100).round(1)
     d["P(win)"] = (d["P(win)"] * 100).round(1)
     d["cov"] = (d["cov"] * 100).round(0).astype(int)
     if "PrimePwr" in d.columns:
@@ -656,6 +861,10 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
     for r in results:
         race_num = int(r["race_num"])
         table = r["table"]
+        # Recorded per row so a later analysis can separate reranked picks from
+        # base-only ones without having to know when deployment happened.
+        reranker_version = (getattr(get_reranker(), "version", None)
+                            if r.get("n_reranked") else None)
         n_horses = int(len(table))
         maiden = bool(r.get("maiden_flag"))
         maiden_share = _round(r.get("underraced_share"), 4)
@@ -681,6 +890,10 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
                 "rank": _jsonable(h.get("rank")),
                 "n_horses_in_race": n_horses,
                 "picks_file": picks_file,
+                "base_p_itm": _round(h.get("base"), 4),
+                "final_p_itm": _round(h.get("P(ITM)"), 4),
+                "reranker_delta": _round(h.get("_rr_delta"), 4),
+                "reranker_version": reranker_version,
                 "corpus_coverage": _round(h.get("_corpus_cov"), 4),
                 "shipper_flag": bool(h.get("_shipper", False)),
                 "maiden_flag": maiden,   # race-level, repeated on each row
@@ -718,7 +931,11 @@ def _cli() -> int:
                    help="write a timestamped copy of this output")
     p.add_argument("--outdir", default=str(DPV1_DIR / "picks"))
     p.add_argument("--log-file", default=None,
-                   help="override logs/predictions.jsonl (--save only)")
+                   help="override logs/predictions.jsonl (--save only); also "
+                        "the safe way to re-read an already-scored card")
+    p.add_argument("--force", action="store_true",
+                   help="log even when the card is already scored, "
+                        "overwriting the pre-race prediction of record")
     args = p.parse_args()
 
     logging.basicConfig(level=logging.WARNING,
@@ -792,6 +1009,26 @@ def _cli() -> int:
         sys.stdout = sys.__stdout__
 
     if args.save:
+        # Guard the audit trail before writing anything. A scored card's
+        # prediction log is a historical record; re-running picks on it and
+        # logging the result rewrites that history.
+        n_scored, n_races = card_is_scored(args.db, args.track, args.date)
+        if n_scored and not args.log_file and not args.force:
+            print(f"\nREFUSING to log: {args.track.upper()} {args.date} is "
+                  f"already scored ({n_scored} of {n_races} races have "
+                  f"finishing positions).")
+            print("\n  Re-running picks on a scored card predicts the "
+                  "post-scratch field, and logging")
+            print("  that would make it the newest run -- superseding the "
+                  "genuine pre-race prediction")
+            print("  that the live record is built on.")
+            print("\n  Two ways forward:")
+            print(f"    --log-file <path>   write to a scratch log, leaving "
+                  f"the audit trail alone")
+            print(f"    --force             acknowledge and update the audit "
+                  f"trail anyway")
+            return 3
+
         outdir = Path(args.outdir)
         outdir.mkdir(parents=True, exist_ok=True)
         generated_at = datetime.now()
@@ -818,6 +1055,15 @@ def _cli() -> int:
             picks_rel = picks_file.as_posix()
         log_path = Path(args.log_file) if args.log_file else (
             LOG_DIR / 'predictions.jsonl')
+        if n_scored and args.force:
+            log.warning("--force: %s %s is already scored; this run becomes "
+                        "the newest and supersedes the pre-race prediction",
+                        args.track.upper(), args.date)
+            print("")
+            print("WARNING: --force on an already-scored card. This run "
+                  "supersedes the pre-race")
+            print(f"         prediction for {args.track.upper()} "
+                  f"{args.date} in the audit trail.")
         try:
             rows = prediction_rows(
                 results, track=args.track, race_date=args.date,

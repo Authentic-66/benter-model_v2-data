@@ -57,8 +57,8 @@ import feature_builder as v1  # noqa: E402
 
 from new_features import (  # noqa: E402
     aggregate_features, class_change_features, cross_track_features,
-    equipment_features, pace_bias_features, pedigree_features,
-    recent_form_features, troubled_trip_detector,
+    equipment_features, field_experience_features, pace_bias_features,
+    pedigree_features, recent_form_features, troubled_trip_detector,
 )
 
 log = logging.getLogger("feature_builder_dpv1")
@@ -328,6 +328,7 @@ DPV1_MODULES = [
     ("pace_bias", pace_bias_features.compute),
     ("pedigree", pedigree_features.compute),
     ("equipment", equipment_features.compute),
+    ("field_experience", field_experience_features.compute),
     ("extras", compute_dpv1_extras),
 ]
 

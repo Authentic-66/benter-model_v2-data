@@ -59,6 +59,7 @@ import pickle
 import sqlite3
 import sys
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -75,6 +76,46 @@ log = logging.getLogger("dpv1_runtime")
 
 DEFAULT_MODEL = DPV1_DIR / "dpv1.pkl"
 DEFAULT_DB = REPO / "scripts" / "racing_full.db"
+
+
+def to_utc(value) -> datetime | None:
+    """Coerce any timestamp in this project to an aware UTC ``datetime``.
+
+    Three clocks meet in this codebase and they do not agree:
+
+    * ``parsed_files.parsed_at`` is a naive UTC string written by the loader.
+    * ``DPv1Model.trained_at`` is ISO 8601 *with* a ``+00:00`` offset.
+    * Picks-file stamps and filesystem mtimes are naive **local** time.
+
+    Comparing across them unconverted is not hypothetical: on 2026-08-29 the
+    model's ``trained_at`` of ``14:20:19Z`` was read against local picks stamps
+    of ``09:24``, concluding those picks predated the model. Local is UTC-5, so
+    training had finished at 09:20 local and the picks came *after* it. The
+    wrong conclusion reached a project document before it was caught.
+
+    A naive value is assumed to be UTC, which is right for the database columns
+    and wrong for a local mtime — so convert local values at their source
+    (``datetime.fromtimestamp(ts, tz=timezone.utc)``) rather than handing a
+    naive local timestamp to this function.
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        dt = value
+    elif isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value, tz=timezone.utc)
+    else:
+        text = str(value).strip()
+        if not text:
+            return None
+        if text.endswith("Z"):
+            text = text[:-1] + "+00:00"
+        try:
+            dt = datetime.fromisoformat(text)
+        except ValueError:
+            dt = pd.to_datetime(text, utc=True).to_pydatetime()
+    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None \
+        else dt.astimezone(timezone.utc)
 
 EPS = 1e-12
 

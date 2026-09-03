@@ -122,6 +122,16 @@ CREATE TABLE {FILES_TABLE} (
 );
 """
 
+# Non-dropping variants for --incremental. Derived from DDL by swapping the
+# DROP/CREATE pair for CREATE IF NOT EXISTS, so the column list has exactly one
+# definition and the two modes cannot produce different schemas.
+INCREMENTAL_DDL = (DDL
+                   .replace(f"DROP TABLE IF EXISTS {RAW_TABLE};", "")
+                   .replace(f"DROP TABLE IF EXISTS {FILES_TABLE};", "")
+                   .replace("CREATE TABLE ", "CREATE TABLE IF NOT EXISTS ")
+                   .replace("CREATE INDEX ", "CREATE INDEX IF NOT EXISTS "))
+
+
 FEATURES_DDL = f"""
 DROP TABLE IF EXISTS {FEATURES_TABLE};
 CREATE TABLE {FEATURES_TABLE} (
@@ -162,9 +172,43 @@ def iter_pp_files() -> list[tuple[str, Path]]:
     return out
 
 
+def replace_card(conn: sqlite3.Connection, track: str, race_date: str,
+                 source_pdf: str) -> tuple[int, set[str]]:
+    """Clear one card's staged rows. Returns ``(rows removed, prior sources)``.
+
+    Card-grain replacement rather than row-grain UPSERT on
+    ``(track, race_date, race_num, program_num)``, for two reasons.
+
+    The table carries no UNIQUE constraint on that tuple, and adding one is not
+    safe: the parser has been observed emitting **two horses on the same
+    program number** in one race (``gpx0509a.pdf``, race 1), so a unique index
+    would turn a mis-parse into a hard insert failure.
+
+    And row-grain upserting strands rows. A re-parse can legitimately yield a
+    *different* set of horses — a scratch dropped, a program number corrected —
+    and upserting each row leaves the originals behind. Replacing the card
+    reaches the same end state for the natural key while handling the horses
+    that disappear.
+
+    This is the same semantics ``load_pp_card.stage_pp_entries`` already uses,
+    so the two writers agree.
+    """
+    prior = {r[0] for r in conn.execute(
+        f"SELECT DISTINCT source_pdf FROM {RAW_TABLE} "
+        f"WHERE track = ? AND race_date = ?", (track, race_date))}
+    n = conn.execute(f"DELETE FROM {RAW_TABLE} WHERE track = ? AND race_date = ?",
+                     (track, race_date)).rowcount
+    return n, prior - {source_pdf}
+
+
 def cmd_parse(args: argparse.Namespace) -> int:
     conn = sqlite3.connect(args.db)
-    conn.executescript(DDL)
+    incremental = getattr(args, "incremental", False)
+    # Default stays drop-and-replace so existing behaviour is untouched.
+    conn.executescript(INCREMENTAL_DDL if incremental else DDL)
+    if incremental:
+        log.info("incremental mode: existing rows are kept, each parsed card "
+                 "replaces only its own")
 
     files = iter_pp_files()
     log.info("found %d PP files across %d directories", len(files), len(PP_DIRS))
@@ -178,7 +222,7 @@ def cmd_parse(args: argparse.Namespace) -> int:
            f"VALUES ({','.join('?' * len(insert_cols))})")
 
     now = time.strftime("%Y-%m-%dT%H:%M:%S")
-    n_ok = n_fail = n_rows = 0
+    n_ok = n_fail = n_rows = n_dup = 0
     for track, path in files:
         t0 = time.perf_counter()
         res = parse_pp_file(path, track)
@@ -191,6 +235,21 @@ def cmd_parse(args: argparse.Namespace) -> int:
         )
         if ok:
             n_ok += 1
+            if incremental:
+                removed, others = replace_card(
+                    conn, res["track"], res["race_date"], path.name)
+                if others:
+                    # This is how GP 2026-05-09 ended up with 425 rows for an
+                    # 85-horse card: five Brisnet products for one day, each
+                    # inserted without clearing the last. Replacing the card
+                    # prevents it; the warning makes the collision visible so
+                    # nobody has to rediscover it from a row count.
+                    n_dup += 1
+                    log.warning(
+                        "  %s %s already staged from %s -- replacing %d row(s); "
+                        "one card should have one source",
+                        res["track"], res["race_date"],
+                        ", ".join(sorted(others)), removed)
             rows = []
             for race in res["races"]:
                 for h in race["horses"]:
@@ -216,6 +275,15 @@ def cmd_parse(args: argparse.Namespace) -> int:
 
     log.info("parsed %d/%d files OK, %d failed, %d starters staged",
              n_ok, len(files), n_fail, n_rows)
+    if incremental:
+        total = conn.execute(f"SELECT COUNT(*) FROM {RAW_TABLE}").fetchone()[0]
+        dupes = conn.execute(
+            f"SELECT COUNT(*) FROM (SELECT 1 FROM {RAW_TABLE} "
+            f"GROUP BY track, race_date, race_num, program_num "
+            f"HAVING COUNT(*) > 1)").fetchone()[0]
+        log.info("incremental: %d row(s) in %s, %d duplicated natural key(s), "
+                 "%d card(s) had a competing source", total, RAW_TABLE,
+                 dupes, n_dup)
     conn.close()
     return 0
 
@@ -428,6 +496,12 @@ def _cli() -> int:
                      ("report", cmd_report)):
         s = sub.add_parser(name)
         s.add_argument("--db", default=str(DEFAULT_DB))
+        if name == "parse":
+            s.add_argument(
+                "--incremental", action="store_true",
+                help="do not drop the table; replace only the cards parsed on "
+                     "this run, keeping every other card's rows. Use this to "
+                     "add newly acquired PP files without a full rebuild.")
         s.set_defaults(func=fn)
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO,
