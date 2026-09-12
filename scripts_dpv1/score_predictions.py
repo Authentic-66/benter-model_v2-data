@@ -309,28 +309,44 @@ def write_scored(rows: list[dict], cards: set[tuple[str, str]],
     return len(kept) + len(rows)
 
 
+def race_model_key(r: dict) -> tuple:
+    """``(track, race_date, race_num, model_version)`` -- one model's view of one race.
+
+    The unit every rate is computed over. Keyed by ``model_version``, never
+    ``model_pkl``: back-filled rows carry a version but no filename.
+    """
+    return (r["track"], r["race_date"], r["race_num"], r.get("model_version"))
+
+
 def latest_run_only(scored: list[dict]) -> list[dict]:
-    """Keep one opinion per race: the most recently generated run.
+    """Keep one opinion per race *per model*: that model's most recent run.
 
-    A card is often run more than once -- a re-run after a scratch, a second
-    model -- and every run is kept in the scored file because the audit trail
-    is the point. Rates are a different question: counting a race twice
-    because it was predicted twice silently weights whichever races happened
-    to get re-run. For a headline rate, the latest run per race wins.
+    A card is often run more than once and every run is kept in the scored file
+    because the audit trail is the point. Rates are a different question:
+    counting a race twice because it was re-predicted silently weights
+    whichever races happened to get re-run, so for a headline rate the latest
+    run wins.
 
-    Piece 3 must do the same before aggregating, or a card that was re-run
-    will pull the rolling average toward its own result.
+    "Latest" is resolved **within a model_version, never across them.** Until
+    2026-09-12 the key was the race alone, so when ``dpv1.pkl`` and
+    ``dpv1_3track.pkl`` were both run on GP 2026-09-04 -- 39 seconds apart,
+    before any result loaded -- the 3-track run superseded the live model's and
+    all nine races were credited to ``dpv1.1.0``. A second model's run is a
+    separate opinion, not a re-run of the first.
+
+    Consequence for callers: a race predicted under two models survives twice,
+    once per version. Anything that groups the result must group by
+    ``race_model_key``, and a window spanning versions is a mixed window.
     """
     latest: dict[tuple, dict] = {}
     for r in scored:
-        key = (r["track"], r["race_date"], r["race_num"])
+        key = race_model_key(r)
         cur = latest.get(key)
         if cur is None or (r.get("generated_at") or "") > (cur.get("generated_at") or ""):
             latest[key] = r
     keep = {(k, v.get("generated_at")) for k, v in latest.items()}
     return [r for r in scored
-            if ((r["track"], r["race_date"], r["race_num"]),
-                r.get("generated_at")) in keep]
+            if (race_model_key(r), r.get("generated_at")) in keep]
 
 
 def print_summary(track: str, date: str, scored: list[dict], stats: dict) -> None:
@@ -353,33 +369,40 @@ def print_summary(track: str, date: str, scored: list[dict], stats: dict) -> Non
     if not scored:
         return
 
-    # Rates are per race, not per prediction run -- see latest_run_only.
+    # Rates are per race per model, not per prediction run -- see latest_run_only.
     current = latest_run_only(scored)
     superseded = len(scored) - len(current)
     if superseded:
         print(f"  superseded rows:      {superseded}"
-              f"   (earlier runs of a re-run race, excluded from rates below)")
+              f"   (earlier runs of the same model, excluded from rates below)")
 
-    tops = [r for r in current if r["was_top_pick"]]
-    live = [r for r in tops if not r["top_pick_scratched"]]
-    if live:
-        itm = sum(1 for r in live if r["hit_itm"])
-        win = sum(1 for r in live if r["hit_win"])
-        print(f"  top pick ITM:         {itm} / {len(live)} = "
-              f"{100 * itm / len(live):.1f}%")
-        print(f"  top pick WIN:         {win} / {len(live)} = "
-              f"{100 * win / len(live):.1f}%")
-        stake = 2.0 * len(live)
-        ret = sum(r["show_payoff"] or 0.0 for r in live)
-        print(f"  top pick show ROI:    ${ret:.2f} back on ${stake:.2f} = "
-              f"{100 * (ret - stake) / stake:+.1f}%")
-    dead = len(tops) - len(live)
-    if dead:
-        print(f"  top picks w/o result: {dead}"
-              f"   (excluded from the rates above)")
-    all_itm = sum(1 for r in current if r["hit_itm"])
-    print(f"  all horses ITM:       {all_itm} / {len(current)} = "
-          f"{100 * all_itm / len(current):.1f}%")
+    by_version: dict[str | None, list[dict]] = defaultdict(list)
+    for r in current:
+        by_version[r.get("model_version")].append(r)
+    for version in sorted(by_version, key=str):
+        rows = by_version[version]
+        if len(by_version) > 1:
+            print(f"  --- {version or 'unrecorded'} ---")
+        tops = [r for r in rows if r["was_top_pick"]]
+        live = [r for r in tops if not r["top_pick_scratched"]]
+        if live:
+            itm = sum(1 for r in live if r["hit_itm"])
+            win = sum(1 for r in live if r["hit_win"])
+            print(f"  top pick ITM:         {itm} / {len(live)} = "
+                  f"{100 * itm / len(live):.1f}%")
+            print(f"  top pick WIN:         {win} / {len(live)} = "
+                  f"{100 * win / len(live):.1f}%")
+            stake = 2.0 * len(live)
+            ret = sum(r["show_payoff"] or 0.0 for r in live)
+            print(f"  top pick show ROI:    ${ret:.2f} back on ${stake:.2f} = "
+                  f"{100 * (ret - stake) / stake:+.1f}%")
+        dead = len(tops) - len(live)
+        if dead:
+            print(f"  top picks w/o result: {dead}"
+                  f"   (excluded from the rates above)")
+        all_itm = sum(1 for r in rows if r["hit_itm"])
+        print(f"  all horses ITM:       {all_itm} / {len(rows)} = "
+              f"{100 * all_itm / len(rows):.1f}%")
 
 
 # ---------------------------------------------------------------------------

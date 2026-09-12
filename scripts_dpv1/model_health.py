@@ -16,12 +16,15 @@ The unit of measurement is a race, not a prediction
 Every rate here has a race in the denominator. Three things follow from that,
 and all three are easy to get wrong:
 
-* **Only the latest run of a race counts.** A card can be predicted more than
-  once -- a re-run after a scratch, a second model -- and every run is kept in
-  the scored log because the audit trail is the point. Counting them all would
-  weight a race by how many times it happened to be re-predicted. Piece 2
-  exports ``latest_run_only`` for exactly this and it is applied before
-  anything else here.
+* **Only the latest run of a race counts -- per model.** A card can be
+  predicted more than once -- a re-run after a scratch, a second model -- and
+  every run is kept in the scored log because the audit trail is the point.
+  Counting them all would weight a race by how many times it happened to be
+  re-predicted. Piece 2 exports ``latest_run_only`` for exactly this and it is
+  applied before anything else here. It collapses re-runs *within* a
+  ``model_version`` only: a second model's run is its own opinion, so a race
+  run under two models is one record per model, and a window holding both is
+  labelled MIXED.
 
 * **A race whose top pick scratched has no top pick.** It leaves the ITM and
   WIN denominators entirely. Scoring it as a miss would bias the headline
@@ -65,7 +68,7 @@ LOG_DIR = DPV1_DIR / "logs"
 sys.path.insert(0, str(DPV1_DIR))
 
 from dpv1_runtime import DEFAULT_DB, DEFAULT_MODEL  # noqa: E402
-from score_predictions import latest_run_only  # noqa: E402
+from score_predictions import latest_run_only, race_model_key  # noqa: E402
 
 SCORED_FILE = LOG_DIR / "scored_predictions.jsonl"
 
@@ -183,15 +186,19 @@ def bucket_coverage(cov: float | None) -> str:
 
 def build_races(scored: list[dict], meta: dict, trained_at: datetime | None,
                 cutoff: str | None) -> list[dict]:
-    """Collapse scored rows into one record per race."""
+    """Collapse scored rows into one record per race per model version.
+
+    Grouping by race alone would pool two models' rows for the same race and
+    take whichever top pick came first.
+    """
     by_race: dict[tuple, list[dict]] = defaultdict(list)
     for r in scored:
-        by_race[(r["track"], r["race_date"], r["race_num"])].append(r)
+        by_race[race_model_key(r)].append(r)
 
     races = []
     for key, rows in by_race.items():
-        track, date, race_num = key
-        info = meta["races"].get(key, {})
+        track, date, race_num, _version = key
+        info = meta["races"].get((track, date, race_num), {})
         top = next((r for r in rows if r.get("was_top_pick")), None)
         scratched = bool(rows[0].get("top_pick_scratched"))
 
@@ -406,6 +413,10 @@ def print_reranker_split(scored: list[dict]) -> None:
 
     It reads 0/0 until reranked cards have been run *and* scored, which is the
     honest state until roughly 50-100 races accumulate.
+
+    Reported separately per base ``model_version``: the reranker was trained
+    over one base model's logit, so a card also run under another base model is
+    a different experiment, and pooling the two would count the race twice.
     """
     rows = [r for r in scored if r.get("reranker_version")
             and r.get("base_p_itm") is not None
@@ -419,33 +430,36 @@ def print_reranker_split(scored: list[dict]) -> None:
 
     by_race: dict[tuple, list[dict]] = defaultdict(list)
     for r in rows:
-        by_race[(r["track"], r["race_date"], r["race_num"])].append(r)
+        by_race[race_model_key(r) + (r["reranker_version"],)].append(r)
 
     arms = {"base only": "base_p_itm", "with reranker": "final_p_itm"}
-    hits = {k: 0 for k in arms}
-    n = changed = 0
-    for g in by_race.values():
+    per_arm: dict[tuple, dict] = {}
+    for key, g in by_race.items():
         if g[0].get("top_pick_scratched"):
             continue
-        n += 1
+        base_version, rr_version = key[3], key[4]
+        s = per_arm.setdefault((rr_version, base_version),
+                               {"n": 0, "changed": 0, **{k: 0 for k in arms}})
+        s["n"] += 1
         picks = {}
-        for label, key in arms.items():
-            top = max(g, key=lambda r: r[key])
+        for label, col in arms.items():
+            top = max(g, key=lambda r: r[col])
             picks[label] = top
-            hits[label] += bool(top["hit_itm"])
-        changed += (picks["base only"]["prediction_id"]
-                    != picks["with reranker"]["prediction_id"])
+            s[label] += bool(top["hit_itm"])
+        s["changed"] += (picks["base only"]["prediction_id"]
+                         != picks["with reranker"]["prediction_id"])
 
-    if not n:
+    if not per_arm:
         print("No scorable reranked races yet.")
         return
-    versions = sorted({r["reranker_version"] for r in rows})
-    print(f"reranker {', '.join(versions)}   {n} scored race(s), "
-          f"top pick differs in {changed}")
-    for label in arms:
-        print(f"  {label:<16} {hits[label]}/{n} = {_pct(hits[label], n)}")
-    d = hits["with reranker"] - hits["base only"]
-    print(f"  difference       {d:+d} race(s)")
+    n = 0
+    for (rr_version, base_version), s in sorted(per_arm.items(), key=lambda kv: str(kv[0])):
+        print(f"reranker {rr_version} over base {base_version or 'unrecorded'}   "
+              f"{s['n']} scored race(s), top pick differs in {s['changed']}")
+        for label in arms:
+            print(f"  {label:<16} {s[label]}/{s['n']} = {_pct(s[label], s['n'])}")
+        print(f"  difference       {s['with reranker'] - s['base only']:+d} race(s)")
+        n = max(n, s["n"])
     if n < 50:
         print(f"\n  {n} races is far below the ~50-100 needed to read this as")
         print("  evidence. The standalone cross-validated estimate was +3.9pp")
@@ -550,6 +564,13 @@ def _cli() -> int:
     label = ", ".join(versions) if versions else "unrecorded"
     if len(versions) > 1 or unattributed:
         label += " (MIXED -- rates below span more than one model)"
+    per_race = defaultdict(int)
+    for r in races:
+        per_race[(r["track"], r["race_date"], r["race_num"])] += 1
+    multi = sum(1 for c in per_race.values() if c > 1)
+    if multi:
+        label += (f"\n {multi} race(s) were run under more than one model and "
+                  f"count once per model; use --model for one model's record")
     if races:
         window = (f"{len(races)} races ({races[0]['race_date']} to "
                   f"{races[-1]['race_date']})")

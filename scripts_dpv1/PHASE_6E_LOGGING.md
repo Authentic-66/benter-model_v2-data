@@ -719,19 +719,30 @@ bound whatever we decide here.
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
 
-1. **Stop retrying the 4 unloadable charts.** `retrain_pipeline.py` catches
-   loader failures and moves on, but records nothing, so all four are re-parsed
-   on every run and fail again. Write a `parsed_files` row with `success=0` and
-   the error text, and have `discover_charts` skip shas already recorded as
-   failed. Note the sha of a 0-byte file is still a valid sha, so the existing
-   hash check will work once a row exists.
-2. **Re-download MNR `20260426-usa-mnr-a-d.standard.pdf`** from Equibase — the
-   local copy is 0 bytes. Then load it; nothing else is wrong with that date.
+1. ~~**Stop retrying the 4 unloadable charts.**~~ **RESOLVED BY DELETION,
+   verified 2026-09-12.** All four files were removed from the repo in commit
+   `7da37fd` ("GP Picks", 2026-09-03 20:18), before that evening's retrain,
+   which is why the 2026-09-03 run logged `load_errors: 0`. `discover_charts`
+   globs the disk, so a deleted file cannot be retried. No code change was
+   made. Two facts for anyone who revisits this:
+   * **The fix as originally written would not have worked.** The existing
+     `success=0` rows for these charts carry `file_sha256 = NULL`, so a
+     "skip shas recorded as failed" check would never match them. If a broken
+     chart ever needs to live on disk again, the guard has to match failed
+     rows by path/filename, or backfill the sha first.
+   * **Deleting the files did not recover the data.** All four race days still
+     have zero rows in `race_days`. They remain genuinely missing, which is
+     what items 2 and 3 are about.
+2. **Re-download MNR `20260426-usa-mnr-a-d.standard.pdf`** from Equibase. The
+   0-byte copy is now deleted (see item 1), so it just needs a fresh download
+   into `Mountaineer/mnr-results-2026/`; the next pipeline run picks it up.
+   Still open.
 3. **Decide the fate of the 3 corrupt GP charts** — `20190214-usa-gp`,
-   `20240314-usa-gp`, `20240518-usa-gp`. Valid PDFs with Ascii85 stream
-   corruption. Either re-download or mark permanently unloadable. None of these
-   three dates has any data in the corpus, so each is a genuinely missing race
-   day, not a duplicate.
+   `20240314-usa-gp`, `20240518-usa-gp`. The files are now deleted (item 1),
+   which settles "stop retrying" but not "re-download or accept the gap". None
+   of these three dates has any data in the corpus. **Still open, and a human
+   decision.** A re-download dropped into the matching `gp-results-YYYY/`
+   folder loads on the next run.
 4. ~~**Piece 4 candidate-path collision.**~~ **RESOLVED 2026-09-02** — see below. `retrain_pipeline.py` names the
    candidate `dpv1_YYYYMMDD.pkl`, so a second retrain on the same day silently
    overwrites the first — including a control model one might be holding
@@ -865,3 +876,137 @@ drift into different schemas.
 
 This unblocks the PP acquisition automation follow-up: new files can now be
 staged without a full rebuild.
+
+---
+
+## RESOLVED (2026-09-12): cross-model attribution in `latest_run_only`
+
+### This is NOT the log-corruption trap
+
+The two bugs both surface through `latest_run_only`, which is why they are easy
+to file together. They are different failure modes:
+
+| | log-corruption (closed 2026-09-02) | cross-model attribution (this entry) |
+|---|---|---|
+| when | a card is re-run **after** its results load | two models are run **before** results load |
+| what is written | a post-scratch re-read, a *worse* opinion | two genuine pre-race opinions, both valid |
+| what goes wrong | the re-read supersedes the pre-race prediction *of the same model* | one model's run supersedes a *different model's* run |
+| where it lives | the write path (`card_picks.py --save`) | the aggregation path (`latest_run_only` and its callers) |
+| fix | refuse to log (exit 3) | collapse re-runs within a model only |
+
+**The Piece 1 guard cannot catch this one.** Both runs happen before any result
+exists, so `card_is_scored()` correctly sees an unscored card and lets both
+log. Nothing is wrong with the data written; the bug was in how it was counted.
+
+### The trap
+
+`latest_run_only` collapsed re-runs to the newest `generated_at` keyed on
+`(track, race_date, race_num)`, **before** anything filtered by model. When
+Doug runs `dpv1.pkl` and then `dpv1_3track.pkl` on the same card, the second
+run is not a re-run: it is a different model's opinion. The old key treated
+it as one and discarded the live model's run.
+
+Every consumer inherited this:
+
+* `model_health.py` credited the races to whichever model ran last.
+* `retrain_pipeline.live_metrics` collapsed first and filtered by version second,
+  so the live model's races silently fell out of its own record.
+* `print_reranker_split` and `build_races` grouped by race alone.
+
+**How it surfaced.** GP 2026-09-04 was run under `dpv1.2.0-4track` at 20:17:28
+and `dpv1.1.0` at 20:18:07 on 2026-09-03. Once scored, all nine races were
+credited to `dpv1.1.0`, and the live `2.0-4track` record stayed at 33/55 instead
+of moving to 40/64.
+
+CT 2026-08-29 had the same shape but hid the error in the other direction.
+Its newest run was `2.0-4track`, so **`dpv1.1.0`'s CT 8/29 record vanished**
+instead.
+
+### The fix
+
+* **`score_predictions.py`**
+  * New `race_model_key(r)` returns `(track, race_date, race_num, model_version)`.
+  * `latest_run_only` collapses on that key: newest run **per race per
+    model**. It keys on `model_version`, never `model_pkl`, consistent with the
+    existing rule for back-filled rows.
+  * `print_summary` reports per-card rates per model.
+* **`model_health.py`**
+  * `build_races` and `print_reranker_split` group by `race_model_key`. The
+    reranker split is reported separately per base model, because the reranker
+    was trained on one base model's logit, and a card run under two bases is
+    two experiments.
+  * When a window holds races run under more than one model, the header says
+    so and points at `--model`. Those races count once per model.
+* **`retrain_pipeline.live_metrics`** needed no change. Collapse-then-filter is
+  correct once the collapse is per model.
+
+### Re-attribution (`score_predictions.py --all`, 2026-09-12)
+
+The re-score wrote 933 rows before and after. **Row-level diff against the
+pre-fix log, ignoring `scored_at`: zero rows added, zero removed.** The scored
+data was always right; only aggregation changed.
+
+| card | models run | version | before | after |
+|---|---|---|---|---|
+| CT 2026-07-25 | 1 | dpv1.2.0-4track | 6/9 | 6/9 |
+| CT 2026-08-28 | 1 | dpv1.2.0-4track | 7/12 | 7/12 |
+| CT 2026-08-29 | 2 | dpv1.2.0-4track | 3/8 | 3/8 |
+| CT 2026-08-29 | 2 | dpv1.1.0 | **0/0 (hidden)** | **4/8** |
+| ELP 2026-08-21 | 1 | dpv1.2.0-4track | 4/9 | 4/9 |
+| ELP 2026-08-22 | 1 | dpv1.2.0-4track | 5/9 | 5/9 |
+| ELP 2026-08-23 | 1 | dpv1.2.0-4track | 8/8 | 8/8 |
+| GP 2026-09-04 | 2 | dpv1.2.0-4track | **0/0 (hidden)** | **7/9** |
+| GP 2026-09-04 | 2 | dpv1.1.0 | 7/9 | 7/9 |
+
+Every single-model card is unchanged. Each two-model card gains the record of
+the model the old key had hidden, and the other model's figure is unchanged.
+
+**Live baselines, top-pick ITM:**
+
+| version | before | after |
+|---|---|---|
+| `dpv1.2.0-4track` | 33/55 = 60.0%, show ROI -9.6% | **40/64 = 62.5%, show ROI -7.3%** |
+| `dpv1.1.0` | 7/9 = 77.8%, show ROI +6.7% | **11/17 = 64.7%, show ROI -2.9%** |
+
+No other version appears in the scored log, and no row is missing a version.
+`dpv1.1.0` is the version string recorded in the log rows for
+`dpv1_3track.pkl`. It carries no `-3track` suffix, so filter on `dpv1.1.0`.
+
+`model_health.py --model <version>` and `retrain_pipeline.live_metrics` both
+reproduce the "after" column exactly.
+
+Two CT 8/29 notes, so nobody re-investigates them:
+
+* Of `2.0-4track`'s four runs that day, the newest (2026-08-31 08:17) predates
+  the Piece 1 guard. All four score 3/8, so which one is kept does not move
+  the baseline.
+* `dpv1.1.0` ran twice: 11:29 scored 5/8, and 14:36 scored 4/8. The later run
+  is kept, as the within-model rule intends.
+
+### Forward verification
+
+The test used real tools on scratch copies: `racing_full.db.pre-gp0904.bak`, a
+scratch `--log-file`, and a scratch `--out-file`.
+
+1. With GP 2026-09-04 still unscored (64 entries, 0 finishers),
+   `card_picks.py --save` ran three times: `dpv1.pkl`, then `dpv1.pkl` again (a
+   same-model re-run), then `dpv1_3track.pkl` last, the case that triggered the
+   bug. All three logged; the Piece 1 guard correctly did not fire.
+2. Only then was the result chart loaded (purge 64, load 59), followed by
+   `score_predictions.py` into the scratch log.
+3. Results on the same 177 scored rows:
+   * **old** `latest_run_only`: kept only the `dpv1.1.0` run; `2.0-4track` had
+     **zero** races.
+   * **new**: kept `dpv1.1.0`'s run *and* `2.0-4track`'s **second** run. The
+     same-model re-run still collapses, and each model scores 9 races
+     independently.
+   * `model_health.py` on the scratch log shows both models at n=9 under a
+     MIXED header, with the reranker split reported per base model.
+4. The sha256 of `dpv1.pkl`, `dpv1_3track.pkl` and `dpv1_pp_reranker.pkl` was
+   identical before and after.
+
+The scratch runs used `--iters 2000` rather than the default 10000. `p_itm` is
+simulated, so `2.0-4track` probabilities moved by up to 2.8pp and one top pick
+(R2) flipped on a 0.05pp margin. That is Monte Carlo noise, not attribution.
+It also shows the live R2 reranker swap on this card sat inside simulation
+noise.
