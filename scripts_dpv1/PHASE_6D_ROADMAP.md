@@ -7,7 +7,10 @@ evidence rather than from intuition.
 
 This is a catalog, not a work plan. Nothing here is scheduled. Documented so
 far: **Gap #1 (Shipper Blindness)** and **Gap #6 (Maiden Race Chaos)**, each
-with an interim warning shipped in `card_picks.py`. Gap #6's recommended fix
+with an interim warning shipped in `card_picks.py`, **Gap #7 (Trip
+Signal)**, tested and **rejected**, and **Gap #8 (Class Drop Intent)**, where
+the stated hypothesis was rejected but a real, stable **calibration** error was
+found underneath it. Read both status blocks before re-opening either. Gap #6's recommended fix
 was built and measured as main effects (2026-08-31) and again as within-race
 interactions (2026-09-01). **Neither worked, and Option C is closed in full** —
 see its status block. Gaps #2-#5 are headers only and get filled in as more
@@ -1401,3 +1404,495 @@ At CT the rule now discriminates — CT 7/25 drops from three flags to one, CT
 changes, and that is a finding rather than a failure: ELP maiden fields really
 are more than 60% invisible to the corpus, because ELP's runners ship in. Gap
 #1 and Gap #6 are the same problem there.
+
+---
+
+## Gap #7 — Trip Signal (Equibase chart comments and running lines)
+
+> **STATUS: DOCUMENTED AND CLOSED — hypothesis tested and REJECTED (2026-09-11).**
+>
+> Do not re-open without *new evidence*, meaning a new data source or a new
+> framing — not a re-run of this one. The measurement below is large,
+> out-of-sample and unambiguous.
+
+### The hypothesis
+
+That Equibase trip comments and running lines carry ranking signal DPv1 cannot
+see: specifically that the model's top pick is disproportionately a horse that
+met trouble, and the longshots that beat it got clean trips — so that trip
+quality explains where the model mis-ranks.
+
+### What was actually available
+
+**No PDF extraction was required.** The data was already ingested:
+
+| field | coverage |
+|---|---|
+| `entries.trip_comment` | 222,303 / 222,367 (**100%**) |
+| `entries.pace_calls_json` (position + beaten lengths per call) | 222,303 (**100%**) |
+| `races.footnotes` (long-form narrative) | 29,421 / 30,055 (97.9%) |
+
+`scored_predictions.jsonl` held only **57 scored races** (6 cards, CT and ELP,
+Aug 2026) — too small to bucket. The measurement therefore ran on
+`dpv1_fold_predictions.csv`: **116,555 genuinely out-of-sample (year-fold CV)
+predictions across 15,526 races**, four tracks, 2023-2026. Ranking used
+`p_fund`, because `card_picks.py` reranks `pred.p_fund`; the blend is
+alpha=0.106 fundamental against beta=0.772 market and is mostly a tote board.
+
+Extraction success **100%** (trip comments), **99.7%** (running lines),
+**57/57** live races joined.
+
+### Classifier accuracy
+
+Rule-based classification of the short comments was validated against an
+**independent** long-form classifier run on `races.footnotes` (different
+vocabulary) over 2,676 horse-segments: **89.9% agreement** (87.4% before four
+bugs were fixed). Precision is high; the residual is mostly *short-comment
+omission* — roughly **30% of the trouble the footnote records never appears in
+the short comment**. If trip is ever revisited, `footnotes` is the
+higher-recall source.
+
+Two parsing traps, recorded because they silently corrupt naive matching:
+
+* **`1/8p` is the eighth POLE (a location); `3p` is the three PATH (ground
+  loss).** Collapsing both flags half of every field as "wide".
+* Comments are whitespace-stripped, so `\b` anchors never fire inside a token
+  (`bmpdbtw`, `stdydinto`), while substrings collide: `altered` in `faltered`,
+  `lug` in `sluggish`, `wide` in `widened`, `steady` in `steadygain`.
+
+### Finding 1 — "positive trip" is a label leak, not a feature
+
+P(descriptor) by actual finish position:
+
+| finish | n | positive% | trouble% | fade% | wide% |
+|---|---|---|---|---|---|
+| 1 | 15,434 | **45.5** | 11.2 | 0.1 | 46.6 |
+| 2 | 15,545 | 29.6 | 15.1 | 1.6 | 49.0 |
+| 3 | 15,525 | 22.6 | 16.4 | 13.1 | 50.8 |
+| 4 | 15,525 | 6.4 | 16.9 | 40.5 | 50.0 |
+| 5 | 15,266 | 2.0 | 18.0 | 59.2 | 47.8 |
+| 6+ | 38,577 | **0.5** | 20.6 | 66.7 | 42.6 |
+
+"Rallied / drew away / driving" is a **restatement of the finish position**,
+45.5% to 0.5% monotone. `fade` is the same in reverse. This is a fourth
+instance of the label-leak class. Only `trouble` is quasi-exogenous (11.2% to
+20.6%) and therefore usable. **`wide` is nearly flat** (46.6 to 42.6) and
+carries almost no signal — contradicting standard handicapping practice.
+
+### Finding 2 — the mis-ranking hypothesis is false
+
+Winners do have trouble ~4pp less often than top picks, in every bucket
+(ALL -4.0pp; maiden -5.2pp; turf -4.9pp; dirt -3.7pp; small field -3.9pp;
+large field -4.1pp). But that is an **ex post** correlation.
+
+Tested directly on the 4,808 races where the top pick missed ITM *and* a
+rank-5+ horse hit ITM:
+
+| quantity | measured | chance baseline | lift |
+|---|---|---|---|
+| top pick had trouble | **19.6%** | 15.4% | +4.2pp |
+| winning longshot had a clean trip | **44.8%** | 44.4% | **+0.4pp** |
+| *both* (the hypothesised pattern) | **6.0%** | 6.8% | **-0.8pp** |
+| *neither* | 41.6% | — | — |
+
+**The hypothesised pattern occurs slightly LESS often than chance.** The live
+57-race sample agrees independently: top-pick trouble 17% against a 17.5%
+baseline, longshot clean 33% — *below* baseline.
+
+### Finding 3 — the decisive test: no lift as a lagged feature
+
+Trip comments do not exist at prediction time. The only usable form is lagged.
+Across **98,939 entries with a prior start**, within `p_fund` deciles:
+
+**prior-trouble ITM 40.14% vs prior-clean 40.71% — delta -0.57pp, p=0.167.**
+Wrong sign, not significant.
+
+Calibration conditional on prior trip: trouble **+0.26pp**, wide **+0.13pp**,
+clean **-0.97pp**. The model is **already calibrated on trip to within 1pp**.
+The classic "troubled horse bounces back" angle is false in this corpus.
+
+Eleven targeted subgroups were stressed. One survived nominally — *severe
+interference last race AND beaten <5L*, +2.86pp net, z=2.58, p=0.010,
+n=2,765 — and it does not hold up:
+
+* **Multiple comparisons:** 11 tests; Bonferroni gives p≈0.11.
+* **Unstable:** 2023 +1.5pp, 2024 +1.1pp, 2025 +3.4pp, 2026 +9.2pp. The
+  magnitude lives almost entirely in the newest, smallest folds.
+* **Practically inert:** it would change the top pick in **102 of 15,382
+  races (0.7%)**.
+
+**Running lines (99.7% parsed) showed nothing either.** Every prior-race shape
+feature — ground gained early-to-wire, led at first call, far back early — has
+a *negative* residual (-0.40 to -1.75pp net of control).
+
+### Turf routes and closing kick — tested, NOT found
+
+Checked explicitly, because a weak turf effect was suspected. Prior-race late
+ground gain, split by today's surface and distance (route = 1,540+ yards):
+
+| bucket | subgroup | n | net resid | z |
+|---|---|---|---|---|
+| turf routes | prior gain >3L | 284 | **-1.55pp** | -0.94 |
+| dirt routes | prior gain >5L | 467 | -2.05pp | -0.89 |
+| dirt sprints | prior gain >5L | 848 | -2.12pp | -1.19 |
+
+**Every cell is negative and none is significant.** There is no turf
+closing-kick signal in this corpus; the sign is the opposite of the
+hypothesis. Recorded here so the idea is not revived as an open lead.
+
+### Verdict
+
+Trip signal is **not strong enough to justify feature building**. The ex post
+correlation is real, which is why trip *feels* explanatory when reading charts.
+It does not survive translation into a prediction-time feature. By the Feature
+Design Principle above, trip trouble is ranking-capable but empirically
+empty — the same shape as Gap #6 Option C.
+
+No model changes, no features, no retraining came out of this session.
+
+---
+
+## Gap #7-alt — next places to look if pursuing ranking-error investigation
+
+Recorded as candidate directions only. **None has been measured**; none has an
+observed case attached yet; no implementation is proposed. Each needs the
+Feature Design Principle applied before any work.
+
+* **Fundamental class assessment** — **INVESTIGATED, see Gap #8.** The model
+  reads class direction correctly for ranking, but misprices poor-form horses
+  taking a class drop. Calibration-only; do not re-test with top-pick ITM.
+* **Field-relative talent shift** — a horse's ability measured *against the
+  specific field it faces today* rather than against an absolute scale.
+* **Pace shape** — partially covered by **Gap #2**; as noted there it is
+  race-level and needs an interaction with each horse's running style to
+  reorder anything.
+* **Distance-surface interactions** — whether distance aptitude is being
+  modelled separately enough per surface.
+
+---
+
+## Gap #8 — Class Drop Intent (Kuck A/B/C framework)
+
+> **STATUS: INVESTIGATED 2026-09-11. Hypothesis as stated REJECTED, but a real
+> and stable CALIBRATION error was found underneath it.**
+>
+> This is **not** a Gap #7-style dead end. Read the verdict before deciding
+> anything: the signal is real, survives every control, and is stable across
+> all four years and all four tracks — but it moves **calibration, not
+> ranking**. Measuring it with top-pick ITM will show nothing, and that would
+> be the wrong instrument, not a negative result.
+>
+> **THE NUMBER THAT MATTERS — the interaction.** "No ITM in the last 3" is
+> worth **+0.07pp (z=0.19)** on its own: nothing. Split by class direction, the
+> halves have **opposite signs** — **-1.68pp** for horses not dropping,
+> **+2.88pp** for horses dropping (z=+4.30). Adding the severity filter gives
+> bucket C at **+3.80pp (z=4.84)**. The model prices poor form, and prices
+> class change, but **not their product**. A main-effect test on either
+> variable alone declares this dead; that is how it stayed hidden.
+>
+> **MECHANISM IS NOT ESTABLISHED — do not reopen this without the follow-up
+> test.** What is measured is *that* the model misprices poor-form droppers,
+> not *why*. The class-relief reading (the horse meets materially weaker
+> company and the model under-credits that) is the most plausible account but
+> was **not tested causally**, and at least two rivals survive: a **claiming
+> -price/eligibility effect**, where the drop changes who the horse actually
+> races against in ways `class_score` only proxies; and **connections' private
+> information**, where the drop encodes barn intent that partly predicts the
+> outcome on its own. Distinguishing them needs a test that holds the beaten
+> field's strength fixed while varying the drop — not another residual split.
+> **Do not build features on the class-relief story alone.**
+>
+> **CLASSIFIER VALIDATION IS SELF-CONSISTENCY, NOT INTER-ANNOTATOR.** 27/30 is
+> one labeler, in-sample. A threshold-perturbation test (2026-09-12) found the
+> **C rule structural**: numeric gates move <=3.2% of labels singly and <=10.5%
+> jointly across 162 combos, with hand accuracy 23-28/30. C is also immune by
+> construction to every A-side choice. The **A/B boundary is definitional**:
+> reshaping the A rule relabels 6.5-22.8% of droppers. The finding rests on C.
+
+### The hypothesis
+
+Tested from Gap #7-alt's "fundamental class assessment". For a claiming horse
+dropping in class, the Kuck framework splits intent three ways:
+
+* **A (positive)** — consistent competence at the higher level; placed to win.
+* **B (neutral)** — mixed form, hoping it improves against cheaper.
+* **C (negative)** — no ability shown recently, dropped hard; connections
+  effectively giving up, hoping the horse is claimed.
+
+The hypothesis was that DPv1 cannot tell these apart, and specifically that it
+**over**-ranks C horses.
+
+### Sample
+
+`dpv1_fold_predictions.csv` joined to `entry_features_dpv1`. Filtered to
+claiming and optional-claiming, **excluding maidens and stakes**, then to
+horses whose `class_score_change_from_last < 0`: **17,149 out-of-sample
+class-droppers**, against 40,306 non-dropper controls in the same race types.
+Ranking on `p_fund`, as in Gap #7.
+
+Two data notes. `purse_change_from_last` is a **fractional** change (-0.54 = a
+54% purse cut), not a dollar delta. `class_score` is higher-is-better (STAKES
+77.7, ALLOWANCE 54.5), so a drop is negative.
+
+### Classifier and its calibration
+
+The A/B/C rules as originally specified scored **22/30 (73.3%)** against
+hand-labels, failing in two systematic directions:
+
+* **B-should-be-A:** the "modest drop" gate (<=25% purse cut, <=1 notch)
+  blocked A for horses with strong repeated form at the higher level taking a
+  *large* drop. That is the strongest "placed to win" case there is, not the
+  weakest. Drop magnitude was removed as a gate on A.
+* **A-should-be-B:** a single ITM in the last 3 was accepted as "consistent
+  competence" even when the horse was 10th last out. A now requires two board
+  hits at or above today's level, or one plus an in-the-money last-out.
+
+Refined rules (`classify_v2`) score **27/30 (90.0%)**, with bucket C separated
+perfectly (10/10) and all residual confusion on the A/B boundary.
+
+**Methodology — self-consistency, NOT inter-annotator agreement.** Read the
+27/30 precisely:
+
+* **Single labeler.** The 30 hand-labels (a stratified sample, 10 per v1
+  bucket, `random.seed(7)`) were produced by the same author who wrote the
+  rules. Unlike Gap #7's trip classifier, which was checked against an
+  *independent* source (`races.footnotes`), nothing here is independent.
+* **No second annotator, no inter-annotator variance test.** None was run and
+  none is recorded anywhere in this entry; do not remember one.
+* **In-sample.** `classify_v2` was refined *on these same 30 cases*, so 27/30
+  is a training-set score, not a held-out one. One case is 3.3pp.
+
+Three things stand in for independent validation:
+
+1. the headline rests on a **judgment-free cut** needing no classifier at all
+   (Finding 3);
+2. a **label-stability threshold perturbation** (2026-09-12, below): the
+   closest real analogue for a *rule-based* classifier. Annotator variance is
+   the wrong instrument when labels come from thresholds rather than people;
+   the right question is whether nearby thresholds give the same labels; and
+3. an **effect-size sensitivity sweep** on the C gates (below), which asks a
+   different question: whether the +3.80pp survives, not whether labels do.
+
+**Label-stability perturbation (2026-09-12).** Every A/B/C gate was varied
+within a reasonable range. Two readings for each variant: accuracy against the
+30 hand-labels, and **population swing**, the share of all 17,149 droppers whose
+bucket changes against baseline. Swing is the better brittleness measure,
+because it does not ride on 30 cases.
+
+*Numeric thresholds, one at a time:*
+
+| gate | variant | hand acc | pop swing | C kept |
+|---|---|---|---|---|
+| — | baseline `classify_v2` | 27/30 | 0.0% | 100% |
+| level slack (claiming `class_score` steps) | 0 / 2 / 3 steps (base 1) | 27 / 27 / 27 | 0.7 / 0.5 / 0.6% | 100% |
+| last-out ITM counts for A | only 1st/2nd (base <=3rd) | 28 | 2.9% | 100% |
+| severe drop: purse cut | -35 / -40 / -60 / -65% (base -50%) | 27 / 27 / 26 / 25 | 3.1 / 1.7 / 1.4 / 2.0% | 100 / 100 / 94 / 91% |
+| severe drop: claiming notches | >=1 / >=3 (base >=2) | 27 / 27 | 1.9 / 1.7% | 100 / 92% |
+| layoff (gates A and C) | 60 / 75 / 120 / 180d (base 90d) | 27 / 27 / 25 / 25 | 2.6 / 0.9 / 1.3 / 3.2% | 100 / 100 / 99 / 97% |
+
+*Numeric thresholds, jointly:* a full grid of slack {0,1,2} x purse cut
+{-35,-50,-65%} x notches {1,2,3} x layoff {60,90,120d} x last-out bar {2nd,3rd}
+gives **162 combinations**:
+
+* **Hand accuracy 23-28/30.** Distribution: 23 (9 combos), 24 (9), 25 (36),
+  26 (36), 27 (36), 28 (36). **108 of 162 (67%) sit at 26-28.**
+* **Population swing: median 6.0%, 90th percentile 8.8%, max 10.5%.**
+* **Worst case is the joint-strict corner** (slack 0, -65%, 3 notches, 120d) at
+  23/30. Its losses come from the purse -65% and layoff 120d gates, each
+  costing 2 hand cases. The C bucket still keeps 81% of its members there, and
+  its effect is still +3.51pp (effect-size table below).
+* The single 28/30 (last-out bar 1st/2nd) is **one case on the tuning set and
+  should NOT be adopted**. It is noise at n=30.
+
+*Rule shape (structural choices, not thresholds):*
+
+| change | hand acc | pop swing | A kept |
+|---|---|---|---|
+| re-add "modest drop" gate on A: purse >=-15%, <=1 notch | 23/30 | 20.6% | 18% |
+| ...purse >=-25%, <=1 notch (= v1) | 24/30 | 18.6% | 26% |
+| ...purse >=-35%, <=1 notch | 25/30 | 16.2% | 36% |
+| ...purse >=-50%, <=2 notches | 26/30 | 10.5% | 59% |
+| consistency bar: >=1 ITM at level (v1 bar) | 24/30 | 22.8% | 100% (B kept 57%) |
+| consistency bar: >=2 ITM at level only | 25/30 | 6.5% | 74% |
+| consistency bar: 1 ITM at level + last-out ITM only | 26/30 | 8.5% | 66% |
+| consistency bar: 3 of 3 ITM at level | 23/30 | 22.0% | 13% |
+
+**Verdict: the C rule is structural; the A/B boundary is a definitional
+choice.**
+
+* **Numeric thresholds are stable.** No single numeric perturbation moves more
+  than 2 hand labels or more than 3.2% of the population. Across the whole
+  joint grid, at most 10.5% of horses change bucket.
+* **C is insulated from every A-side choice by construction.** A requires an
+  ITM in the last 3 and C requires none, so A-side changes can only trade
+  A<->B. C keeps 100% of its members under all eight rule-shape changes above.
+  Its own gates (purse cut, notches, layoff) keep 91-100% singly and 81% in the
+  harshest joint corner. **The Gap #8 finding rests on C, so it does not
+  depend on how A is defined.**
+* **The A/B boundary is where the judgment lives.** Changing the *shape* of the
+  A rule relabels 6.5-22.8% of all droppers. Two consequences:
+  * Finding 1's A-bucket numbers (+1.33pp, p=0.077) are the least robust in
+    this entry. Treat them as definition-dependent.
+  * The "modest drop" gate is not merely a threshold that was tuned. Accuracy
+    falls **monotonically** as the gate tightens (26 -> 25 -> 24 -> 23), which
+    supports v2's decision to remove it: drop size is not evidence against
+    "placed to win".
+* **This is still not independent validation.** Every accuracy number above is
+  scored against the same single labeler's 30 in-sample cases. The perturbation
+  shows the rules are not balanced on a knife-edge. It cannot show they match
+  anyone else's reading of the Kuck framework.
+
+Script: `g8_perturb.py` (session scratchpad, not committed). It re-implements
+`classify_v2` with parameterised gates and asserts an exact match to the
+original on all 30 hand cases and on the first 3,000 population rows before
+perturbing.
+
+**Effect-size sensitivity (C gates only).** A separate question from the table
+above: whether the +3.80pp *effect* survives. Every gate in the C rule was
+perturbed independently and jointly:
+
+| variant | n | net | z |
+|---|---|---|---|
+| baseline (purse -50%, 2 notches, 90d) | 3,775 | +3.80pp | +4.84 |
+| purse cut -35% | 4,299 | +3.44pp | +4.66 |
+| purse cut -65% | 3,439 | +3.87pp | +4.71 |
+| notches >=1 | 4,107 | +3.27pp | +4.34 |
+| notches >=3 | 3,489 | +3.57pp | +4.36 |
+| layoff >=60d | 3,874 | +3.51pp | +4.53 |
+| layoff >=120d | 3,731 | +3.77pp | +4.77 |
+| loose (-35%, 1 notch, 60d) | 4,569 | +2.99pp | +4.19 |
+| strict (-65%, 3 notches, 120d) | 3,062 | +3.51pp | +4.04 |
+
+The result is **insensitive to every threshold choice** — the whole range is
++2.99 to +3.87pp at z 4.04 to 4.84. The finding is not an artifact of where the
+cuts were drawn.
+
+### Finding 1 — the model DOES distinguish the three buckets
+
+| bucket | n | share | predicted ITM | actual ITM | residual | 95% CI on actual |
+|---|---|---|---|---|---|---|
+| A | 4,333 | 25.3% | 0.547 | 0.560 | +1.33pp | [0.545, 0.575] |
+| B | 9,041 | 52.7% | 0.430 | 0.429 | -0.11pp | [0.418, 0.439] |
+| C | 3,775 | 22.0% | 0.338 | **0.370** | **+3.20pp** | [0.355, 0.386] |
+| all droppers | 17,149 | — | 0.439 | 0.449 | +0.98pp | [0.442, 0.456] |
+| non-droppers | 40,306 | — | 0.405 | 0.393 | -1.19pp | [0.389, 0.398] |
+
+The ordering is correct and well separated in both prediction and outcome
+(predicted 0.547 > 0.430 > 0.338; actual 0.560 > 0.429 > 0.370). **The premise
+that DPv1 confuses strategic drops with give-up drops is false.**
+
+When the top pick *is* a class-dropper, bucket ordering holds and all three
+beat the non-dropper top pick: A 68.1% ITM (n=1,420), B 63.9% (n=1,278),
+C 59.2% (n=179), against 62.3% for non-dropper top picks (n=5,246).
+
+### Finding 2 — the model UNDER-rates C, the opposite of the hypothesis
+
+A is +1.33pp (z=1.77, p=0.077 — not significant). B is flat. **C is +3.20pp,
+z=4.07, p<0.001.** Net of a `p_fund`-matched control drawn from the same
+claiming/OC pool, C is **+3.80pp, z=4.84**.
+
+The give-up narrative assumes the connections' intent predicts the outcome. It
+does not: the horse still receives a large *class relief*, and the model —
+reading poor recent form — under-credits it.
+
+**Stability.** Contrast this with Gap #7's one survivor, which lived in a
+single fold:
+
+| year | n | net | z |
+|---|---|---|---|
+| 2023 | 1,064 | +4.53pp | +3.05 |
+| 2024 | 1,008 | +4.64pp | +3.05 |
+| 2025 | 1,119 | +3.58pp | +2.48 |
+| 2026 | 584 | +1.37pp | +0.69 |
+
+| track | n | net | z |
+|---|---|---|---|
+| CT | 782 | +5.23pp | +3.01 |
+| ELP | 285 | +1.83pp | +0.63 |
+| GP | 1,772 | +3.84pp | +3.38 |
+| MNR | 936 | +3.09pp | +1.94 |
+
+Positive in **every** year and **every** track.
+
+### Finding 3 — it is an INTERACTION, invisible as a main effect
+
+The specificity test, which uses **no classifier judgment at all** — just two
+booleans:
+
+| cut | n | net resid | z |
+|---|---|---|---|
+| no ITM in last 3 (any claiming/OC horse) | 14,139 | **+0.07pp** | +0.19 |
+| ...and NOT dropping class | 8,957 | **-1.68pp** | -3.67 |
+| ...and dropping class | 5,182 | **+2.88pp** | +4.30 |
+| bucket C (adds severe-drop/layoff filter) | 3,775 | +3.80pp | +4.84 |
+| dropping class but HAS recent ITM | 13,374 | +0.93pp | +2.16 |
+
+Poor form alone is worth **nothing** (+0.07pp). Split by class direction, the
+two halves have **opposite signs** — which is exactly why the main effect is
+zero. The model prices poor form, and prices class change, but not their
+product. The bucket-C severity filter sharpens +2.88 to +3.80, so the
+classifier adds real signal on top of the judgment-free cut, but **the core
+result does not depend on the classifier.**
+
+### Finding 4 — `trainer_dropping_class_win_pct` does NOT already capture it
+
+The control this investigation was designed around. The feature is populated
+only for class-droppers (0% of non-droppers), covering 59.9% of them.
+
+A-minus-C spread in **actual** ITM, within each trainer group:
+
+* bottom quartile of `trainer_dropping_class_win_pct`: A 0.459, C 0.312 —
+  spread **+14.7pp**
+* top quartile: A 0.616, C 0.528 — spread **+8.7pp**
+
+**The A/B/C signal does not disappear when conditioning on trainer stats.** It
+is largely orthogonal to that channel, so explicit Kuck classification would
+not be redundant with what is already in the model.
+
+Residuals by cell show where the mispricing concentrates:
+
+| bucket | bottom quartile | top quartile |
+|---|---|---|
+| A | -3.72pp | -2.68pp |
+| B | -3.13pp | -0.11pp |
+| C | -0.16pp | **+6.02pp** |
+
+The worst-priced cell is **C with a hot dropping-class trainer**: net
+**+6.43pp, z=2.54 (n=388)**. A give-up-looking horse whose barn actually wins
+with class drops is live, and the model does not see it — the trainer feature
+is in the model as a **main effect**, and this is an interaction. Treat this
+cell as suggestive only: n=388, and only 2024 (+12.38pp) and 2025 (+9.26pp)
+have enough rows to evaluate.
+
+### Verdict — real signal, but calibration, not ranking
+
+| question | answer |
+|---|---|
+| Does the model distinguish A/B/C? | **Yes** — ordering correct, well separated |
+| Does it over-rank C? | **No — it under-rates C** by +3.80pp |
+| Does it under-rank A? | No (+1.33pp, p=0.077) |
+| Do existing trainer features capture it? | **No** — spread persists in both quartiles |
+| Would Kuck features be worth building? | **For calibration only, and not on the class-relief story alone** — mechanism is untested. |
+
+**Practical impact on ranking is 0.7%**, the same ceiling Gap #7 hit:
+
+* races containing at least one bucket-C horse: 2,863 of 15,532 (18.4%)
+* races where the top pick is already a C horse: 179 (1.2%)
+* races whose **top pick changes** under a +3.8pp correction: **101 (0.7%)**
+
+C horses sit low in the ranking by construction, so a +3.8pp bump on a horse at
+p=0.34 rarely overtakes one at p=0.60. By the Feature Design Principle this is
+a **calibration-only** effect: it is horse-level and does vary within a race,
+so it *can* reorder, but empirically it almost never does.
+
+**That does not make it worthless — it makes top-pick ITM the wrong
+instrument.** The Harville inversion, `simulate_race.py` and `ticket_ev.py` all
+consume absolute probabilities, and a systematic +3.8pp error on 22% of
+claiming droppers is exactly the kind of thing that distorts exotic pricing
+while leaving win-bet rankings untouched. If this is ever built, **measure it
+with a calibration metric (log-loss, Brier, reliability curve) on the dropper
+subgroup, not with top-pick ITM.** Measuring it the wrong way will produce a
+false negative and close the question incorrectly.
+
+No features were built, no model was retrained, nothing outside the diagnostic
+script was modified.
