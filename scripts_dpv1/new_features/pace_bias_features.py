@@ -57,13 +57,13 @@ def _dominant_style_last_3(raw: pd.DataFrame) -> pd.Series:
         vals = [v for v in mat[i] if isinstance(v, str)]
         if not vals:
             continue
-        # Ties break toward the most recent start, which is vals[0].
-        best, best_n = vals[0], 0
-        for v in set(vals):
-            n = vals.count(v)
-            if n > best_n:
-                best, best_n = v, n
-        dominant[i] = best
+        # Ties break toward the most recent start: vals is ordered most recent
+        # first (shift 1, 2, 3), so take the first value reaching the top
+        # count. This used to iterate set(vals), whose order depends on
+        # Python's per-process string hash seed, so a three-way tie produced
+        # a different style on every rebuild (~10.7% of rows, 2026-09-12).
+        top = max(vals.count(v) for v in vals)
+        dominant[i] = next(v for v in vals if vals.count(v) == top)
     s = s.assign(running_style_last_3=dominant)
     return raw[["entry_id"]].merge(
         s[["entry_id", "running_style_last_3"]], on="entry_id", how="left"
