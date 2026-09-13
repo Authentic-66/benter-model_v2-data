@@ -1571,7 +1571,9 @@ Feature Design Principle applied before any work.
 * **Form reliability (consistent good form)** — **found incidentally in
   Gap #9, exploratory.** Low finish variance plus good mean finish is
   under-rated by +2.35pp and reorders 3.4% of races. It needs a pre-registered
-  test on new data before anything else; see Gap #9.
+  test on new data before anything else; see Gap #9. **Mechanism investigated
+  in Gap #10:** two-sided under-extrapolation of a reliable record comparable
+  to today's class. The mechanism does not sharpen the ranking gain.
 
 ---
 
@@ -2242,3 +2244,300 @@ automatically the wrong instrument.
 No features were built, no model was retrained, the reranker was not touched,
 and nothing outside the diagnostic scripts (session scratchpad: `g9_build.py`,
 `g9_lib.py`, `g9_main.py`, `g9_controls.py`, `g9_robust.py`) was modified.
+
+---
+
+## Gap #10 — Cause of the consistent-good mispricing (from Gap #9)
+
+> **STATUS: INVESTIGATED 2026-09-12. A mechanism is IDENTIFIED for the
+> calibration error. It does NOT explain the ranking gain. Read both halves
+> before choosing a build path.**
+>
+> **Mechanism — the model under-trusts a finish record that is a reliable
+> guide to TODAY's race.** Three conditions stack:
+> * **consistent:** low finish variance;
+> * **comparable:** earned at one class band, and today is at that class;
+> * **long:** more starts, a weaker contributor.
+>
+> Where all hold, the model under-extrapolates recent form **in both
+> directions**: good records are under-credited and poor ones under-penalised.
+> The decisive split:
+> * consistent good form earned at today's class: **+4.02pp (z 6.12)**;
+> * the same consistency earned at a *different* class than today:
+>   **+0.06pp** (nothing).
+>
+> The residual slope on mean finish for consistent horses is **-0.0197 per
+> position (z -6.2)** where the record is comparable, and flat (-0.0007)
+> where it is not.
+>
+> **Scoring the three brief mechanisms:**
+> 1. **RELIABILITY — SUPPORTED, in a refined form.** Two-sided and
+>    variance-graded, as reliability predicts. The literal "more starts" test
+>    is only weakly positive; *comparability* of the starts matters more than
+>    their number.
+> 2. **CLASS STABILITY (placement at true level) — REJECTED as stated.**
+>    Controlling for it does **not** eliminate the residual; it
+>    **concentrates** it. Class-stable horses as a group are *over*-rated
+>    (-1.48pp), which placement cannot explain. Its real role is to make the
+>    record comparable, which belongs to mechanism 1.
+> 3. **TRAINER PLACEMENT — REJECTED.** No top-quartile concentration in any of
+>    14 variants; if anything the effect is largest for *bottom*-quartile
+>    trainers (+3.99pp).
+>
+> **THE CAVEAT THAT DECIDES THE BUILD PATH.** Held out by year, a flat bump on
+> the mechanism-sharpened cell gains only **+0.08pp top-pick ITM (p=0.26)**.
+> The *non*-comparable remainder of the Gap #9 cell carries most of Gap #9's
+> +0.26pp (**+0.21pp, p=0.024**), and this investigation does **not** explain
+> that part. The mechanism describes where the **calibration** error is;
+> it is **not** yet a better ranking rule. A feature built from it must be the
+> **two-sided interaction** (form slope conditioned on consistency x class
+> comparability), never a one-sided bonus.
+
+### Sample and test design
+
+Same sample as Gap #9: 75,940 out-of-fold horse-starts with 3+ prior finished
+starts. The cell is Gap #9's, unchanged: sample SD <= 1.5 over the last 5
+finished starts (fallback 3) and window mean finish < 4.5; n=15,268, baseline
++2.35pp (z 6.60). Stats use race-clustered SEs and p_fund-matched nets, as in
+Gap #9. The added data was trainer fields for today plus the trainer on every
+prior start.
+
+Each brief test was sharpened before running, because each has a confound as
+literally stated:
+
+* **Test 1 (5 starts vs 3).** Horses on the 3-start fallback are also
+  *less experienced* (mean 3.5 prior starts vs 15.0), and a 3-point SD is
+  noisier. The literal comparison was run, plus a fixed-population version
+  (horses with 8+ prior starts) and a **two-sided prediction** unique to
+  reliability: consistently poor horses should be over-rated too, so the
+  residual slope on mean finish should steepen as variance falls.
+* **Test 2 (class stability).** Looking only at class-stable horses cannot
+  separate cause from confounding. Run instead: the cell *within* class-stable
+  and *within* non-stable strata, and class-stable horses at *any* variance.
+  "Class-stable" means every window start is within +/-1 `class_score` of
+  today.
+* **Test 3 (trainer).** `trainer_365d_winrate_shrunk` quartiles (the brief's
+  "trainer_win_pct or similar") and `trainer_at_track_winrate_shrunk`, plus
+  whether the same trainer handled every window start.
+* **Step 4 (joint).** The residual (y - p_fund) was regressed on the cell
+  indicator plus all mechanism controls and p_fund bins, with race-clustered
+  SEs.
+  * **A column-indexing bug** in the first run printed control coefficients
+    from the wrong positions. It was caught because one z came out NaN.
+    Columns are now named, and only the corrected run is reported.
+
+### Mechanism 1 — reliability
+
+**1a, literal (cell over 5 starts vs the 3-start fallback, each vs same-window
+others):** 5 starts **+2.62pp (z 6.48, n 11,971)**; 3 starts **+1.23pp
+(z 1.50, n 3,297)**. Larger with more starts, but confounded by experience.
+
+**1b, fixed population (8+ prior starts, n 45,408), cell re-defined over k
+starts:**
+
+| k | net | z | cell share |
+|---|---|---|---|
+| 3 | +2.21pp | 5.24 | 24.1% |
+| 4 | +2.40pp | 5.88 | 26.0% |
+| 5 | +3.03pp | 6.48 | 20.2% |
+| 6 | +2.56pp | 5.11 | 17.8% |
+| 8 | +2.31pp | 4.05 | 14.0% |
+
+**Not monotone; it peaks at k=5.** Holding the set fixed does show a dose
+effect: horses consistent over 3 **and** 8 starts net **+3.05pp (z 4.21)**,
+against **+1.72pp (z 3.12)** for horses consistent over 3 only. Verdict on the
+literal "more observations" prediction: **weakly supported**.
+
+**1c, two-sided (the prediction only reliability makes).** Residual slope on
+window mean finish, by variance bucket, mean finish 1-9:
+
+| bucket | n | actual slope | model slope | residual slope | z |
+|---|---|---|---|---|---|
+| LOW (sd <= 1.5) | 20,809 | -0.0791 | -0.0706 | **-0.0085** | -4.71 |
+| MODERATE | 46,722 | -0.0646 | -0.0611 | -0.0035 | -2.22 |
+| HIGH (sd > 3) | 8,361 | -0.0420 | -0.0433 | +0.0014 | +0.28 |
+
+The model already gives consistent horses a steeper form slope than erratic
+ones, so it partly accounts for reliability, but **not enough**, and the
+shortfall grades with variance. That is the reliability signature: under-
+extrapolation of a trustworthy mean in *both* directions, not an upward shift.
+The poor half is weaker than the good half: consistent-poor horses net
+-1.46pp (z -1.08) and -1.93pp (z -1.94) in the two class strata.
+
+### Mechanism 2 — class stability
+
+| cut | n | net | z |
+|---|---|---|---|
+| cell, within class-stable horses | 4,341 | **+4.03pp** | +5.74 |
+| cell, within non-stable horses | 10,927 | **+1.86pp** | +4.39 |
+| class-stable horses, any variance, vs non-stable | 17,965 | **-1.48pp** | -4.94 |
+| class-stable, not in cell, vs non-stable non-cell | 13,624 | -2.24pp | -6.46 |
+
+Class-stable share: 28.4% of the cell against 22.5% of other horses.
+
+**As stated, the mechanism fails both of its predictions.** Controlling for
+class stability leaves a significant residual in each stratum, and class-stable
+horses are *over*-rated as a group; trainers placing horses at their true level
+would push the other way. What class stability does is **steepen the
+two-sided slope**:
+
+| residual slope on mean finish | class-stable | not class-stable |
+|---|---|---|
+| LOW | **-0.0194 (z -5.63)** | -0.0047 (z -2.18) |
+| MODERATE | **-0.0130 (z -3.96)** | -0.0000 (z -0.02) |
+| LOW, window 5 vs 3 | -0.0102 (z -4.63) | -0.0051 (z -1.55) |
+
+Among moderate-variance horses the *entire* under-extrapolation lives in the
+class-stable group. Class stability is not a placement effect; it decides
+whether the finish record is a comparable measure of today.
+
+### Disentangling: consistent-with-itself vs matched-to-today
+
+"Class-stable" as defined also means *no class change today*, which overlaps
+Gap #8. It was split into two separate conditions:
+* **internal:** window starts within a 2-point `class_score` band of each
+  other;
+* **today-match:** today within +/-1 of the window's mean class.
+
+| internal | today-match | n | cell vs same-stratum others | consistent-horse residual slope |
+|---|---|---|---|---|
+| yes | **yes** | 21,091 | **+4.02pp (z 6.12, n 4,945)** | **-0.0197 (z -6.16)** |
+| yes | **no** | 7,053 | **+0.06pp (z 0.05, n 1,717)** | -0.0007 (z -0.12) |
+| no | yes | 2,700 | +4.05pp (z 1.77, n 425) | -0.0058 (z -0.52) |
+| no | no | 45,096 | +1.97pp (z 3.94, n 8,181) | -0.0039 (z -1.53) |
+
+**A consistent record earned at a class other than today's shows no mispricing
+at all.** The model is right to discount it. When today *is* at that class,
+the model under-trusts it. Excluding every horse changing class today (Gap #8's
+territory), the cell is still **+2.82pp (z 5.47)** with slope -0.0125
+(z -4.89). This is not Gap #8 resurfacing.
+
+The "no/no" row (+1.97pp) is the part of the effect this mechanism does
+**not** account for.
+
+### Mechanism 3 — trainer placement
+
+| `trainer_365d_winrate_shrunk` quartile | cell vs same-quartile others |
+|---|---|
+| Q1 (<= 0.092) | **+3.99pp (z 4.42, n 2,813)** |
+| Q2 | +2.16pp (z 2.65) |
+| Q3 | +1.08pp (z 1.45) |
+| Q4 (> 0.169) | +2.53pp (z 3.92, n 5,090) |
+
+`trainer_at_track_winrate_shrunk` gives the same picture: Q1 +4.52pp, Q4
++1.36pp. The same trainer across the whole window: +2.33pp; not the same:
++2.14pp. **No concentration in sharp barns.** Separately, top-quartile trainers
+are mildly under-rated as a *main effect* (+1.84pp, z 3.50 in the joint model),
+but the cell x trainer-Q4 interaction is **-0.79pp (z -0.82)**. The trainer
+channel and the consistent-good cell are independent.
+
+### Step 4 — joint control
+
+Residual regression, race-clustered SEs, p_fund bins in every spec:
+
+| spec | cell | notes |
+|---|---|---|
+| cell only | **+2.48pp (z 5.61)** | |
+| + class_stable, window-5, same trainer, trainer quartiles | **+2.61pp (z 5.90)** | class_stable -1.58pp (z -4.22); window-5 +0.14pp; same trainer +0.62pp (z 1.81); trainer Q4 +1.84pp (z 3.50) |
+| + window mean-finish bins | **+2.14pp (z 4.15)** | survives conditioning on form level |
+| + cell x {class_stable, window-5, trainer Q4} | -0.30pp (z -0.27) | **cell x class_stable +3.09pp (z 3.22)**, cell x window-5 +2.17pp (z 2.05), cell x trainer Q4 -0.79pp (z -0.82) |
+
+**The effect holds after controlling for all three mechanisms as main
+effects.** It resolves into **interactions**: with them in the model, the
+cell's base term goes to zero, and the effect lives where the record is
+comparable (strongly) and long (moderately). Trainer does not interact.
+
+### Threshold and definition perturbation
+
+Values are pp (z) unless shown as slopes. "CS" = class-stable.
+
+| variant | cell net | joint cell | cell in CS | cell not in CS | cell x CS | cell x W5 | trainer Q1 | trainer Q4 | LOW slope, CS | LOW slope, not CS |
+|---|---|---|---|---|---|---|---|---|---|---|
+| baseline | +2.35 (6.6) | +2.61 (5.9) | +4.03 (5.7) | +1.86 (4.4) | +3.09 (3.2) | +2.17 (2.0) | +3.99 (4.4) | +2.53 (3.9) | -0.0194 (-5.6) | -0.0047 (-2.2) |
+| LOW sd <= 1.00 | +1.64 (3.0) | +1.85 (3.0) | +2.98 (2.8) | +1.21 (1.9) | +3.37 (2.5) | +0.62 (0.5) | +2.60 (1.9) | +3.53 (3.8) | -0.0203 (-4.5) | -0.0042 (-1.5) |
+| LOW sd <= 1.25 | +1.78 (4.2) | +2.08 (4.2) | +4.19 (5.1) | +0.99 (1.9) | +4.30 (4.0) | +1.60 (1.4) | +3.82 (3.5) | +2.44 (3.3) | -0.0200 (-5.2) | -0.0038 (-1.6) |
+| LOW sd <= 1.75 | +1.61 (5.7) | +1.90 (4.8) | +3.96 (6.8) | +1.01 (3.0) | +3.31 (3.9) | +1.88 (2.0) | +3.46 (4.7) | +1.75 (3.3) | -0.0179 (-6.1) | -0.0031 (-1.7) |
+| LOW sd <= 2.00 | +1.55 (6.5) | +1.87 (5.0) | +4.36 (8.3) | +0.87 (3.0) | +3.51 (4.4) | +1.94 (2.2) | +3.49 (5.5) | +0.97 (2.1) | -0.0166 (-6.2) | -0.0028 (-1.7) |
+| good mean < 4.0 | +2.37 (6.1) | +2.62 (5.5) | +4.63 (6.0) | +1.67 (3.7) | +4.02 (3.9) | +2.24 (2.0) | +4.10 (4.0) | +2.60 (3.9) | -0.0194 (-5.6) | -0.0047 (-2.2) |
+| good mean < 5.0 | +2.39 (7.0) | +2.63 (6.1) | +4.06 (6.0) | +1.91 (4.6) | +3.02 (3.2) | +2.16 (2.1) | +3.95 (4.7) | +2.73 (4.3) | -0.0194 (-5.6) | -0.0047 (-2.2) |
+| class tolerance +/-0 | +2.35 (6.6) | +2.59 (5.8) | +3.74 (3.9) | +2.20 (5.7) | +2.45 (2.0) | +2.20 (2.1) | +3.99 (4.4) | +2.53 (3.9) | -0.0177 (-3.8) | -0.0071 (-3.6) |
+| class tolerance +/-2 | +2.35 (6.6) | +2.61 (5.9) | +3.87 (6.2) | +1.68 (3.7) | +3.19 (3.5) | +2.13 (2.0) | +3.99 (4.4) | +2.53 (3.9) | -0.0179 (-6.0) | -0.0034 (-1.5) |
+| class tolerance +/-3 | +2.35 (6.6) | +2.60 (5.9) | +3.96 (6.5) | +1.56 (3.4) | +3.33 (3.7) | +2.12 (2.0) | +3.99 (4.4) | +2.53 (3.9) | -0.0161 (-5.5) | -0.0039 (-1.7) |
+| population SD | +1.62 (5.7) | +1.91 (4.8) | +3.87 (6.6) | +1.04 (3.1) | +3.19 (3.8) | +1.88 (2.0) | +3.36 (4.6) | +1.47 (2.7) | -0.0177 (-6.0) | -0.0033 (-1.8) |
+| exactly 5 starts | +2.62 (6.5) | +2.84 (5.7) | +3.92 (4.8) | +2.36 (4.9) | n/a* | n/a* | +4.78 (4.6) | +2.47 (3.4) | -0.0163 (-3.9) | -0.0076 (-2.9) |
+| last 3 only | +1.70 (5.3) | +1.90 (4.5) | +4.58 (8.5) | **+0.11 (0.3)** | +5.02 (6.0) | n/a | +3.33 (4.1) | +1.63 (2.8) | -0.0198 (-8.2) | -0.0008 (-0.4) |
+| field-normalised finish | +2.16 (5.5) | +2.40 (5.1) | +3.49 (4.6) | +1.79 (3.8) | +2.70 (2.7) | +1.81 (1.7) | +2.66 (2.7) | +2.77 (4.0) | -0.0214 (-7.4) | -0.0053 (-2.9) |
+
+\* With no fallback every row has window 5, so the window-5 term is collinear
+with the constant and cell x window-5 is collinear with the cell. The
+regression's split of those terms is not interpretable.
+
+**Every structural reading holds in all 14 variants:**
+* the cell is larger inside class-stable horses than outside;
+* the consistent-horse slope is steep where the record is comparable (z -3.8
+  to -8.2) and near-flat elsewhere;
+* cell x class-stable is positive (z 2.0-6.0);
+* trainer Q4 never concentrates the effect. Q4 exceeds Q1 only at sd <= 1.00
+  (+3.53 vs +2.60) and under field normalisation (+2.77 vs +2.66), and neither
+  is a concentration.
+
+**The weakest component is window length** (cell x window-5, z 0.5 to 2.2).
+With a 3-start window, the entire effect sits inside class-stable horses
+(+4.58pp vs +0.11pp).
+
+### Ranking: the mechanism does not sharpen the ranking gain
+
+Leave-one-year-out, as in Gap #9. The correction is estimated on three years,
+applied to the fourth, and scored by exact McNemar on discordant races. 32.4%
+of the Gap #9 cell has a comparable class record.
+
+| cell | top pick changed | gained | lost | top-pick ITM | p |
+|---|---|---|---|---|---|
+| Gap #9 cell | 523 (3.4%) | 160 | 119 | **+0.26pp** | 0.016 |
+| **sharpened: cell & comparable class** | 198 (1.3%) | 54 | 42 | **+0.08pp** | 0.261 |
+| cell & NOT comparable | 322 (2.1%) | 110 | 78 | **+0.21pp** | 0.024 |
+
+Per year, the sharpened cell reads -0.02, +0.20, +0.02, +0.13pp; the
+non-comparable remainder +0.02, +0.20, +0.23, +0.53pp.
+
+**Most of Gap #9's held-out ranking gain comes from the part the mechanism
+does not explain.** The likely reason is structural, not a contradiction.
+Measured against *all* horses, comparable-class horses are over-rated as a
+group (class-stable main effect -1.58pp), so a flat upward bump on only their
+good half is the wrong-shaped correction. The mechanism is two-sided, and a
+one-sided flat bonus cannot express it. That is a hypothesis about the shape a
+feature needs; **it is not tested here.**
+
+### Verdict
+
+| question | answer |
+|---|---|
+| Reliability? | **Supported, refined:** two-sided under-extrapolation that grades with variance (slope -0.0085 / -0.0035 / +0.0014 for LOW / MOD / HIGH) and concentrates where the record is comparable. "More starts" alone is weak. |
+| Class stability (placement)? | **Rejected as stated.** Control does not eliminate the residual, and class-stable horses are over-rated. It works as the *comparability* condition of reliability. |
+| Trainer placement? | **Rejected.** No Q4 concentration in any variant; the interaction is null. |
+| Holds after controlling all three? | **Yes**, +2.61pp (z 5.90), +2.14pp with form-level bins. It resolves into cell x comparability (+3.09pp) and cell x window length (+2.17pp). |
+| Stable to thresholds? | **Yes**, all structural readings in all 14 variants. |
+| Does the mechanism give a better ranking rule? | **No.** The sharpened flat cell gains +0.08pp (p 0.26); most of the ranking gain is in the unexplained remainder. |
+| Unexplained | The non-comparable consistent-good horses: +1.97pp calibration, +0.21pp held-out ranking |
+
+**Input for the build decision (not a decision).**
+* The mechanism is identified well enough to specify a **feature shape**:
+  recent-form level *interacted with* a reliability term (finish consistency)
+  and a comparability term (window class band matching today). It must be
+  two-sided, and it is horse-level, so by the Feature Design Principle it
+  can reorder.
+* The evidence does **not** support shipping a one-sided "consistent-good
+  bonus". It also does not show that the mechanism-shaped feature would beat
+  Gap #9's cruder cell on ranking; that must be measured.
+* **Any build must be measured three ways on held-out folds:** top-pick ITM
+  with paired McNemar; log-loss/Brier on the consistent and comparable
+  subgroups; and the residual slope table above, which should flatten if the
+  feature works.
+* Build it **alongside a corpus-matched control** (Gap #6 rule).
+* Nothing here yet explains the ranking gain from non-comparable
+  consistent-good horses.
+
+No features were built, no model was retrained, the reranker was not touched,
+and nothing outside the diagnostic scripts (session scratchpad: `g10_build.py`,
+`g10_lib.py`, `g10_main.py`, `g10_joint.py`, `g10_robust.py`, `g10_rank.py`)
+was modified.
