@@ -110,6 +110,10 @@ DPV1_CATEGORICAL_FEATURES: tuple[str, ...] = (
     "trainer_home_track", "jockey_home_track", "running_style_last_3",
     "early_pace_position_projected", "pace_pressure_in_race",
     "expected_pace_shape", "track_bias_running_style",
+    # Phase 6D Gap #11 class context. Object dtype, so without this entry the
+    # Preprocessor would treat it as neither numeric nor categorical and drop
+    # it silently.
+    "class_direction",
 )
 
 NON_FEATURE_COLS: tuple[str, ...] = (

@@ -56,7 +56,8 @@ from dpv1_common import (  # noqa: E402
 import feature_builder as v1  # noqa: E402
 
 from new_features import (  # noqa: E402
-    aggregate_features, class_change_features, cross_track_features,
+    aggregate_features, class_change_features, class_context_features,
+    cross_track_features,
     equipment_features, field_experience_features, pace_bias_features,
     pedigree_features, recent_form_features, troubled_trip_detector,
 )
@@ -323,6 +324,7 @@ DPV1_MODULES = [
     ("aggregates", aggregate_features.compute),
     ("class_change", class_change_features.compute),
     ("class_change/trainer", class_change_features.compute_trainer_class_rates),
+    ("class_context", class_context_features.compute),
     ("recent_form", recent_form_features.compute),
     ("cross_track", cross_track_features.compute),
     ("pace_bias", pace_bias_features.compute),

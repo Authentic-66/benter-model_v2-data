@@ -1,5 +1,5 @@
 {
-  "version": "dpv1.3.0",
+  "version": "dpv1.4.0",
   "generated": "2026-08-03",
   "generated_by": "scripts_dpv1/build_dpv1_config.py + scripts_dpv1/add_pp_bucket9.py",
   "source_ranking": "DPv1_Feature_Ranking.xlsx",
@@ -23,7 +23,8 @@
     "Every bucket-9 feature is active=false / availability=PP_AVAILABLE:",
     "  they are candidates for Phase 5B, not part of the trained DPv1.",
     "pp_ml_decimal is bucket 9, not bucket 7, and anchor=false. The v1",
-    "  model's log_ml anchor (~40% of the prediction) is NOT ported."
+    "  model's log_ml anchor (~40% of the prediction) is NOT ported.",
+    "dpv1.4.0 (2026-09-12): adds 8 class-context features from Phase 6D Gaps #10/#11 (new_features/class_context_features.py)."
   ],
   "activation_policy": {
     "rank_1": "active",
@@ -47,7 +48,7 @@
       "5": 2
     },
     "dpv1_additions": 14,
-    "active_total": 100,
+    "active_total": 121,
     "blocked_rank_1_2": [
       "recent_bullet_workout"
     ],
@@ -3352,6 +3353,102 @@
       "description": "Experience edge over field mean, weighted by how green the field is.",
       "doug_rank": 1,
       "doug_notes": "Phase 6D Gap #6 interaction test: horse-level x field-experience.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "avg_class_recent": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "description": "Mean class_score over the last 5 prior finished starts (fallback last 3); imputed with today's race class_score when < 3.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "class_drop_signed": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "description": "Today's class_score minus avg_class_recent (+ = rising, - = dropping). Carries class across race-type bands.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "class_direction": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "categorical",
+      "description": "DROPPING (< -0.5) / SAME / RISING (> +0.5) / NO_HISTORY (< 3 prior finished starts).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "class_context_missing": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "boolean",
+      "description": "1 when fewer than 3 prior finished starts (explicit indicator; value columns are imputed).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "low_finish_variance": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "boolean",
+      "description": "Sample SD of finish position over the same window <= 1.5.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "lowvar_x_dropping": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "boolean",
+      "description": "low_finish_variance x class_direction DROPPING (SAME is the reference).",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "lowvar_x_rising": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "boolean",
+      "description": "low_finish_variance x class_direction RISING.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "lowvar_same_x_mean_finish": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "description": "low_finish_variance x SAME x window mean finish: Gap #10's two-sided slope term.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
       "phase3c_status": "NEW",
       "v2_active": "NO",
       "implemented": true

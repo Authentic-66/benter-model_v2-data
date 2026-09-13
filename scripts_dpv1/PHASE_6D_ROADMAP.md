@@ -1574,6 +1574,10 @@ Feature Design Principle applied before any work.
   test on new data before anything else; see Gap #9. **Mechanism investigated
   in Gap #10:** two-sided under-extrapolation of a reliable record comparable
   to today's class. The mechanism does not sharpen the ranking gain.
+* **Multi-race class context** — **found in Gap #11.** Horses racing below
+  their recent-average class are under-rated and those above over-rated; the
+  model's class feature looks one race back. Held out, +0.42pp top-pick ITM on
+  all horses. This is the recommended next build direction; see Gap #11.
 
 ---
 
@@ -2541,3 +2545,485 @@ No features were built, no model was retrained, the reranker was not touched,
 and nothing outside the diagnostic scripts (session scratchpad: `g10_build.py`,
 `g10_lib.py`, `g10_main.py`, `g10_joint.py`, `g10_robust.py`, `g10_rank.py`)
 was modified.
+
+---
+
+## Gap #11 — The residual ranking gain (Gap #10's unexplained remainder)
+
+> **STATUS: INVESTIGATED 2026-09-12. The remainder is REAL, and its mechanism
+> is identified. It is NOT a second consistency effect. It is a slice of a
+> broader, general CLASS-CONTEXT gap that affects every horse.**
+>
+> **Mechanism — the model misprices a horse racing below (or above) its
+> RECENT AVERAGE class.** DPv1's only class-movement feature,
+> `class_score_change_from_last`, looks back one race.
+> * Horses racing below their 3-5-start average class are **under-rated
+>   +1.60pp raw (z 7.58, n 31,027)**.
+> * Horses racing above it are **over-rated -2.01pp raw (z -7.88)**.
+> * Where the model's own feature cannot see the drop, because the last race
+>   was already at today's class, the miss is **+3.38pp (z 9.0)** against
+>   level horses in the same stratum.
+>
+> **The Gap #10 remainder is exactly this.** Not-comparable consistent horses
+> racing below their window class gain **+0.31pp top-pick ITM held out
+> (p 0.001)**; the rest of the remainder gains **-0.03pp**. Comparable horses
+> are level by construction, so the two effects are **disjoint**.
+>
+> **As a rule on all horses it beats every consistent-cell rule on ranking.**
+> Below-window-class alone, held out by year: **+0.42pp (p 0.001)**. Combined
+> with Gap #10's comparable-cell term: **+0.48pp (p 0.0004)**, positive in every
+> year. Gap #9's crude cell: +0.26pp.
+>
+> **Brief candidates:**
+> * **class improvement — NULL; the sign is reversed.** It is the drop.
+> * **fresh start — null.**
+> * **layoff — null or negative.** It cancels the effect rather than
+>   explaining it.
+> * **sample artifact (maiden graduation / `class_score` cross-type scale) —
+>   ruled out.** Maiden special weight -> claiming, the scale-artifact
+>   transition, contributes nothing.
+>
+> **TWO CAVEATS THAT SHAPE ANY BUILD:**
+> 1. **The ranking gain comes from drops that cross race types** (allowance,
+>    stakes or starter into cheaper company): +0.28pp, p 0.001. Drops within
+>    one race family are mispriced (+4.21pp net) but reorder almost nothing
+>    (+0.03pp). A feature has to carry class across race-type bands.
+> 2. **The direction was data-chosen.** The brief proposed class
+>    *improvement*, and this is its reverse. The evidence is strong (raw z 7.6,
+>    held-out gain in every variant and year), but the build should be judged
+>    on a pre-registered held-out test like any other.
+
+### Sample
+
+Same as Gaps #9 and #10: 75,940 out-of-fold horse-starts with 3+ prior finished
+starts. The Gap #9 cell (15,268) splits into **comparable 4,945 / not
+comparable 10,323**, using Gap #10's definition: window class band <= 2 points
+and today within +/-1 of the window's mean class.
+
+`dir` = today's `class_score` minus the window's mean `class_score`.
+**BELOW** = dir < -1; **ABOVE** = dir > +1. Race families (maiden, claiming,
+starter, allowance, stakes) come from `races.race_type` for every window start.
+
+**Composition of the remainder** (not-comparable cell vs comparable cell vs
+non-cell horses):
+
+| attribute | not comparable | comparable | non-cell |
+|---|---|---|---|
+| today ABOVE window class | **50.8%** | 0% | 26.2% |
+| today BELOW window class | **45.1%** | 0% | 43.5% |
+| window includes a different race type than today | **80.1%** | 0.1% | 57.1% |
+| maiden graduate (maiden in window, not today) | 27.4% | 0% | 20.9% |
+| maiden race today | 12.9% | 26.2% | 18.0% |
+| never raced within +/-1 of today's class | 24.8% | 0% | 17.5% |
+| layoff >= 60d | 19.1% | 11.9% | 16.6% |
+| model top pick | 26.8% | 25.4% | 11.3% |
+| mean p_fund | 0.508 | 0.495 | 0.390 |
+
+The remainder is almost entirely horses **moving class**, split roughly half up
+and half down, and mostly across race types. Both halves of the cell sit near
+the top of the ranking.
+
+### Finding 1 — the remainder is real, and it lives in one stratum
+
+| subset | calibration net | LOYO top-pick ITM | p |
+|---|---|---|---|
+| not comparable (all) | **+2.08pp (z 4.76)** | **+0.21pp** (gained 110, lost 78) | 0.024 |
+| ...internally class-consistent, today at another class | -0.35pp | +0.02pp | 0.68 |
+| ...not internally consistent, today matches | +1.57pp (n 425) | -0.01pp | 1.00 |
+| ...**neither** | **+2.62pp (z 5.24)** | **+0.22pp** | 0.023 |
+
+**Placebo.** The same per-year corrections were applied to random non-cell
+horses matched on model rank (50 draws), testing whether the gain comes merely
+from bumping horses near the top.
+* Placebo mean +0.003pp; 5th-95th percentile -0.103 to +0.109pp; max +0.129pp.
+* **The real +0.206pp beats all 50 draws.** The gain comes from mispricing,
+  not ranking position.
+
+### Finding 2 — mechanism candidates
+
+Columns:
+* **[A]** not-comparable cell horses with the attribute, net vs non-cell horses;
+* **[B]** cell horses with the attribute vs non-cell horses *with the same
+  attribute* (is it consistency-specific?);
+* **[C]** the attribute among non-cell horses generally (is it general?);
+* **[D]** LOYO ranking on [A].
+
+| candidate | share | [A] | [B] | [C] | [D] |
+|---|---|---|---|---|---|
+| **class improvement** (today ABOVE window) | 50.8% | **+0.17pp (z 0.27)** | +2.77pp | **-2.27pp (z -7.29)** | **-0.03pp** |
+| **class drop** (today BELOW window) | 45.1% | **+4.28pp (z 6.38)** | +2.23pp (z 3.33) | **+3.90pp (z 16.41)** | **+0.31pp, p 0.001** |
+| fresh start (never at today's class) | 24.8% | -0.30pp | -0.35pp | +0.71pp | +0.08pp |
+| layoff >= 60d | 19.1% | -2.21pp (z -2.12) | +0.17pp | -0.54pp | +0.03pp |
+| layoff >= 180d | 7.6% | -4.61pp (z -2.70) | -1.64pp | -1.48pp | -0.06pp |
+| maiden graduate | 27.4% | +0.45pp | +1.99pp | -1.62pp | +0.01pp |
+| any race-type change in window | 80.1% | +1.79pp | +1.83pp | +0.65pp | +0.08pp |
+| ABOVE, no type change | 7.1% | -1.86pp | +0.52pp | -2.12pp | +0.01pp |
+| BELOW, no type change | 10.8% | +6.36pp (z 4.47) | +2.21pp | +3.13pp (z 6.22) | +0.10pp |
+
+* **Class improvement — rejected.** The brief's idea was that consistency at a
+  lower class makes the model over-penalise a move up. Instead, horses moving
+  up are priced correctly when consistent ([A] +0.17pp) and **over**-rated in
+  general ([C] -2.27pp). The model under-penalises a move up, if anything.
+* **Class drop — the mechanism.** Consistent horses racing below their recent
+  average class carry the whole ranking gain. [C] shows the effect is
+  **general**: +3.90pp across 26,371 non-cell horses. [B] shows consistency
+  adds to it (+2.23pp), not that it creates it.
+* **Fresh start — rejected.** Null on every column.
+* **Layoff — rejected.** Negative, and in a residual regression it *cancels*
+  the remainder: not-comparable x layoff 60+ is -4.13pp (z -3.19); x fresh class
+  -2.76pp (z -2.22).
+* **Maiden-graduation artifact — rejected.** See Finding 4.
+
+### Finding 3 — the effect is general, and the model's class feature misses it
+
+Raw residuals (actual - p_fund), no pooling:
+
+| window direction | all horses | non-cell | cell |
+|---|---|---|---|
+| ABOVE (> +1) | **-2.01pp (z -7.88)**, n 21,122 | -2.46pp | -0.65pp |
+| LEVEL | -1.36pp (z -5.37), n 23,791 | -2.31pp | +1.91pp |
+| BELOW (< -1) | **+1.60pp (z +7.58)**, n 31,027 | +1.34pp | **+3.13pp** |
+
+On this sample the model's overall residual is -0.33pp. The gradient runs
+about 3.6pp from ABOVE to BELOW.
+
+**Specificity vs the existing feature (step 3).** BELOW-window horses against
+LEVEL-window horses, within strata of the model's own
+`class_score_change_from_last`:
+
+| last-race class change | share BELOW | BELOW vs LEVEL |
+|---|---|---|
+| drop | 75% | **+0.53pp (z 1.53)** — the model already sees these |
+| same | 33% | **+3.38pp (z 9.02)** — invisible to the model |
+| rise | 18% | **+3.38pp (z 4.28)** — invisible to the model |
+
+**`class_score_change_from_last` captures the drop only when it happened in the
+last race.** A horse whose last start was already at today's level, or was a
+brief step up, but whose recent average class was higher, is under-rated by
+about 3.4pp. The model has no multi-race class context.
+
+**Stability (BELOW, all horses, net vs non-BELOW):**
+* **By year:** 2023 +3.72pp (z 9.42), 2024 +3.23pp (z 8.14), 2025 +3.05pp
+  (z 7.63), 2026 +3.88pp (z 7.07).
+* **By track:** CT +3.50, GP +3.81, MNR +2.56pp (all z > 5); ELP +0.46pp
+  (n 498).
+* **By today's race family:** positive in every family (claiming +4.49pp,
+  z 17.4).
+
+### Finding 4 — where the ranking gain lives: cross-type class relief, not a scale artifact
+
+`class_score` is not monotone across race types: maiden special weight
+(43-48) scores above ordinary claiming (21-29). The worry was that "BELOW"
+ranking gains came from that scale. Split by transition (dominant window
+family -> today):
+
+| BELOW group | n | calibration net | raw | LOYO ITM | p |
+|---|---|---|---|---|---|
+| no race-type change | 7,765 | **+4.21pp (z 9.18)** | +2.48pp | **+0.03pp** | 0.71 |
+| type change, maiden graduate | 5,030 | +2.31pp | +0.52pp | +0.01pp | 0.86 |
+| **type change, not maiden graduate** | 18,232 | **+3.34pp (z 11.58)** | +1.53pp | **+0.28pp** | **0.001** |
+| ...allowance -> claiming | 4,052 | +4.76pp (z 6.83) | +2.93pp | +0.08pp | 0.19 |
+| ...stakes -> allowance/claiming | 968 | +4.63pp (z 3.19) | +2.47pp | +0.08pp | 0.029 |
+| ...starter -> claiming | 1,587 | +4.92pp (z 4.24) | +3.13pp | +0.05pp | 0.32 |
+| ...claiming -> starter | 283 | +1.55pp | -0.11pp | -0.01pp | 1.00 |
+| **...maiden special weight -> claiming** (scale-artifact candidate) | 1,888 | +1.28pp (z 1.26) | **-0.55pp** | **-0.01pp** | 1.00 |
+
+* **The scale-artifact transition contributes nothing.** It is null on raw
+  residual and on ranking.
+* **The ranking gain is genuine class relief across race-type bands**, spread
+  over allowance, stakes and starter horses dropping into cheaper company.
+  Each is individually under-rated +4.6 to +4.9pp on calibration, and no
+  single transition carries the ranking gain.
+* **Within-family drops are a calibration-only error.** They are mispriced
+  +4.21pp but reorder almost nothing. That is consistent with the model's
+  last-race feature doing most of the within-family ordering, but the
+  explanation is **not tested**.
+
+Mean ranking position is similar in both groups (rank 4.20 vs 4.01), so
+position does not explain the difference.
+
+### Finding 5 — overlap with Gap #8
+
+Gap #8's judgment-free cut is claiming/OC, no ITM in last 3, last-race class
+drop. **81% of it is BELOW-window.**
+
+| stratum | no-ITM-last-3 & last-race drop | no-ITM-last-3 & NOT dropping |
+|---|---|---|
+| all claiming/OC | +3.30pp (z 4.40), n 3,625 | -3.12pp (z -6.91) |
+| BELOW window | +2.10pp (z 2.46), n 2,936 | -3.00pp (z -3.69) |
+| NOT BELOW window | +0.87pp (z 0.55), n 689 | -2.77pp (z -4.96) |
+
+**Partial overlap.** Window class direction absorbs part of Gap #8's
+under-rated dropper half: +3.30pp overall, +2.10pp within BELOW. It leaves
++2.10pp within BELOW, and n=689 outside it is too small to read. It does
+**not** touch Gap #8's over-rated half (poor form, not dropping: about -3pp in
+every stratum). One class-context feature might cover part of Gap #8, not all
+of it.
+
+### Threshold and definition perturbation
+
+LOYO values are top-pick ITM in pp.
+
+| variant | remainder calib | remainder LOYO | remainder & BELOW | remainder & not BELOW | BELOW raw | BELOW (all) LOYO | BELOW vs LEVEL, last-race same | BELOW, no type change LOYO | two-part LOYO |
+|---|---|---|---|---|---|---|---|---|---|
+| baseline | +2.08 (z 4.8) | +0.21 p .024 | +0.31 p .001 | -0.03 | +1.60 (z 7.6) | **+0.42 p .001** | +3.38 (z 9.0) | +0.03 | **+0.48 p .0004** |
+| BELOW dir < -0.5 | +2.08 | +0.21 | +0.31 p .001 | -0.03 | +1.58 (z 8.2) | +0.41 p .004 | +3.63 (z 10.7) | +0.08 | +0.45 p .002 |
+| BELOW dir < -3 | +2.08 | +0.21 | +0.24 p .004 | +0.08 p .035 | +1.94 (z 8.0) | +0.46 p .000 | +3.53 (z 8.2) | +0.03 | +0.50 p .000 |
+| BELOW dir < -5 | +2.08 | +0.21 | +0.22 p .003 | +0.09 | +2.20 (z 8.3) | +0.35 p .006 | +3.11 (z 6.5) | -0.01 | +0.38 p .003 |
+| comparability band 1, tol 0 | +2.38 (z 6.1) | +0.25 p .018 | +0.31 p .001 | +0.12 p .018 | +1.60 | +0.42 | +3.38 | +0.03 | +0.46 p .001 |
+| comparability band 3, tol 2 | +1.95 (z 4.3) | +0.17 p .039 | +0.24 p .006 | -0.03 | +1.60 | +0.42 | +3.38 | +0.03 | +0.44 p .001 |
+| cell sd <= 1.25 | +1.19 (z 2.3) | **+0.08 p .16** | +0.09 p .20 | -0.04 | +1.60 | +0.42 | +3.38 | +0.03 | +0.43 p .001 |
+| cell sd <= 1.75 | +1.29 (z 3.7) | **+0.08 p .30** | +0.24 p .020 | -0.02 | +1.60 | +0.42 | +3.38 | +0.03 | +0.48 p .000 |
+| cell mean < 4.0 | +1.79 (z 3.8) | +0.15 p .052 | +0.30 p .000 | -0.04 | +1.60 | +0.42 | +3.38 | +0.03 | +0.47 p .001 |
+| cell mean < 5.0 | +2.19 (z 5.2) | +0.21 p .025 | +0.42 p .000 | -0.03 | +1.60 | +0.42 | +3.38 | +0.03 | +0.42 p .001 |
+| exactly 5 starts | +2.68 (z 5.4) | +0.21 p .029 | +0.37 p .000 | -0.02 | +1.74 (z 7.1) | +0.42 p .001 | +3.49 (z 8.5) | +0.04 | +0.40 p .003 |
+| last 3 only | +0.63 (z 1.4) | **+0.06 p .14** | +0.15 p .031 | -0.03 | +1.68 (z 6.9) | +0.33 p .008 | +2.93 (z 6.2) | +0.08 | +0.29 p .029 |
+
+Two readings with opposite robustness:
+* **The remainder, as a slice of the consistent cell, is threshold-fragile.**
+  It loses significance at sd <= 1.25, sd <= 1.75 and with a 3-start window.
+  The consistency label was never the operative variable.
+* **The class-context effect is robust everywhere.** BELOW (all horses) holds
+  in all 12 variants (+0.33 to +0.46pp, p <= 0.008). The miss invisible to
+  the model's feature holds at +2.93 to +3.63pp, z >= 6.2. The two-part
+  correction holds at +0.29 to +0.50pp, and within-family drops never gain on
+  ranking.
+
+### What is not established
+
+* **Why within-family drops mispricing stays calibration-only.** The model's
+  last-race feature may already order them; untested.
+* **Whether a trained feature reproduces a flat-bump gain.** Every ranking
+  number here is a flat per-year correction on `p_fund`, not a retrained
+  model. A trained feature interacts with everything else and could capture
+  more or less.
+* **The over-rated ABOVE half.** It is as large as the under-rated BELOW half
+  (-2.01 vs +1.60pp raw), but a flat penalty on it was not tested for ranking.
+* **Gap #8's residual** after window context: +2.10pp dropper half, -3pp
+  non-dropper half.
+
+### Verdict
+
+| question | answer |
+|---|---|
+| Is the +0.21pp remainder real? | **Yes.** Placebo beats 50/50 draws; calibration +2.08pp (z 4.76). As a consistent-cell slice it is threshold-fragile, because consistency is not the operative variable. |
+| Mechanism | **Racing below recent average class** (window-mean `class_score`, not last race). General to all horses; consistency amplifies calibration but is not required. |
+| Class improvement / fresh start / layoff / artifact? | Improvement null (reversed); fresh start null; layoff null or negative; maiden-graduation and cross-type scale artifacts ruled out. |
+| Does an existing feature capture it? | **Only partly.** `class_score_change_from_last` handles drops from the last race (+0.53pp residual) and misses drops relative to the recent average (+3.38pp, z 9.0). |
+| Two real effects on the consistent-good cell? | **Yes, disjoint.** Gap #10 (reliable comparable record, two-sided, mainly calibration) and Gap #11 (window class drop, calibration and ranking). |
+| What was Gap #9's crude cell? | **A proxy.** It picked up Gap #10's comparable horses (calibration) plus a slice of Gap #11's class-drop horses (ranking). Its +0.26pp ranking gain is mostly Gap #11. |
+
+**Shipping decision input (a recommendation, not a decision):**
+
+| option | held-out top-pick ITM | assessment |
+|---|---|---|
+| Gap #9 crude cell | +0.26pp (p 0.016) | **Do not ship.** A proxy for two other effects, and threshold-fragile. |
+| Gap #10 cause-sharpened cell | +0.08pp (p 0.26) | **Do not ship as a flat bonus.** The mechanism is two-sided; worth it only inside a slope-shaped feature. |
+| Gap #11 BELOW-window, all horses | **+0.42pp (p 0.001)** | Strongest single rule, general, robust in every variant. |
+| **Gap #11 + Gap #10 two-part** | **+0.48pp (p 0.0004)** | Best measured. Every year positive (+0.29 to +0.61pp). |
+
+**The recommended next build is a new cause-informed feature:**
+* **Multi-race class context:** today's class relative to the horse's recent
+  window of 3-5 starts. Signed, so it covers the over-rated ABOVE side as well
+  as the BELOW side, and it must carry class across race-type bands.
+* **Optionally, Gap #10's two-sided comparability term:** form slope x
+  consistency x class match. Both are horse-level and vary within a race, so
+  both can reorder.
+
+Requirements for that build:
+* Train it **alongside a corpus-matched control.**
+* Judge it on **held-out folds** with paired McNemar on top-pick ITM, **plus**
+  log-loss/Brier on the BELOW and ABOVE subgroups, **plus** the raw
+  direction-residual table above, which should flatten.
+* **Check Gap #8's residual** in the same run.
+
+**Unifying hypothesis, untested:** Gaps #8, #10 and #11 each trace to the same
+structural blind spot. DPv1's form features are **class-agnostic averages**,
+and its class feature looks **one race back**. A single class-contextualised
+form representation might address all three. Record it as a direction, not a
+finding.
+
+No features were built, no model was retrained, the reranker was not touched,
+and nothing outside the diagnostic scripts (session scratchpad: `g11_lib.py`,
+`g11_part1.py` to `g11_part5.py`) was modified.
+
+### Gap #11 build — Path A (base-model feature), 2026-09-12
+
+> **RESULT: the class-context feature improves the base model on every
+> measure asked for, against a corpus- and feature-matched control.**
+> * **Top-pick ITM +0.43pp:** 535 races gained vs 467 lost, exact McNemar
+>   **p = 0.034**, positive in all 4 years.
+> * **Log-loss improves:** z -7.6 overall, and in every class-direction
+>   subgroup.
+> * **The class-direction residual spread collapses** from 3.56pp to -0.48pp.
+> * **Gap #10's two-sided slope flattens** from -0.0189 to -0.0009.
+>
+> **Two new problems, and a caveat:**
+> * **A new miscalibration.** Horses whose last race was a class rise but who
+>   still sit below their recent average class are now **over-rated -4.86pp
+>   (z -6.2, n 3,145)**, where the control had -1.97pp.
+> * **Gap #8 is mostly not fixed.** Bucket C goes from +3.60 to +3.18pp.
+> * **Not a pre-registered test.** The feature was designed from Gaps #9-#11,
+>   which analysed out-of-fold outcomes over these same years. The fold
+>   comparison is out-of-sample for the *model*, not for the *design*.
+>   Confirmation needs data after 2026-09-12.
+>
+> **Not promoted.** `dpv1.pkl` is unchanged (sha256 verified).
+
+**What was built**
+* `new_features/class_context_features.py`, registered in
+  `feature_builder_dpv1.DPV1_MODULES`.
+* `class_direction` registered in `prepare_training_dpv1.DPV1_CATEGORICAL_FEATURES`.
+  Without that entry an object-dtype column is silently dropped by the
+  Preprocessor.
+* Config `dpv1.3.0` -> **`dpv1.4.0`** (121 active features).
+
+Eight columns:
+
+| column | definition |
+|---|---|
+| `avg_class_recent` | mean `class_score` over the last 5 prior finished starts (fallback 3) |
+| `class_drop_signed` | today minus the window mean (+ = rising) |
+| `class_direction` | DROPPING < -0.5 / SAME / RISING > +0.5 / NO_HISTORY |
+| `class_context_missing` | explicit flag; values imputed with today's race class |
+| `low_finish_variance` | window finish SD <= 1.5 |
+| `lowvar_x_dropping`, `lowvar_x_rising` | spec interaction; SAME is the reference |
+| `lowvar_same_x_mean_finish` | Gap #10's two-sided slope term |
+
+`lowvar_same_x_mean_finish` goes beyond the brief's literal flag x flag
+interaction. Gap #10 found a slope, which a level shift cannot express.
+
+**Verification before training**
+* **Exact reproduction of the Gap #11 diagnostic** on its 75,940 rows: max
+  |signed - dir| = 0; BELOW 31,027 / LEVEL 23,791 / ABOVE 21,122 identical.
+  The low-variance flag and mean finish also match exactly.
+* **Imputation:** 39.6% of entries flagged missing (career_starts < 3: 39.5%);
+  every missing row has signed = 0.
+* **Values vary within races:** 87.8% of races.
+* **Range:** signed runs -52 to +65. The 412 rows beyond |40| are cross-band
+  moves such as stakes to maiden-claiming, not outliers.
+
+**Control design**
+* **Trained through Piece 4** (`retrain_pipeline.py --execute --skip-load`) on
+  the identical corpus: 152,865 rows, 20,525 races, no charts pending.
+* **Control** `dpv1_20260912_classctx_control.pkl` (`dpv1.3.2-4track-ctrl`):
+  the pre-change config, which includes the 13 Gap #6 features
+  (108 fundamental cols).
+* **Candidate** `dpv1_20260912_classctx_candidate.pkl`
+  (`dpv1.4.0-4track-classctx`): the same, plus the 8 columns.
+* **Both artifacts carry protected suffixes**, so Piece 4 housekeeping cannot
+  prune them.
+* **Both runs pinned `PYTHONHASHSEED=0`**, because of the determinism bug
+  below. After the runs, **all 120 pre-existing feature columns were
+  byte-identical** between the control's and candidate's training tables. The
+  only difference between the two models is the eight new columns.
+
+**FOUND DURING THE BUILD — pre-existing bug, NOT fixed: `running_style_last_3`
+is nondeterministic.**
+* **Cause.** `pace_bias_features._dominant_style_last_3` breaks ties by
+  iterating `set(vals)`. Python randomises string hash order per process, so a
+  horse whose last three starts show three different styles gets a random
+  "dominant" style on **every rebuild**. The comment says ties break toward the
+  most recent start; the code does not.
+* **Evidence.** Two consecutive rebuilds on 2026-09-12 disagreed on **23,799 of
+  222,362 rows (10.7%)**. A probe reproduced it under different seeds and gave
+  stable output with the seed pinned.
+* **Consequences.**
+  * Every model has been trained on one random draw of this column, while live
+    picks read whatever the latest rebuild produced.
+  * Any before/after model comparison that did not pin the seed carries this
+    noise, including the Gap #6 comparisons.
+* **Why it is not fixed here.** Fixing it changes an existing feature's
+  values under the live model. That is Doug's decision.
+
+**Results (fold predictions, 119,535 rows, 15,971 races, rank by `p_fund`)**
+
+| measure | control | candidate | delta |
+|---|---|---|---|
+| top-pick ITM | 64.310% | **64.736%** | **+0.426pp**, 535 vs 467 discordant, **p 0.034** |
+| top-pick win | 28.646% | 28.940% | +0.29pp, 426 vs 379, p 0.10 |
+| top pick changed | — | — | 1,783 races (11.2%) |
+| log-loss, all | 0.61536 | **0.61436** | -0.00100 (z -7.61) |
+
+On the 15,561 races shared with the live model's own 8/22 folds: live 2.0
+64.090%, control 64.212%, candidate **64.617%**.
+
+**Per year, top-pick ITM delta:** 2023 +0.24pp (p 0.56), **2024 +0.82pp
+(p 0.035)**, 2025 +0.27pp (p 0.49), 2026 +0.33pp (p 0.54).
+
+**Log-loss by class direction** (negative = better; residual = y - p_fund):
+
+| subgroup | n | log-loss delta | z | residual control -> candidate |
+|---|---|---|---|---|
+| DROPPING (feature, +/-0.5) | 36,389 | -0.00101 | -4.27 | +1.45 -> -0.55pp |
+| SAME | 17,057 | -0.00200 | -4.87 | -1.89 -> -0.36pp |
+| RISING | 24,478 | -0.00202 | -7.18 | -2.17 -> -0.25pp |
+| NO_HISTORY | 41,588 | +0.00004 | +0.26 | -0.22 -> -0.22pp (untouched, as expected) |
+| Gap #11 BELOW (< -1) | 31,705 | -0.00107 | -4.01 | +1.48 -> -0.62pp |
+| Gap #11 ABOVE (> +1) | 21,818 | -0.00195 | -6.42 | -2.08 -> -0.14pp |
+
+**Class-direction residual table** (raw y - p_fund, horses with 3+ prior
+finished starts):
+
+| stratum | BELOW | LEVEL | ABOVE | ABOVE-to-BELOW spread |
+|---|---|---|---|---|
+| all, control | +1.48 (z 7.1) | -1.39 | -2.08 (z -8.3) | 3.56pp |
+| all, **candidate** | -0.62 (z -3.0) | -0.39 | -0.14 | **-0.48pp** |
+| last-race class SAME, control | +2.27 (z 6.1) | -1.24 | -1.81 | 4.07pp |
+| last-race class SAME, **candidate** | -0.21 | -0.13 | +0.51 | **-0.72pp** |
+| last-race class DROP, control | +1.52 | +0.87 | -2.51 | 4.03pp |
+| last-race class DROP, **candidate** | -0.10 | +1.01 | +0.45 | -0.55pp |
+| last-race class RISE, control | -1.97 | -5.12 | -2.18 | 0.22pp |
+| last-race class RISE, **candidate** | **-4.86 (z -6.2)** | -3.90 | -0.67 | **-4.19pp** |
+
+* **The gap is closed, slightly over-corrected.** BELOW overall went from
+  +1.48 to -0.62pp.
+* **The stratum the old feature could not see is fixed completely.**
+* **New error in the last-race RISE x window BELOW cell.** These horses fell
+  well below their average, then rose partway back. A main-effect feature
+  credits the window drop without knowing the last move was up, so they are
+  now over-rated -4.86pp. The cause is plausibly a missing interaction with
+  last-race direction; that is **untested**.
+
+**Gap #10 two-sided slope** (consistent, same-class horses, n 5,564): residual
+slope on mean finish **-0.0189/pos (z -5.29) -> -0.0009 (z -0.25)**. Flattened.
+
+**Gap #8 recheck** (claiming/OC droppers, `classify_v2` buckets, net vs
+p_fund-matched claiming/OC pool):
+
+| cut | control | candidate |
+|---|---|---|
+| bucket A | +2.69pp (z 3.9) | +2.20pp (z 3.2) |
+| bucket B | +0.30pp | -0.17pp |
+| **bucket C** | **+3.60pp (z 4.9)** | **+3.18pp (z 4.3)** |
+| droppers, no ITM last 3 | +2.67pp (z 4.3) | +2.13pp (z 3.4) |
+| droppers, has recent ITM | +1.36pp (z 3.5) | +0.87pp (z 2.3) |
+
+**Gap #8 is reduced by about 0.4-0.5pp but not fixed.** Its poor-form x drop
+interaction needs its own term.
+
+**Coefficients** (standardised, of 239 model columns):
+`low_finish_variance` +0.163 (rank 18), `lowvar_x_dropping` -0.105 (30),
+`class_direction__DROPPING` +0.095 (33), `class_drop_signed` -0.092 (36),
+`lowvar_x_rising` -0.088 (39), `lowvar_same_x_mean_finish` -0.076 (50). For
+scale: the old one-race `class_score_change_from_last` is -0.021 (rank 136),
+and `field_size` -0.342 (rank 4). The three `__missing` flags come from the 28
+rows with NULL class (coefficients about 0.003).
+
+**Live safety**
+* `card_picks.py` with `dpv1.pkl` and `pp-reranker-1.0` runs all 9 races of GP
+  2026-09-04 from the rebuilt table; models read only their own `fund_cols`.
+* sha256 of `dpv1.pkl`, `dpv1_pp_reranker.pkl` and `dpv1_3track.pkl` are
+  unchanged.
+
+**Carry into Session 2 (Path B) and the promotion review**
+* **The reranker is trained on live 2.0's logit.** If the Path A candidate were
+  promoted, `pp-reranker-1.0` would sit on a different base, so it needs
+  re-validating on that base.
+* **Picks would change a lot.** The candidate changes the top pick in 11.2% of
+  races, so the live baseline window (Piece 3, by `model_version`) would
+  restart.
+* **Open follow-ups:**
+  * the last-race RISE x window BELOW over-rating;
+  * the `running_style_last_3` determinism bug;
+  * Gap #8's residual.
