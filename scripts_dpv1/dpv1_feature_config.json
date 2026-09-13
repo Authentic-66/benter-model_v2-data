@@ -1,5 +1,5 @@
 {
-  "version": "dpv1.4.0",
+  "version": "dpv1.5.2",
   "generated": "2026-08-03",
   "generated_by": "scripts_dpv1/build_dpv1_config.py + scripts_dpv1/add_pp_bucket9.py",
   "source_ranking": "DPv1_Feature_Ranking.xlsx",
@@ -3449,6 +3449,42 @@
       "description": "low_finish_variance x SAME x window mean finish: Gap #10's two-sided slope term.",
       "doug_rank": 1,
       "doug_notes": "Phase 6D Gap #11 (multi-race class context) / Gap #10 (two-sided comparability). Path A build 2026-09-12.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "last_class_direction_fine": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "categorical",
+      "description": "Last-race class move at +/-0.5: UP / SAME / DOWN / NO_LAST. class_change_from_last uses a 3.0 threshold, so 1-2 point moves are invisible to it.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Step 3 (2026-09-13): closes the 1-2 ladder-point deadband the 3.0-threshold categorical hides. The two window-interaction columns built alongside these measured at ranks 197/220 of 250 and were trimmed 2026-09-13; the deadband is a level effect.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "last_class_move_clipped": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "description": "Last-race signed class move clipped to +/-10, so 1-2 point moves survive standardisation against a tail where 16% of rows exceed 20 points.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Step 3 (2026-09-13): closes the 1-2 ladder-point deadband the 3.0-threshold categorical hides. The two window-interaction columns built alongside these measured at ranks 197/220 of 250 and were trimmed 2026-09-13; the deadband is a level effect.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true
+    },
+    "class_drop_signed_x_last_up": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "description": "class_drop_signed (clipped +/-10) where the last race was a rise, else 0. Stops a window-average drop being credited as relief when the horse is actually stepping up from last out.",
+      "doug_rank": 1,
+      "doug_notes": "Phase 6D Step 3 (2026-09-13). Ranks low by |coef| but carries ~0.7pp on the step-up-then-return cell; the matching _down term had no such cell and was trimmed.",
       "phase3c_status": "NEW",
       "v2_active": "NO",
       "implemented": true

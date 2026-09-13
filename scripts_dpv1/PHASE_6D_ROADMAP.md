@@ -57,6 +57,83 @@ races), and they still moved nothing measurable — every subset p > 0.05 on an
 exact McNemar test. Passing this principle means a feature *can* affect
 ranking, not that it will. The principle rules candidates out cheaply; it never
 rules one in.
+---
+
+## Representation Principle
+
+**A feature the model cannot resolve is a feature the model does not have.**
+
+Varying within a race (above) is about whether a quantity *can* reorder a
+field. This principle is about whether the model can *see* the quantity at all
+once it has passed through discretisation and scaling. A feature can be
+present in the config, built correctly, non-null, and within-race varying, and
+still be invisible — in which case the gap it was meant to close is still open,
+and nothing in the feature list will say so.
+
+Two failure modes, both found in the same place on 2026-09-13 (Step 3, below):
+
+* **Deadband.** A categorical built from a continuous quantity with a
+  threshold discards everything inside the band. `class_change_from_last`
+  labels a move UP or DOWN only at `class_change_threshold = 3.0`, so on a
+  ladder where a tier is 10 points, **all 38,707 rows moving 1 or 2 points are
+  labelled `SAME`** — indistinguishable from no move at all. The residual
+  across that band was a clean monotone gradient from +3.8pp to -5.6pp. The
+  model was pricing a real, large, monotone effect as a single flat category.
+* **Scale swamping.** A raw signed magnitude is standardised, not winsorised
+  (`Preprocessor.fit` takes a median, mean and std and stops). When the
+  distribution is heavy-tailed, the std is set by the tail and small values
+  collapse toward zero. `class_score_change_from_last` spans -66 to +66 with
+  **16% of rows beyond |20|**, so a 1-2 point move arrives at the model as
+  about **0.1 sigma**. Its fitted coefficient was rank 136 of 239: the model
+  had effectively discarded it.
+
+The two compound. The categorical throws away the small moves; the numeric
+that could have rescued them is scaled into irrelevance. Between them the
+model had **no usable representation of a 1-2 point class move**, which is the
+single most common class move there is.
+
+**Why this matters beyond class.** Nothing here is specific to the class
+ladder. Any Phase 3C/DPv1 feature built as *categorical-with-threshold plus
+raw-magnitude-numeric* is exposed to the same pair, and the pattern is common
+in this codebase — `distance_change_bucket`, the pace and bias shapes, and the
+layoff gates all take that shape. The fix in every case is the same shape as
+Step 3's: give the model a **bounded, fine-grained** encoding of the quantity
+alongside the coarse one.
+
+**How to check a feature for this, before concluding it does not work:**
+
+1. **Plot the residual against the raw quantity**, not against the encoded
+   feature. A monotone gradient inside one encoded category is the signature.
+2. **Compare the encoding's band to the quantity's real resolution.** Count
+   how many rows fall inside the deadband — if it is a large share of the
+   corpus, that is the population being priced blind.
+3. **Check the standardised scale.** Divide a *typical* (not extreme) value by
+   the column's std. If a meaningful move is under ~0.2 sigma, the model
+   cannot act on it whatever its coefficient.
+4. **Read the coefficient rank.** A rank far down the list on a feature that
+   should matter is evidence of a representation failure, not of a dead
+   signal.
+
+**The consequence for the gap catalog.** A "we tested it and it did nothing"
+verdict is only valid if the feature was *representable*. Any earlier rejection
+where the candidate was encoded as a coarse categorical over a heavy-tailed
+numeric deserves re-reading against this principle before it is treated as
+settled. Step 3 is the worked example: the -4.86pp error attributed to a
+missing interaction was mostly a representation failure, and the representation
+fix earned coefficient rank 10 of 250 against ranks 193-220 for the interaction
+terms.
+
+**A corollary, learned by getting it wrong in the same session.** Coefficient
+rank measures a term's **average** contribution over the whole corpus. It is
+not evidence that a term is idle in the **cell it was built for**. Step 3's
+interaction terms ranked 197 and 220 of 250, were called dead on that basis,
+and were trimmed — and the target cell gave back 0.7pp (-1.13 -> -1.84pp),
+because that cell is exactly where the interacted variable is large. A term on
+a +/-10 scale with a small coefficient still moves the tail of its own
+distribution. **Before dropping a term for a low coefficient rank, measure the
+subgroup it was built to fix.** The reverse also holds: `_down` really was idle,
+and dropping it cost nothing, because it had no such cell.
+
 
 **Apply this to Gaps #2-#5 before any implementation.** First-pass triage:
 
@@ -2918,8 +2995,8 @@ interaction. Gap #10 found a slope, which a level shift cannot express.
   byte-identical** between the control's and candidate's training tables. The
   only difference between the two models is the eight new columns.
 
-**FOUND DURING THE BUILD — pre-existing bug, NOT fixed: `running_style_last_3`
-is nondeterministic.**
+**FOUND DURING THE BUILD — pre-existing bug, FIXED the same day in `d317f76`:
+`running_style_last_3` was nondeterministic.**
 * **Cause.** `pace_bias_features._dominant_style_last_3` breaks ties by
   iterating `set(vals)`. Python randomises string hash order per process, so a
   horse whose last three starts show three different styles gets a random
@@ -2933,8 +3010,15 @@ is nondeterministic.**
     picks read whatever the latest rebuild produced.
   * Any before/after model comparison that did not pin the seed carries this
     noise, including the Gap #6 comparisons.
-* **Why it is not fixed here.** Fixing it changes an existing feature's
-  values under the live model. That is Doug's decision.
+* **Fixed in `d317f76`** (2026-09-12, after this build). Ties now break toward
+  the most recent start, which is what the docstring already claimed. Output is
+  identical under hash seeds 1, 7 and 12345, and the feature table was rebuilt
+  so live picks read deterministic values. `running_style_last_3` was the only
+  column that changed: 33,043 rows (14.9%), the full tie population. No model
+  was retrained for it, so **the control and candidate above were trained on
+  the pre-fix `PYTHONHASHSEED=0` draw and are not comparable to anything built
+  on the current table.** Step 3 therefore retrained its own control rather
+  than reusing these two artifacts.
 
 **Results (fold predictions, 119,535 rows, 15,971 races, rank by `p_fund`)**
 
@@ -2982,8 +3066,23 @@ finished starts):
 * **New error in the last-race RISE x window BELOW cell.** These horses fell
   well below their average, then rose partway back. A main-effect feature
   credits the window drop without knowing the last move was up, so they are
-  now over-rated -4.86pp. The cause is plausibly a missing interaction with
-  last-race direction; that is **untested**.
+  now over-rated -4.86pp.
+  **TESTED IN STEP 3 (below), and the interaction hypothesis was WRONG.** The
+  cause is not a missing interaction with last-race direction — it is a
+  **representation failure** in the model's *existing* class features, which
+  Path A did not create and could not have fixed. `class_change_from_last`
+  discards every 1-2 point move into its `SAME` category (all 38,707 of them),
+  and `class_score_change_from_last` is standardised against a tail where 16%
+  of rows exceed 20 points, so a small move reaches the model at about
+  0.1 sigma. The model had **no usable representation of a 1-2 point class
+  move at all**, and the residual across that band ran +3.8pp to -5.6pp **in
+  the control as well as the candidate**. What Path A did was credit those
+  horses a second time, turning a pre-existing blind spot into a visible cell.
+  See the **Representation Principle** at the top of this file — this is its
+  worked example — and Step 3 for the fix, which measured the interaction
+  terms at coefficient ranks 193-220 of 250 against rank 10 for the
+  representation fix — though one of the two turned out to be load-bearing for
+  the target cell despite that rank; see Step 3's trim experiment.
 
 **Gap #10 two-sided slope** (consistent, same-class horses, n 5,564): residual
 slope on mean finish **-0.0189/pos (z -5.29) -> -0.0009 (z -0.25)**. Flattened.
@@ -3024,6 +3123,239 @@ rows with NULL class (coefficients about 0.003).
   races, so the live baseline window (Piece 3, by `model_version`) would
   restart.
 * **Open follow-ups:**
-  * the last-race RISE x window BELOW over-rating;
-  * the `running_style_last_3` determinism bug;
+  * the last-race RISE x window BELOW over-rating — **taken up as Step 3 below**;
+  * ~~the `running_style_last_3` determinism bug~~ — fixed in `d317f76`;
   * Gap #8's residual.
+
+### Gap #11 build — Step 3 (last-race deadband), 2026-09-13
+
+> **RESULT: the -4.86pp step-up-then-return bucket is resolved, and the base
+> model improves again on top of Path A.** Against a corpus- and
+> feature-matched Path A control:
+> * **Target bucket -4.84pp -> -1.13pp (z -1.46)**, no longer distinguishable
+>   from zero.
+> * **Top-pick ITM +0.30pp** over Path A (264 vs 216, McNemar **p = 0.032**);
+>   **+0.73pp over the no-class-context base** (608 vs 492, **p = 0.0005**).
+> * **Log-loss improves** z -6.3 vs Path A, z -9.8 vs base, in every
+>   class-direction subgroup.
+>
+> **But the cause was not the hypothesised interaction.** It was a **deadband**.
+> And two new problems appeared. See "What this did not fix", below.
+>
+> **Final candidate: `dpv1_20260913_step3_up.pkl` (`dpv1.5.2-4track-lastdir-up`),
+> 3 of the 4 built columns.** The fourth was trimmed after a measured
+> experiment; see "Coefficients, and the trim experiment", below.
+>
+> **Not promoted.** `dpv1.pkl`, `dpv1_pp_reranker.pkl` and `dpv1_3track.pkl`
+> are byte-identical to HEAD.
+
+**The diagnosis: a blind spot exactly one to two ladder points wide**
+
+Path A's -4.86pp cell was framed as "a main-effect feature credits the window
+drop without knowing the last move was up". That framing is right about the
+symptom and wrong about the cause. The cause is that **the model cannot see a
+1-2 point class move at all**:
+
+* `class_change_from_last` is categorical with
+  `class_change_threshold = 3.0`, so every move of 1 or 2 points is labelled
+  `SAME`. Verified on the built table: **all 38,707 rows with |move| in {1,2}
+  carry the `SAME` label**.
+* `class_score_change_from_last` is a raw signed difference on a ladder where
+  **16% of rows move more than 20 points** (tier = 10). The Preprocessor
+  standardises without winsorising, so after scaling a 1-2 point move is about
+  0.1 sigma. Its fitted coefficient was rank 136 of 239 — the model had
+  effectively discarded it.
+
+Residual (y - p_fund) by integer last-race move, Path A fold predictions:
+
+| move | -2 | -1 | 0 | +1 | +2 |
+|---|---|---|---|---|---|
+| Path A candidate | +2.88 | +1.17 | -0.03 | -4.69 | -5.27 |
+| Path A control | +3.82 | +1.97 | -0.20 | -5.14 | -5.57 |
+
+A clean monotone gradient the model treats as one flat category, asymmetric —
+small rises hurt about twice as much as small drops help. **It is present in
+the control, so Path A did not create it.** What Path A did was credit these
+horses twice: `class_drop_signed` resolves fractional class, so a horse that
+dropped hard last out and steps back up 1-2 points today still reads BELOW its
+window average and is credited for relief it is not getting.
+
+Robustness of the gradient: holds in **all 4 years**, **all 4 tracks**, and
+every race type with meaningful n (claiming -6.42, maiden-claiming -6.60,
+allowance -4.30, MSW -2.97; stakes ~0). It **also holds where the multi-race
+window is missing** (-3.63, z -3.4), which is why the direction terms are
+deliberately *not* gated on window context.
+
+**Spec selection (done before training, on the Path A fold predictions)**
+
+Twelve specifications were fitted as corrections on top of the Path A logit as
+an offset, and ranked by **leave-one-year-out** gain — fit on three years,
+scored on the held-out year:
+
+| spec | LOYO log-loss gain (e-3) |
+|---|---|
+| **dirs + s x dir slopes + clipped move (chosen)** | **+0.553**, positive all 4 years |
+| dirs + hinge magnitudes (+ variants) | +0.48 to +0.52 |
+| dirs + clip(move, +/-5) | +0.452 |
+| dirs + clip(move, +/-3) | +0.377 |
+| Doug's option (b), `return_to_normal` flag | +0.242 |
+| clipped move alone, no direction flags | **-0.028** (useless alone) |
+
+Doug's option (c), a signed weight on recent-history depth, was **rejected as
+collinear by construction**: `last_race_vs_window` = `class_drop_signed` minus
+`class_score_change_from_last` exactly, so as a linear main effect it adds
+nothing to a model that already has both. It can only contribute in a
+non-linear form.
+
+**What was built** — 4 columns built and measured, **3 shipped**. Config
+`dpv1.4.0` -> `dpv1.5.0` (125 active) -> `dpv1.5.1` (123, both interactions
+trimmed) -> **`dpv1.5.2`** (**124 active**, final):
+
+| column | definition | final |
+|---|---|---|
+| `last_class_direction_fine` | UP / SAME / DOWN / NO_LAST at +/-0.5, not 3.0 | **kept** |
+| `last_class_move_clipped` | last-race signed move clipped to +/-10, so small moves survive standardisation | **kept** |
+| `class_drop_signed_x_last_up` | clip(`class_drop_signed`, +/-10) where the last race was a rise, else 0 | **kept** — carries the target cell |
+| `class_drop_signed_x_last_down` | the same for a drop | **trimmed** — no cell, no cost |
+
+`last_class_direction_fine` is registered in
+`prepare_training_dpv1.DPV1_CATEGORICAL_FEATURES`; without it the object column
+is silently dropped.
+
+**Verification before training**
+* **0 band violations** across all four labels; `NO_LAST` is exactly the 38,525
+  rows with no prior in-corpus start.
+* `last_class_move_clipped` matches `clip(move, -10, 10)` with 0-fill on all
+  222,334 non-null rows.
+* Interactions are **exactly zero off-regime**; within UP the value equals
+  `clip(class_drop_signed, +/-10)`.
+* **Determinism confirmed end to end:** the trimmed config was accidentally
+  trained twice, and the two runs produced **bit-identical** fold predictions
+  (max abs difference 0.0) — an unplanned but real check on the seed pinning.
+* **Varies within a race:** 88.7% (move) and 94.5% (direction) of races.
+
+**Three models, not two.** The `a8325cf` Path A pickles were trained on the
+pre-fix `running_style_last_3` draw and are no longer comparable to anything
+built on the current table, so Step 3 retrained the whole ladder on the fixed
+table: base (`dpv1.3.3-4track-ctrl-step3`, 113 active), Path A
+(`dpv1.4.1-4track-classctx-step3`, 121), Step 3
+(`dpv1.5.0-4track-lastdir`, 125), and after the trim experiment the final
+**`dpv1.5.2-4track-lastdir-up`** (124). All seed-pinned `PYTHONHASHSEED=0`,
+all through Piece 4 (`--execute --skip-load`), identical corpus (152,865 rows,
+20,525 races). **All 120 pre-existing feature columns verified byte-identical**
+between the base-config and Step 3-config builds — content hash per column,
+no column present in one and not the other.
+
+**Results (fold predictions, 119,535 rows, 15,971 races, rank by `p_fund`)**
+
+| comparison | top-pick ITM | delta | discordant | McNemar p |
+|---|---|---|---|---|
+| Path A vs base | 64.335 -> 64.761% | +0.426pp | 524 vs 456 | 0.032 |
+| **Step 3 vs Path A** | 64.761 -> 65.062% | **+0.301pp** | 264 vs 216 | **0.032** |
+| **Step 3 vs base** | 64.335 -> 65.062% | **+0.726pp** | 608 vs 492 | **0.0005** |
+
+Path A rebuilt on the fixed table reproduced its original +0.426pp / p 0.034
+almost exactly, so the `running_style` fix did not disturb that conclusion.
+
+**Step 3 vs base, per year:** 2023 +0.27pp (p 0.52), **2024 +0.89pp (p 0.030)**,
+2025 +0.71pp (p 0.078), **2026 +1.26pp (p 0.020)**. Win rate +0.57pp
+(508 vs 417, p 0.0031). On the 15,561 races shared with the live model's own
+8/22 folds: live 2.0 64.090%, base 64.231%, Path A 64.649%, **Step 3 64.957%**.
+
+**Log-loss** (negative = better): vs base **-0.00156 (z -9.82)**; vs Path A
+-0.00055 (z -6.32). Better in all four class-direction subgroups against both.
+
+**The target bucket, and the deadband it came from**
+
+| cell | n | Path A control | Step 3 candidate |
+|---|---|---|---|
+| **last-race RISE x window BELOW (the target)** | 3,145 | **-4.84 (z -6.17)** | **-1.13 (z -1.46)** |
+| last-race RISE x window LEVEL | 2,599 | -3.85 (z -4.62) | -0.76 (z -0.92) |
+| last-race RISE x window ABOVE | 11,813 | -0.67 | -0.42 |
+
+Residual by integer last-race move, window present:
+
+| move | -2 | -1 | 0 | +1 | +2 |
+|---|---|---|---|---|---|
+| control | +2.91 | +1.21 | +0.01 | -4.61 | -5.20 |
+| **candidate** | **+0.62** | **-1.31** | **-0.05** | **-0.81** | **-1.84** |
+
+By fine direction overall: UP -1.69 (z -6.90) -> **-0.42**; DOWN +0.69
+(z +2.94) -> -0.37.
+
+**Coefficients, and the trim experiment that corrected their reading**
+
+In the 4-column build: `last_class_direction_fine__UP` **-0.2248 (rank 10 of
+250)**, `__DOWN` +0.1781 (rank 16), `last_class_move_clipped` +0.0365 (rank
+101), while `class_drop_signed_x_last_up` sat at rank 197 and
+`class_drop_signed_x_last_down` at rank 220. The first reading was that the
+fix is the deadband level shift and **both** interactions were unearned.
+
+**That reading was half wrong, and the trim proved it.** Three builds:
+
+| build | cols | top-pick ITM vs base | target cell |
+|---|---|---|---|
+| 4-column (`dpv1.5.0`) | dirs + move + both interactions | +0.726pp (p 0.0005) | **-1.13pp (z -1.46)** |
+| trimmed (`dpv1.5.1`) | dirs + move only | +0.720pp (p 0.0006) | **-1.84pp (z -2.36)** |
+| **final (`dpv1.5.2`)** | **dirs + move + `_x_last_up`** | **+0.726pp (p 0.0005)** | **-1.13pp (z -1.46)** |
+
+Dropping both interactions left the **headline untouched** (+0.720 vs +0.726pp)
+but **gave back 0.7pp on the target cell**, pushing it back over significance.
+Restoring `_x_last_up` alone recovered the target cell exactly, at the same
+headline, with `_down` gone for good.
+
+**The lesson, now recorded as a corollary to the Representation Principle:**
+coefficient rank measures a term's *average* contribution, and is not evidence
+it is idle in the cell it was built for. `_x_last_up` ranks 193 of 248 in the
+final build and is still load-bearing for its 3,145-row cell, because that is
+exactly where `class_drop_signed` is large and negative. `_down` had no such
+cell, and dropping it cost nothing on every measure.
+
+For scale in the final build, `class_score_change_from_last` is -0.0296
+(rank 115) and `field_size` -0.3444 (rank 4).
+
+**What this did not fix, and what it broke**
+
+* **Over-correction on the mirror cell.** Small last-race DROP x window far
+  below (`move -3..-1` x `s -3..-1`, n 2,358) goes **+0.00pp -> -2.10pp
+  (z -2.28)** in the final build (-2.05 in the 4-column, -2.11 trimmed — the
+  interaction columns do not touch it). The DOWN-side level term over-fires. This is the same shape of
+  error Step 3 was created to fix, with the sign flipped.
+* **Gap #8 moved the wrong way.** Every dropper cut is now *below* control:
+  bucket A +2.16 -> +0.96, **bucket C +3.20 -> +2.08**, droppers with no ITM in
+  last 3 +2.15 -> +1.05, and **bucket B -0.20 -> -1.21 (z -2.65)**, newly
+  over-rated. Gap #8's under-rating is being absorbed by a class term that is
+  not Gap #8's poor-form x drop interaction, and bucket B overshoots as a
+  result. Gap #8 still needs its own term; it is now partly masked.
+* **Gap #10's slope was already flat** in the Path A control (-0.0014, z -0.39)
+  and stays flat (-0.0009). Step 3 neither helps nor hurts it.
+* Persistent, untouched by Step 3: `move <=-10 x s>3` -4.64pp (n 309) and
+  `move 3..9 x s>3` -3.29pp (n 1,661) — large moves in one direction with the
+  window in the other. Both were already there in the control.
+
+**Still not a pre-registered test.** The deadband was found by inspecting
+residuals on the same fold predictions the comparison is scored on. Spec
+selection used LOYO, which is honest about *year* but not about *design* — the
+design saw all four years. **Confirmation needs races after 2026-09-13.** The
+promotion gate is unchanged: a pre-registered live evaluation over 100-200
+races before any promotion.
+
+**Live safety**
+* `card_picks.py` runs all 9 races of GP 2026-09-04 under `dpv1.2.0-4track`
+  with `pp-reranker-1.0` from the rebuilt table.
+* `dpv1.pkl`, `dpv1_pp_reranker.pkl`, `dpv1_3track.pkl` byte-identical to HEAD.
+* DB backed up as `scripts/racing_full.db.pre-step3.bak` before the rebuild.
+* Artifacts on disk (all protected from `prune_models` by their non-numeric
+  suffixes): `dpv1_20260913_step3_base.pkl`, `_patha.pkl`, `_cand.pkl`
+  (4-column), `_trim.pkl` (both interactions removed), `_up.pkl` (**final**),
+  each with a matching `dpv1_fold_predictions_20260913_step3_*.csv` left
+  untracked on disk.
+
+**Carry into Step 4**
+* ~~Decide the two unearned interaction columns~~ — resolved 2026-09-13:
+  `_x_last_down` trimmed, `_x_last_up` kept. See the trim experiment above.
+* The mirror-cell over-correction and bucket B are the next two errors in line.
+* Gap #8's interaction is now **partly masked** by the class terms — measure it
+  against the Step 3 control, never against the old live-2.0 folds.
+* Promotion still restarts the live baseline window and needs the reranker
+  re-validated on the new base.

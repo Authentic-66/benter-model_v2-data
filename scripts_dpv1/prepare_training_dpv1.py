@@ -114,6 +114,10 @@ DPV1_CATEGORICAL_FEATURES: tuple[str, ...] = (
     # Preprocessor would treat it as neither numeric nor categorical and drop
     # it silently.
     "class_direction",
+    # Phase 6D Step 3. The model's existing class_change_from_last has a 3.0
+    # deadband, so 1-2 point ladder moves read as SAME; this is the same call
+    # at +/-0.5. Object dtype, so it needs the same registration.
+    "last_class_direction_fine",
 )
 
 NON_FEATURE_COLS: tuple[str, ...] = (

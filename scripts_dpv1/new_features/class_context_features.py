@@ -34,6 +34,37 @@ leak. Where today's own ``class_score`` is NULL (28 of 222,362 entries) every
 numeric column stays NULL and the preprocessor's own median fill and flag
 apply.
 
+Step 3 refinement (2026-09-13): the last-race class deadband
+------------------------------------------------------------
+Path A left a hole and slightly widened it. The model's only fine-grained
+last-race class term is ``class_score_change_from_last``, a raw signed
+difference on a ladder where 16% of rows move more than 20 points; after the
+Preprocessor's standardisation a 1-2 point move is about 0.1 sigma. The
+categorical ``class_change_from_last`` cannot rescue it either, because its
+``class_change_threshold`` is 3.0, so every move of 1 or 2 points is labelled
+SAME. The result is a blind spot exactly one to two ladder points wide.
+
+Measured on the Path A fold predictions, residual (y - p_fund) by the integer
+last-race move, with the multi-race window present:
+
+    move   -2      -1       0      +1      +2
+    resid  +2.88  +1.17   -0.03   -4.69   -5.27      (candidate)
+    resid  +3.82  +1.97   -0.20   -5.14   -5.57      (control)
+
+A clean monotone gradient the model treats as one flat category, asymmetric:
+small rises hurt about twice as much as small drops help. It is present in the
+control too, so it is a pre-existing error, not one Path A created. What Path A
+did was credit these horses a second time: ``class_drop_signed`` resolves
+fractional class, so a horse that dropped hard last out and steps back up 1-2
+points today still reads BELOW its window average and is credited for relief it
+is not getting. That is the -4.86pp last-race-RISE x window-BELOW cell.
+
+Robustness: the gradient holds in all 4 years, all 4 tracks, and every race
+type with a meaningful n (claiming -6.42, maiden-claiming -6.60, allowance
+-4.30, MSW -2.97). It also holds where the multi-race window is missing
+(-3.63, z -3.4), so the fine direction terms are deliberately **not** gated on
+window context.
+
 Leakage: every quantity uses starts with a strictly earlier race date.
 """
 from __future__ import annotations
@@ -45,6 +76,8 @@ WINDOW = 5
 FALLBACK = 3
 DIRECTION_BAND = 0.5          # Doug's spec: |signed| <= 0.5 is "roughly same"
 LOW_VARIANCE_SD = 1.5         # Gap #9 LOW bucket: sample SD of finish position
+FINE_BAND = 0.5               # any nonzero ladder move; the model's own deadband is 3.0
+MOVE_CLIP = 10.0              # bound the tier-jump tail so 1-2 point moves survive scaling
 
 FEATURES = [
     "avg_class_recent",           # mean class_score over the window
@@ -55,6 +88,17 @@ FEATURES = [
     "lowvar_x_dropping",          # consistency x direction (SAME is reference)
     "lowvar_x_rising",
     "lowvar_same_x_mean_finish",  # Gap #10 two-sided slope: consistent, same class, x mean finish
+    # Step 3: the last-race deadband, plus the one interaction that earns its
+    # place. Both window interactions rank near the bottom by |coef| (197 and
+    # 220 of 250), but that measures the AVERAGE contribution. Dropping both
+    # gave back 0.7pp on the target cell (-1.13 -> -1.84pp), because that cell
+    # is where class_drop_signed is large and negative, so a small coefficient
+    # on a +/-10 term still moves it. `_down` had no such cell and was dropped;
+    # `_up` is kept. Coefficient rank is not evidence a term is idle — check
+    # the cell it was built for.
+    "last_class_direction_fine",   # UP / SAME / DOWN / NO_LAST at +/-0.5, not 3.0
+    "last_class_move_clipped",     # last-race signed move, clipped to +/-10
+    "class_drop_signed_x_last_up", # window position when the last race was a rise
 ]
 
 
@@ -121,6 +165,25 @@ def compute(raw: pd.DataFrame, ctx: dict, cfg: dict,
     rising = (direction == "RISING").astype(float)
     same = (direction == "SAME").astype(float)
 
+    # --- Step 3: the last-race move at a band the model can actually see ---
+    # ctx["prev"] is the most recent prior start per horse (built once in
+    # feature_builder_dpv1.build_context), the same source
+    # class_change_features uses for class_score_change_from_last. Null where
+    # the horse has no prior start inside the corpus.
+    prev_cls = ctx["prev"]["prev_class_score"].astype(float)
+    last_move = today - prev_cls                      # + = today is a class rise
+    has_last = last_move.notna()
+    last_dir = np.select(
+        [~has_last, last_move > FINE_BAND, last_move < -FINE_BAND],
+        ["NO_LAST", "UP", "DOWN"], default="SAME")
+    last_dir = pd.Series(last_dir, index=raw.index).where(today_known)
+    last_up = (last_dir == "UP").astype(float)
+    # 0 where there is no prior start; the NO_LAST level of the categorical
+    # carries that case, so no second __missing flag is created for it.
+    move_clipped = last_move.clip(-MOVE_CLIP, MOVE_CLIP).fillna(0.0)
+    # Clipped on the same scale so a cross-band window average cannot dominate.
+    signed_clipped = signed.clip(-MOVE_CLIP, MOVE_CLIP)
+
     cols = {
         "avg_class_recent": avg.where(today_known),
         "class_drop_signed": signed.where(today_known),
@@ -130,9 +193,13 @@ def compute(raw: pd.DataFrame, ctx: dict, cfg: dict,
         "lowvar_x_dropping": lowvar * dropping,
         "lowvar_x_rising": lowvar * rising,
         "lowvar_same_x_mean_finish": (lowvar * same * w["mean_fin"].fillna(0.0)),
+        "last_class_direction_fine": last_dir,
+        "last_class_move_clipped": move_clipped.where(today_known),
+        "class_drop_signed_x_last_up": (signed_clipped * last_up).where(today_known),
     }
     for name, series in cols.items():
         if name in active:
-            out[name] = series.to_numpy() if name == "class_direction" else \
+            categorical = name in ("class_direction", "last_class_direction_fine")
+            out[name] = series.to_numpy() if categorical else \
                 pd.to_numeric(series, errors="coerce").astype(float).to_numpy()
     return out
