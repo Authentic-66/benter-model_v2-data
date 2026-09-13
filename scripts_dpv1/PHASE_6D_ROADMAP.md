@@ -1568,6 +1568,10 @@ Feature Design Principle applied before any work.
   reorder anything.
 * **Distance-surface interactions** — whether distance aptitude is being
   modelled separately enough per surface.
+* **Form reliability (consistent good form)** — **found incidentally in
+  Gap #9, exploratory.** Low finish variance plus good mean finish is
+  under-rated by +2.35pp and reorders 3.4% of races. It needs a pre-registered
+  test on new data before anything else; see Gap #9.
 
 ---
 
@@ -1896,3 +1900,345 @@ false negative and close the question incorrectly.
 
 No features were built, no model was retrained, nothing outside the diagnostic
 script was modified.
+
+---
+
+## Gap #9 — Erratic Horse Factor (finish-position variance)
+
+> **STATUS: INVESTIGATED 2026-09-12. Hypothesis REJECTED. A different,
+> unplanned signal turned up underneath it: CONSISTENT good-form horses are
+> under-rated. That signal is EXPLORATORY, not established.**
+>
+> **The erratic-horse claim is dead under every definition tried.** High
+> finish-position variance is priced correctly: net of a p_fund-matched
+> control, **+0.07pp (z=0.13, n=8,366)**. With a top-3 in the window it is
+> +0.12pp. Across 13 threshold and definition variants it never comes out
+> significantly under-rated; the range is -1.17pp to +1.05pp. The model already
+> credits erratic horses' upside, through career ITM/win rates (Finding 4).
+>
+> **Two apparent leads inside the high-variance bucket are artifacts:**
+> * The **class-context split** (best finish at higher class +3.75pp, at lower
+>   class -2.00pp) is **not specific to variance**. The same gradient appears
+>   in moderate- and low-variance horses, and it vanishes for erratic horses
+>   who are not dropping in class today. It is Gap #8's class-relief family,
+>   seen from another angle.
+> * The **CT -3.59pp / GP +1.77pp track split** is a **field-size artifact** of
+>   raw finish positions. With finish normalised by field size, both are null.
+>
+> **The surprise — read the caveat before acting on it.** Low-variance horses
+> with a good recent mean finish (<4.5) are under-rated by **+2.35pp (z=6.60,
+> n=15,268)**:
+> * positive in all 4 years (+1.69 to +3.17pp) and at 3 of 4 tracks;
+> * robust to every perturbation (+1.55 to +2.62pp, including
+>   field-normalised and a 3-start window);
+> * it **changes the top pick in 3.4% of races**, about 5x the ceiling
+>   Gaps #7 and #8 hit;
+> * leave-one-year-out it improves top-pick ITM by **+0.26pp** (160 races
+>   gained vs 119 lost, exact McNemar p=0.016).
+>
+> **But this cell was found by looking**, not pre-registered. It came out of
+> roughly 70 exploratory cuts. The residual (z=6.60) survives any reasonable
+> multiple-comparison correction; the ranking gain (p=0.016) is conditional on a
+> post-hoc cell and does not. **Treat it as a hypothesis for a pre-registered
+> test, not a feature spec.** The mechanism is also untested (see "What is not
+> established").
+
+### The hypothesis
+
+From a longshot handicapping article. DPv1's recent-form features
+(`last_3_avg_finish`, `speed_trajectory_3_races`) average over recent starts.
+An erratic horse, e.g. finishes [4, 8, 2, 9, 3], averages 5.2, and the claim
+is that the alternation signals a horse that can run big when it tries, so
+averaged form **understates its upside**.
+
+Testable form: horses with above-average finish-position variance outperform
+their predicted P(ITM), particularly when the variance includes a top-3 finish
+at similar class and distance to today.
+
+### Sample and definitions
+
+**Sample.** `dpv1_fold_predictions.csv` (116,665 out-of-fold horse-starts,
+15,561 races) joined to `entry_features_dpv1`. Kept: horses with at least 3
+prior **finished** starts in the corpus, strictly before today, giving
+**75,940 rows**. 60,927 use a 5-start window and 15,013 the 3-start fallback;
+40,725 lacked 3 prior starts. The live scored log (933 rows, 83 races) is far
+too small to bucket and is used only as a consistency check at the end.
+Predictions are `p_fund`, as in Gaps #7 and #8.
+
+**Definitions — each one was a judgment call:**
+
+* **Variance** is the **sample** SD (n-1) of finish position over the last 5
+  finished starts, falling back to the last 3 when fewer than 5 exist.
+  Sample rather than population SD because the brief's own example
+  [4, 8, 2, 9, 3] is 3.11 by sample SD (erratic) but 2.79 by population SD
+  (not erratic).
+* **DNFs** (1,172 in the corpus) carry no finish position and are excluded
+  from the window.
+* **Starts outside the corpus tracks are invisible.** "Last 5 starts" means the
+  last 5 corpus starts.
+* **Buckets:** LOW sd <= 1.5, MODERATE 1.5-3.0, HIGH > 3.0. The sample
+  quantiles are p10 1.00, p25 1.41, p50 1.92, p75 2.51, p90 3.05, so HIGH is
+  the top ~11%.
+* **Class.** `races.class_level` is NULL in all 30,055 races, so class comes
+  from `class_score`. Its scale runs in ~10-point bands by race type (claiming
+  21-29, allowance 53-59, stakes 75-79) with 1-point steps inside each band.
+  "Within 1 class level" is read as **+/-1 `class_score` point**, the same
+  slack Gap #8 used. When several starts tie for best finish, the most recent
+  one sets the class and distance context.
+* **Similar distance** means within **220 yards (1 furlong)**. The brief's
+  "or 1 half-mile" was ambiguous and was not implemented separately.
+* **Error bars.** Horses in a race are not independent (exactly three hit the
+  board), so every z below uses a **race-clustered** standard error.
+* **"Net"** is the group's residual minus the residual that `p_fund`-matched
+  rows outside the group show (20 bins). This removes the model's generic
+  calibration curve. On this sample the model's overall residual is -0.33pp.
+
+### Finding 1 — high variance is priced correctly
+
+| bucket | n | predicted ITM | actual ITM [95% CI] | residual | net | z |
+|---|---|---|---|---|---|---|
+| LOW (sd <= 1.5) | 20,828 | 0.444 | 0.450 [0.444, 0.457] | +0.65pp | **+1.53pp** | +5.32 |
+| MODERATE | 46,746 | 0.404 | 0.396 [0.392, 0.401] | -0.78pp | **-1.27pp** | -7.88 |
+| **HIGH (sd > 3.0)** | 8,366 | 0.388 | 0.386 [0.375, 0.396] | -0.21pp | **+0.07pp** | +0.13 |
+| HIGH with >= 1 top-3 in window | 8,129 | 0.391 | 0.389 [0.379, 0.400] | -0.16pp | +0.12pp | +0.24 |
+| HIGH with no top-3 | 237 | 0.281 | 0.262 [0.206, 0.318] | -1.97pp | -1.54pp | -0.58 |
+
+The ordering is right in both prediction and outcome, and the erratic bucket's
+prediction lands on its outcome. Nearly every erratic horse (97%) has a top-3
+in its window by construction: a high SD needs a spread of finishes. So the
+"especially with a top-3" qualifier barely changes the set.
+
+**Stability of the null:** by year -0.29, -0.79, +0.91, +1.06pp, all
+|z| < 1.1. Non-maiden -0.20pp; maiden +1.64pp (z 1.19).
+
+### Finding 2 — the class-context split is class relief, not variance
+
+Within HIGH + top-3, split by the best finish's class relative to today:
+
+| best finish at | n | predicted | actual | net | z |
+|---|---|---|---|---|---|
+| higher class | 1,355 | 0.411 | 0.446 | **+3.75pp** | +2.93 |
+| same class | 3,540 | 0.413 | 0.416 | +0.62pp | +0.82 |
+| lower class | 3,234 | 0.359 | 0.337 | **-2.00pp** | -2.59 |
+
+Read alone, this says the model fails to discriminate erratic horses by where
+their big race came. **The control says it is not about variance.** The same
+split in the other buckets:
+
+| bucket | higher class | same class | lower class |
+|---|---|---|---|
+| LOW | +2.79pp (z 2.99) | +3.17pp (z 6.59) | -0.70pp (z -1.06) |
+| MODERATE | +2.05pp (z 3.76) | -0.36pp (z -1.35) | -2.58pp (z -7.12) |
+| HIGH | +3.75pp (z 2.93) | +0.62pp (z 0.82) | -2.00pp (z -2.59) |
+
+"Best recent finish came at a higher class than today" is under-rated at every
+variance level. That is a horse stepping down to a level below its best, which
+is Gap #8's class-relief mispricing. **Restricted to horses not dropping in
+class today**, the HIGH higher-class cell goes to **-0.83pp (z -0.36,
+n=380)**. Stability was also weak: every year positive, but at z 0.90-1.89,
+none above 2. By track only GP clears z 2 (+5.40pp, z 3.03); CT and MNR sit at
+z 0.51 and 0.63.
+
+**Distance context carries nothing:** best finish at similar distance +0.05pp,
+not similar +0.52pp.
+
+### Finding 3 — the track split is a field-size artifact
+
+HIGH by track looked like a textbook masked interaction (the Gap #8 lesson):
+**CT -3.59pp (z -3.92)** against **GP +1.77pp (z +2.68)**, cancelling to zero.
+It is not. Raw finish-position SD is mechanically smaller in small fields, and
+CT runs small fields. With finish normalised by field size and bucket cuts
+matched to the same shares, **CT is -1.07pp (z -1.27) and GP +0.63pp
+(z +0.86)**, both null. Under population SD, CT is also null (-1.17pp).
+Recorded so this split is not mistaken for a lead.
+
+### Finding 4 — existing features already carry the erratic horse's upside
+
+Step 5's question: does the model use variance through a different channel?
+**Yes, through career rates.** At the same recent mean finish, erratic horses
+carry higher `career_itm_pct_shrunk`, and `p_fund` rises with it:
+
+| window mean finish | LOW career ITM / p_fund | MOD | HIGH |
+|---|---|---|---|
+| 3.0-4.5 | 0.403 / 0.450 | 0.409 / 0.438 | 0.416 / 0.433 |
+| 4.5-6.0 | 0.312 / 0.307 | 0.351 / 0.347 | 0.372 / 0.373 |
+| 6.0-8.0 | 0.286 / 0.242 | 0.299 / 0.261 | **0.334 / 0.322** |
+
+A horse averaging 6th-7th that sometimes hits the board has a better career
+record than one that runs 6th-7th every time, and the model prices that. The
+averaged recent form understates the erratic horse; the career features
+restore it. That is why the HIGH residual is zero.
+
+Within `career_itm_pct_shrunk` quartiles the HIGH residual is -0.48, +0.17,
+-1.91, +2.56pp: no consistent sign, and no |z| above 1.94.
+
+### Finding 5 — not a last-race effect (step 6)
+
+| cut | n | net | z |
+|---|---|---|---|
+| HIGH, last race NOT top-3 | 4,849 | +0.34pp | +0.54 |
+| HIGH + top-3 in window, last race NOT top-3 | 4,612 | +0.43pp | +0.66 |
+| HIGH, last race WAS top-3 | 3,517 | -0.38pp | -0.48 |
+| LOW, last race NOT top-3 | 10,006 | +0.94pp | +2.21 |
+| LOW, last race WAS top-3 | 10,822 | **+2.08pp** | +4.84 |
+
+The erratic null holds whether or not the last race was strong. The LOW
+effect concentrates in horses whose last race was also on the board. That is
+consistent with the surprise below ("consistently good") rather than a pure
+last-race effect, since LOW still carries +0.94pp without it.
+
+### The surprise — consistent good form is under-rated
+
+The LOW bucket's +1.53pp is two opposite halves, split by form level:
+
+| cell | n | predicted | actual | net vs all others | net vs same-level others |
+|---|---|---|---|---|---|
+| **LOW, mean finish < 4.5** | 15,268 | 0.504 | 0.518 | **+2.35pp (z 6.60)** | **+2.35pp (z 6.60)** |
+| LOW, mean 4.5-6 | 3,308 | 0.307 | 0.309 | +0.56pp | +0.81pp |
+| LOW, mean >= 6 | 2,252 | 0.238 | 0.199 | -3.41pp (z -4.23) | -1.76pp (z -2.18) |
+
+* **Consistently good horses are under-rated** by +2.35pp. The two nets agree
+  to two decimals (+2.3508 vs +2.3500); that was checked, and it is not a
+  code error.
+* **Consistently poor horses look over-rated**, but most of that is the
+  model's general over-rating of poor form. Against same-level horses it
+  shrinks from -3.41 to -1.76pp (z -2.18), and it is concentrated in maidens
+  (-4.62pp). Weak; not pursued.
+
+**Stability (LOW & good):**
+
+| year | n | net | z |
+|---|---|---|---|
+| 2023 | 4,243 | +3.17pp | +4.69 |
+| 2024 | 4,510 | +1.69pp | +2.60 |
+| 2025 | 4,280 | +1.95pp | +2.87 |
+| 2026 | 2,235 | +2.59pp | +2.80 |
+
+| track | n | net | z |
+|---|---|---|---|
+| CT | 5,490 | +3.48pp | +5.96 |
+| GP | 5,866 | +1.66pp | +2.89 |
+| MNR | 3,680 | +1.72pp | +2.32 |
+| ELP | 232 | -0.03pp | -0.01 |
+
+Non-maiden +2.43pp (z 6.24); maiden +1.69pp (z 1.91).
+
+**Ranking impact.** This cell differs from Gaps #7 and #8 because consistent
+good horses sit *near the top* of the ranking:
+
+* races containing a LOW & good horse: 9,373 of 15,561 (60%)
+* **races whose top pick changes** under a +2.35pp correction: **530 (3.4%)**
+  (Gap #8: 0.7%)
+
+**Leave-one-year-out ranking test.** The correction was estimated on the other
+three years, applied to the held-out year, and scored by exact McNemar on the
+discordant races:
+
+| held-out year | net (train) | top pick changed | gained | lost | top-pick ITM delta | p |
+|---|---|---|---|---|---|---|
+| 2023 | +2.00pp | 132 | 38 | 33 | +0.11pp | 0.635 |
+| 2024 | +2.62pp | 161 | 46 | 40 | +0.14pp | 0.590 |
+| 2025 | +2.48pp | 138 | 44 | 29 | +0.34pp | 0.101 |
+| 2026 | +2.29pp | 92 | 32 | 17 | +0.66pp | 0.044 |
+| **all** | — | **523** | **160** | **119** | **+0.26pp** | **0.016** |
+
+Positive in every held-out year, and the train-fold estimate is stable
+(+2.00 to +2.62pp). **Read the p-value precisely:** the magnitude was estimated
+out of sample, but *the cell itself* was chosen after seeing all four years.
+The p=0.016 does not account for that selection.
+
+### Threshold and definition perturbation
+
+| variant | HIGH net | HIGH + top-3 net | LOW & good net | HIGH at CT | HIGH at GP |
+|---|---|---|---|---|---|
+| baseline (sample SD, 5/3, LOW <= 1.5, HIGH > 3.0) | +0.07 (z 0.13) | +0.12 | **+2.35 (z 6.60)** | -3.59 (z -3.92) | +1.77 (z 2.68) |
+| HIGH > 2.5 | -1.17 (z -4.02) | -1.08 | +2.35 | -2.59 | -0.48 |
+| HIGH > 3.5 | +0.56 (z 0.70) | +0.56 | +2.35 | -2.15 | +1.33 |
+| HIGH > 4.0 | +0.25 (z 0.19) | +0.26 | +2.35 | -4.81 | +1.91 |
+| LOW <= 1.00 | — | — | +1.64 (z 2.98) | — | — |
+| LOW <= 1.25 | — | — | +1.78 (z 4.18) | — | — |
+| LOW <= 1.75 | — | — | +1.61 (z 5.73) | — | — |
+| LOW <= 2.00 | — | — | +1.55 (z 6.48) | — | — |
+| population SD | +1.05 (z 1.39) | +0.98 | +1.62 (z 5.70) | -1.17 | +2.28 |
+| exactly 5 starts, no fallback | +0.19 (z 0.33) | +0.26 | +2.62 (z 6.48) | -3.58 | +2.86 |
+| last 3 only | -0.54 (z -1.30) | -0.50 | +1.70 (z 5.25) | -2.34 | -0.12 |
+| last 4 (fallback 3) | -0.69 (z -1.46) | -0.61 | +1.57 (z 4.97) | -4.65 | +1.45 |
+| **field-normalised finish, share-matched cuts** | -0.32 (z -0.67) | -0.33 | **+2.16 (z 5.49)** | **-1.07 (z -1.27)** | **+0.63 (z 0.86)** |
+
+(pp; "—" = unchanged from baseline, because the LOW threshold does not move
+the HIGH cells.)
+
+* **The erratic hypothesis is never supported.** HIGH is null or *negative*.
+  The one significant reading (sd > 2.5, -1.17pp) is the loose cut absorbing
+  over-rated moderate horses: the wrong sign for the claim.
+* **The consistent-good signal survives every variant**, at +1.55 to +2.62pp,
+  z 2.98 to 6.60. It survives field normalisation, so it is not a small-field
+  artifact. It survives a 3-start window matching `last_3_avg_finish`'s own
+  span, so it is not just information from starts 4 and 5.
+* **The track split dies under field normalisation** (Finding 3).
+
+### Live log consistency check
+
+`dpv1.2.0-4track`, latest run per race per model. 517 scored horses, 229 with
+3+ prior finished starts:
+
+| bucket | n | predicted | actual | residual |
+|---|---|---|---|---|
+| LOW | 88 | 0.425 | 0.466 | +4.04pp |
+| MOD | 114 | 0.366 | 0.439 | +7.27pp |
+| HIGH | 27 | 0.332 | 0.185 | -14.71pp |
+| LOW & good | 73 | 0.460 | 0.562 | +10.16pp |
+
+**Uninformative at this size.** Live cards are under-predicted across the board
+(62.5% top-pick ITM), and n=27 for HIGH is noise. It does not contradict
+anything above. Nothing should be read from it until the live log is several
+times larger.
+
+### What is not established
+
+* **The mechanism behind the consistent-good signal.** The most natural reading
+  is **reliability**: a mean finish from a low-variance history is a more
+  precise estimate of ability. The model's averaged-form features treat a
+  4.0 mean from [4,4,4] and from [1,7,4] identically, so it under-reacts to the
+  reliable one. Plausible, but **not tested**. At least two rivals survive:
+  * **class stability.** Consistently good horses may be staying at a level
+    they suit, which `class_score_change_from_last` sees only for the last
+    race.
+  * **selection by connections.** Horses that keep running well keep being
+    entered where they fit, and that placement intent is invisible to the
+    model.
+* **Whether it is calibration or ranking.** Unlike Gaps #7 and #8 it reorders
+  enough races (3.4%) to register on top-pick ITM, and the held-out gain is
+  positive. But +0.26pp is small, and the cell is post hoc.
+* **Anything about erratic horses beyond "priced correctly".**
+
+### Verdict
+
+| question | answer |
+|---|---|
+| Are high-variance horses under-predicted? | **No** — +0.07pp net (z 0.13), null under all 13 variants |
+| Does a top-3 in the window matter? | No — 97% of erratic horses have one; +0.12pp |
+| Does best-finish class context discriminate them? | Yes, but it is **not variance-specific**: the same gradient appears in every bucket (class relief, Gap #8 family) |
+| Does best-finish distance context matter? | No |
+| Do career rates already capture it? | **Yes** — they lift erratic horses' p_fund in step with their actual ITM |
+| Is it a last-race effect? | No — the null holds with or without a top-3 last out |
+| Anything real underneath? | **Exploratory:** consistent good form under-rated, +2.35pp (z 6.60), stable and threshold-robust, with a small held-out ranking gain |
+
+**The erratic-horse factor is closed. Do not reopen it without a new data
+source or framing.** The article's intuition is right that averaged form
+understates an erratic horse's recent performance. DPv1 already corrects for
+it through career rates.
+
+**The consistent-good cell is open, and next is a pre-registered test, not a
+feature.** Fix the definition now (sample SD <= 1.5 over the last 5 finished
+starts, fallback 3; window mean finish < 4.5). Then measure it on data not
+used here, for example the next ~3 months of live cards once the scored log
+can bucket, and test the reliability mechanism against its rivals before any
+feature is designed. Because it does reorder races, **measure it with both**
+top-pick ITM (paired McNemar) **and** a calibration metric on the subgroup.
+It is the first gap in this series where the ranking metric is not
+automatically the wrong instrument.
+
+No features were built, no model was retrained, the reranker was not touched,
+and nothing outside the diagnostic scripts (session scratchpad: `g9_build.py`,
+`g9_lib.py`, `g9_main.py`, `g9_controls.py`, `g9_robust.py`) was modified.
