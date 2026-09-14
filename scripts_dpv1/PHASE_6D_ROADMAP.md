@@ -3502,3 +3502,94 @@ Path A +0.63 (n 7,020).
 these same years in Steps 1-3. Its fold structure is honest for the *reranker*,
 but the *design* saw all four years. Confirmation needs races after
 2026-09-13 — the same gate as Path A, which is what Track 2 exists to collect.
+
+### Reranker composition test — Step 4 Session 1, 2026-09-13
+
+> **VERDICT: no interference. The two rerankers do orthogonal work and their
+> effects are additive. But this test cannot settle a ranking question — 220
+> races is far too few — and it should not be used to justify shipping.**
+
+**Configurations**, shipped artifacts unmodified, replicating the live
+application path (`card_picks.rerank_probabilities`): the PP reranker fires
+only on horses with a PP row; the class-context reranker fires on the whole
+field.
+
+| config | definition | top-pick ITM (220 races) |
+|---|---|---|
+| **X** | base `dpv1.pkl` alone | 66.364% |
+| **Y** | base + `pp-reranker-1.0` (shipped state) | 68.182% |
+| **Z** | base + `pp-reranker-1.0` + `classctx-reranker-0.1` | 69.545% |
+| **W** | base + `classctx-reranker-0.1` only | **70.455%** |
+
+| comparison | delta | discordant | McNemar p |
+|---|---|---|---|
+| Y vs X (pp alone) | +1.818pp | 10 vs 6 | 0.45 |
+| Z vs X (both) | +3.182pp | 14 vs 7 | 0.19 |
+| **Z vs Y (adding classctx)** | **+1.364pp** | 10 vs 7 | **0.63** |
+| W vs X (classctx alone) | +4.091pp | 12 vs 3 | **0.035** |
+| Z vs W (adding pp) | -0.909pp | 8 vs 10 | 0.81 |
+
+**The evidence for clean composition is the log-loss decomposition, not the
+ranking table.** Adding the two corrections in either order gives the same
+total, to five decimals:
+
+| path | step | cumulative |
+|---|---|---|
+| X -> Y (pp) | -0.00521 (z -2.49) | |
+| Y -> Z (classctx) | -0.00141 (z -0.93) | **-0.00662** |
+| X -> W (classctx) | -0.00168 (z -1.12) | |
+| W -> Z (pp) | -0.00493 (z -2.37) | **-0.00661** |
+
+There is no interaction term. Corroborating it directly: the per-horse logit
+adjustments the two rerankers make are **uncorrelated — r = +0.059**, and they
+agree in sign on 49.1% of rows, which is chance. They are adjusting different
+things about the same horses.
+
+**They contribute on different axes.** The PP reranker carries the calibration
+gain (z -2.49 as the first step, z -2.37 as the second); the class-context
+reranker carries the ranking gain (the only nominally significant ranking
+result in the table is W vs X). That is consistent with what each was built
+for, and it is why Z beats Y on ranking while W beats Z.
+
+**Why this test cannot decide the ship question**
+
+* **220 races.** Every comparison rests on 13-21 discordant races. Z vs Y's
+  +1.364pp meets the pre-stated +0.5pp bar on the point estimate and is
+  meaningless at p = 0.63. One nominal significance out of five comparisons is
+  what chance produces.
+* **Config Y is in-sample.** `pp-reranker-1.0` was trained on exactly these
+  rows, so Y is flattered and the Y-baseline is too high. The classctx
+  reranker is effectively out-of-sample here (15 coefficients fitted on
+  116,665 rows, of which these are 1.4%), so the asymmetry runs against
+  classctx, not for it.
+* **These are not disjoint subpopulations.** PP coverage inside these races is
+  **99.9%** — 1,582 of 1,584 runners. So both rerankers act on essentially the
+  whole field, and the composition question here is "two whole-field
+  corrections", not "two corrections on different horses". On a live card with
+  a PP file this is the realistic case.
+* **`W > Z` is unresolved.** On these races, dropping the PP reranker ranks
+  better than keeping it. It is not significant, it contradicts the log-loss
+  reading, and 220 races cannot separate the two. It is a reason to carry
+  config W into live testing, not a reason to act now.
+
+**Flagged, out of scope, needs its own look: the PP reranker's applicable
+population has shrunk.** `pp_entries_raw` now joins to **1,969** corpus entries
+across 29 cards, up from ingestion; but only **1,582** have an out-of-sample
+base logit, against **1,910 rows / 259 races** when `pp-reranker-1.0` was
+evaluated on 2026-09-01. 387 rows are simply after the base fold cutoff
+(2026-08-21) and are expected. **That still leaves roughly 330 historical rows
+that previously joined and now do not.** Candidate causes: the 2026-09-02
+`parse_pp_files --incremental` change to card-grain replace, the GP 9/4
+purge-and-reload, or the CT backlog loads altering `program_num` formatting.
+Not diagnosed here. It does not affect this test's internal validity — every
+config is scored on the same 1,582 rows — but it bears on how often
+`pp-reranker-1.0` actually fires live, and should be checked before any
+shipping decision that depends on it.
+
+**Conclusion.** The composition risk raised in the Path B entry is **not
+realised**: no interference, no degradation of the PP-covered subset
+(residual +0.48 -> +0.27 -> +0.57pp across X/Y/Z), additive log-loss,
+orthogonal adjustments. That removes the blocker. It does **not** establish
+that Z is better than Y, or that Z is better than W. Those are ranking
+questions at a sample size that cannot answer them, and the instrument for
+them is Track 2's live parallel picks.
