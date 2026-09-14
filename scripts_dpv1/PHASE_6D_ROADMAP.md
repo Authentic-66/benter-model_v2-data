@@ -179,6 +179,22 @@ the feature can actually move.
 > evaluable data: CT +6.1pp (98 races), ELP +5.6pp (18), GP +2.1pp (143).
 > MNR has no evaluable rows.
 >
+> > **SUPERSEDED 2026-09-13 — DO NOT QUOTE THE FOUR LINES ABOVE.** That
+> > evaluation ran on a `pp_entries_raw` table inflated by duplicate rows.
+> > Re-run on the de-duplicated table — shipped artifact untouched, same
+> > code path, same CV scheme, same base fold file — the effect is
+> > **+1.4pp top-pick ITM on 220 races (p = 0.648)**, which is no evidence
+> > of an effect. Per track: **GP replicates exactly (+2.1pp)**, **CT
+> > collapses from +6.1pp to +0.00pp**, and **ELP is not in the joinable
+> > set at all** — its cards postdate the base fold cutoff. The figures
+> > above are retained only so the correction stays traceable.
+> >
+> > This is **not** evidence that `pp-reranker-1.0` hurts — the clean point
+> > estimate is still positive. It is evidence that the justification for
+> > shipping it was measurement noise. The artifact is byte-identical and
+> > **remains live in `card_picks.py`**; nothing was retrained or unshipped.
+> > See *Gap #1 re-evaluation on the clean table, 2026-09-13*.
+>
 > Rankings now use the reranked P(ITM). The picks page shows base P(ITM)
 > alongside it with a `+/-` marker at 2pp, and the log carries `base_p_itm`,
 > `final_p_itm`, `reranker_delta` and `reranker_version` per horse.
@@ -3704,3 +3720,105 @@ restart that artifact's own validation.
 rows" note in the Step 4 Session 1 entry above is **wrong** and is retained
 only so the correction is traceable. The population did not shrink; the
 comparison was between a de-duplicated count and a duplicate-inflated one.
+
+### Gap #1 re-evaluation on the clean table, 2026-09-13
+
+> **THE HEADLINE RESULT DOES NOT REPRODUCE.** Re-running
+> `dpv1_pp_reranker_train.py evaluate` against the de-duplicated table, with
+> the shipped artifact untouched and the same code path, same CV scheme, same
+> base fold file:
+>
+> | | published (2026-09-01) | clean (2026-09-13) |
+> |---|---|---|
+> | rows / races | 1,910 / 259 | 1,582 / 220 |
+> | base top-pick ITM | 66.02% (171/259) | 65.91% (145/220) |
+> | **reranked, offset** | **69.88%, +3.861pp, p = 0.064** | **67.27%, +1.364pp, p = 0.648** |
+> | reranked, free | 69.11%, +3.089pp, p = 0.169 | 66.82%, +0.909pp, p = 0.839 |
+> | discordant, offset | 17 gained / 7 lost | 11 gained / 8 lost |
+>
+> `pp-reranker-1.0` is **live in `card_picks.py` right now**. Nothing here
+> shows it is harmful — the clean point estimate is still positive — but the
+> evidence that justified shipping it does not hold up.
+
+**Per track, clean** (`offset`, GroupKFold by race):
+
+| track | races | base | reranked | delta | discordant | p | roadmap claim |
+|---|---|---|---|---|---|---|---|
+| CT | 77 | 74.0% | 74.0% | **+0.00pp** | 5/5 | 1.000 | +6.1 |
+| GP | 143 | 61.5% | 63.6% | +2.10pp | 6/3 | 0.508 | +2.1 |
+| ELP | — | — | — | **not in the joinable set at all** | — | — | +5.6 |
+
+GP's +2.1 reproduces exactly. CT's +6.1 collapses to zero. ELP cannot be
+evaluated: there are no ELP rows in the clean joinable set, because the ELP
+cards postdate the base fold cutoff.
+
+**Duplicates do not explain this on their own.** All 340 excess rows in the
+pre-fix table were on **one card, GP 2026-05-09** (85 keys, ~5 extra copies
+each) — and GP is the track whose number reproduces. So the duplicates are a
+real defect in the training data, but the CT collapse and the missing ELP come
+from somewhere else: the published dataset also held **39 races that are no
+longer joinable**, from a `pp_entries_raw` state no surviving backup captured.
+The `pre-ppingest` backup (09-01 13:15 local) already shows 1,582 rows / 220
+races, and the evaluation ran about five hours later, after a PP ingest whose
+contents were subsequently replaced by the card-grain fix.
+
+**What can and cannot be said**
+
+* **Can:** the published +3.9pp does not reproduce on the current clean data;
+  the clean figure is +1.4pp at p = 0.648, which is no evidence of an effect.
+* **Can:** the training data contained 340 duplicate rows concentrated on one
+  card, and the shipped coefficients were fitted with that card weighted ~6x.
+* **Cannot:** prove the published number was wrong when computed. The dataset
+  it was computed on cannot be reconstructed from any backup.
+* **Cannot:** conclude the reranker hurts. +1.4pp on 19 discordant races is
+  consistent with a small positive effect, with zero, and with a small
+  negative one.
+
+**Consequences to weigh**
+
+* **Gap #1's shipping decision rested on this number.** The roadmap's Gap #1
+  status block and `project-phase6d-gaps` memory both quote "+3.9pp on 259
+  races (p=0.064)". Both should now be read against this entry.
+* **`model_health.py`'s live base-only vs with-reranker section is the real
+  instrument**, and it still needs ~50-100 scored races. That was always the
+  plan; it is now the *only* untainted evidence.
+* **The composition test's Config Y** (Step 4 Session 1) is built on this
+  artifact, so the PP side of that comparison is softer than it looked. The
+  class-context side is unaffected — it was evaluated on 15,561 races of base
+  fold predictions, which has nothing to do with the PP table.
+* **Refitting `pp-reranker-1.0` on clean data is a separate decision.** It
+  would restart that artifact's own validation, and on the clean table there
+  are only 220 races to fit on.
+
+**Artifacts.** `dpv1_pp_reranker_eval_clean_20260913.json` holds the clean
+run. The original `dpv1_pp_reranker_eval.json` is **deliberately left
+untouched** as the historical record; the re-run was directed to a separate
+file via `--eval-out`. `dpv1_pp_reranker.pkl` is byte-identical to HEAD — this
+was an evaluation, not a retrain.
+
+**What this does to the live shipping question.** The Step 4 Session 1
+composition test ran on these same 220 clean races, so its configurations can
+be read directly against this result:
+
+| config | composition | top-pick ITM | live status |
+|---|---|---|---|
+| X | base alone | 66.364% | never in production |
+| **Y** | **base + pp** | **68.182%** | **current live config** |
+| Z | base + pp + classctx | 69.545% | available, opt-in |
+| W | base + classctx, no pp | 70.455% | not wired as a mode |
+
+`W` directionally outperforms `Z` by 0.909pp — dropping the PP reranker ranks
+*better* on these races. At p = 0.81 over 220 races with 18 discordant, that
+difference is unresolved and must not be read as a result. It is noted because
+it now points the same way as this re-evaluation rather than against it: the
+log-loss decomposition credited `pp` with the calibration gain, and that
+decomposition is unaffected, but the ranking case for `pp` is the part that
+rested on the inflated number.
+
+The consequence is that **production is running config Y on the strength of a
+duplicate-inflated evaluation.** The open question is no longer whether to
+enable class-context; it is which of **W / Y / Z** belongs live. Nothing
+offline can answer it — `Y` is in-sample for `pp-reranker-1.0`, and 220 races
+cannot separate configurations a percentage point apart. `model_health.py`'s
+base-only vs with-reranker arms, at ~50-100 scored live races, remain the only
+untainted instrument.
