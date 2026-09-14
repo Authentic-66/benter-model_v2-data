@@ -3359,3 +3359,146 @@ races before any promotion.
   against the Step 3 control, never against the old live-2.0 folds.
 * Promotion still restarts the live baseline window and needs the reranker
   re-validated on the new base.
+
+### Gap #11 build — Path B (reranker architecture), Step 4 Track 1, 2026-09-13
+
+> **RESULT: the class-context signal is fully captureable in the reranker
+> architecture, and the two routes are the SAME signal — not complements.**
+>
+> On the identical 15,561 races with identical entry sets, against the live
+> `dpv1.2.0-4track` base:
+>
+> | | top-pick ITM | vs base | McNemar p |
+> |---|---|---|---|
+> | live `dpv1.2.0-4track` | 64.090% | — | — |
+> | **Path B reranker** | **64.977%** | **+0.887pp** | **<0.0001** |
+> | Path A `dpv1.5.2` | 64.944% | +0.855pp | 0.0001 |
+> | **Path B vs Path A** | — | **+0.032pp** | **0.865** |
+>
+> **Indistinguishable.** 278 races where Path B hits and Path A misses against
+> 273 the other way.
+>
+> **Stacking them adds nothing.** A class-context reranker fitted over the
+> Path A base finds nothing left to correct: **-0.039pp (127 vs 133, p 0.757)**
+> and log-loss very slightly *worse* (+0.00010, z +2.09). **So "ship both"
+> would double-count a single correction. This is an either/or.**
+>
+> **Not promoted, nothing shipped.** `dpv1.pkl`, `dpv1_pp_reranker.pkl` and
+> `dpv1_3track.pkl` are byte-identical to HEAD.
+
+**What was built**
+
+`dpv1_classctx_reranker_train.py`, deliberately mirroring
+`dpv1_pp_reranker_train.py` — same `PPReranker`-shaped dataclass, the same
+`fit_offset_logistic` L-BFGS offset fit (lifted with its warning that adding
+an offset at prediction time is not an offset model), the same GroupKFold-by-race
+cross-validation, the same `__main__` unpickling shim. Artifact
+`dpv1_classctx_reranker.pkl`, version `classctx-reranker-0.1`, **offset mode**
+to match `pp-reranker-1.0`.
+
+Feature block: the 11 shipped Step 3 columns (config `dpv1.5.2`), one-hot on
+the two categoricals with `SAME` as the dropped reference level, median
+imputation stored on the artifact so a live card cannot silently use a
+different fill.
+
+**One structural difference from the PP reranker, stated because it changes
+how to read the result.** The PP reranker exists because PP data joins to only
+0.86% of the corpus; it adjusts a small, well-defined subpopulation. Class
+context is present for almost every row, so this is a correction applied to the
+whole field — much closer to "refit the model" than the PP case, and a weaker
+device than Path A only in that the base's 95 coefficients stay frozen. The
+finding is that freezing them costs nothing.
+
+**Method**
+
+* Base contribution is the base model's **out-of-sample** fold prediction
+  (`dpv1_fold_predictions.csv`, written with `dpv1.pkl` on 2026-08-22),
+  never a refit on rows it trained on.
+* Reranker cross-validated by **race group** (5-fold) *and* **leave-one-year-out**.
+  LOYO is reported because GroupKFold shuffles races across time and LOYO does
+  not; it is the discipline Step 3 was held to. **The two agree closely**, so
+  nothing here rests on the weaker scheme.
+* Head-to-head restricted to races whose **full entry set** appears in both
+  corpora, so the top-pick comparison is like for like.
+
+| CV scheme | mode | top-pick ITM | delta | McNemar p | log-loss delta (z) |
+|---|---|---|---|---|---|
+| by race | offset | 64.912% | +0.823pp | 0.0001 | -0.00138 (-9.13) |
+| by race | free | 64.970% | +0.880pp | <0.0001 | -0.00146 (-9.38) |
+| by year | offset | 64.919% | +0.829pp | 0.0001 | -0.00137 (-9.09) |
+| **by year** | **free** | **64.977%** | **+0.887pp** | **<0.0001** | **-0.00140 (-9.03)** |
+
+**The free base coefficient is +0.9593** — near unit weight. That is the
+reassuring answer to the question the PP reranker's docstring raises: a
+whole-field reranker *could* have degenerated into recalibrating every horse,
+and a coefficient materially below 1 would have said so. It did not; `offset`
+(which forces exactly 1.0) gives nearly identical coefficients and gives up
+only 0.06pp, which is why the shipped artifact is `offset`.
+
+**Per year, vs base** (both routes positive in all four years):
+
+| year | races | Path B | Path A |
+|---|---|---|---|
+| 2023 | 4,498 | +0.38pp (p 0.34) | +0.33pp (p 0.43) |
+| 2024 | 4,392 | **+1.41pp (p 0.001)** | **+1.25pp (p 0.002)** |
+| 2025 | 4,389 | +0.62pp (p 0.13) | +0.84pp (p 0.039) |
+| 2026 | 2,282 | **+1.40pp (p 0.020)** | +1.14pp (p 0.064) |
+
+**Class-direction residuals flatten the same way** (base -> Path B):
+BELOW +1.60 -> **-0.03**, LEVEL -1.36 -> **+0.04**, ABOVE -2.01 -> **-0.03**.
+
+**The deadband gradient closes the same way** (base -> Path B): move -2
++3.67 -> +1.19, -1 +2.30 -> -0.57, 0 -0.37 -> -0.01, **+1 -4.93 -> -0.27**,
+**+2 -4.75 -> -0.81**.
+
+**Gap #8 recheck** (claiming/OC droppers, `classify_v2`, net of a
+p-matched pool):
+
+| cut | n | base | Path B | Path A |
+|---|---|---|---|---|
+| bucket A | 4,333 | +2.73 (z 3.9) | +0.98 (z 1.4) | +1.02 (z 1.5) |
+| bucket B | 9,041 | +0.29 | **-1.35 (z -3.0)** | **-1.19 (z -2.6)** |
+| bucket C | 3,775 | +3.61 (z 4.9) | +1.61 (z 2.2) | +2.11 (z 2.8) |
+| droppers, no ITM last 3 | 5,182 | +2.68 (z 4.3) | +0.59 | +1.07 |
+| droppers, has recent ITM | 11,967 | +1.37 (z 3.5) | -0.42 | -0.36 |
+
+Path B absorbs slightly more of Gap #8's under-rating than Path A (C +1.61 vs
++2.11) and **overshoots bucket B slightly harder** (-1.35 vs -1.19). **Both
+routes carry the same bucket-B defect**, which is further evidence they are one
+signal. Gap #8 still needs its own poor-form x drop term either way, and must
+be measured against whichever route is chosen, never against the old live-2.0
+folds.
+
+**Miscalibration scan.** Broadly the same cells as Path A, with the same
+mirror-cell residue (`L -3..-1 x s -3..-1`: base +1.33, Path B -1.71, Path A
+-2.17 — Path B slightly gentler). One cell where Path B is worse than base and
+worse than Path A: `L>=10 x s>3`, base +0.06 -> **Path B +1.06 (z +2.24)**,
+Path A +0.63 (n 7,020).
+
+**What this means for the ship decision**
+
+* **The signal is architecture-independent.** It is an additive correction that
+  does not need the base model's other 95 coefficients refitted jointly. That
+  was the open question Path B was built to answer.
+* **They are substitutes, not complements** — the stacking test settles it.
+* **Operationally the two routes are very different**, and that, not the point
+  estimate, is the real basis for choosing:
+
+| | Path A (`dpv1.5.2`) | Path B (`classctx-reranker-0.1`) |
+|---|---|---|
+| touches `dpv1.pkl` | **yes, base swap** | no |
+| live baseline window | **restarts** (Piece 3 filters by `model_version`) | preserved |
+| `pp-reranker-1.0` | **needs re-validating on a new base** | unaffected base, but two rerankers now compose over one logit — untested |
+| reversibility | redeploy the old pickle | drop one artifact |
+| where the signal lives | 124-feature config, one model | base + a 15-coefficient correction |
+
+* **The unexamined risk in Path B is reranker composition.** `pp-reranker-1.0`
+  and this one would both adjust the same base logit, on overlapping rows.
+  Nothing here tested how they compose. Path A has the mirror-image problem
+  (the PP reranker would sit on a base it was not fitted against). **Either
+  route requires a reranker-interaction test before shipping; neither has one.**
+
+**Still not pre-registered.** Path B uses the same feature block designed on
+these same years in Steps 1-3. Its fold structure is honest for the *reranker*,
+but the *design* saw all four years. Confirmation needs races after
+2026-09-13 — the same gate as Path A, which is what Track 2 exists to collect.
