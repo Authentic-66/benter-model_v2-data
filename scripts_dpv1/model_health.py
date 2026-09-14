@@ -462,8 +462,128 @@ def print_reranker_split(scored: list[dict]) -> None:
         n = max(n, s["n"])
     if n < 50:
         print(f"\n  {n} races is far below the ~50-100 needed to read this as")
-        print("  evidence. The standalone cross-validated estimate was +3.9pp")
-        print("  (p=0.064); this line exists to accumulate the live check.")
+        print("  evidence -- and the offline prior is weaker than it looked.")
+        print("  The +3.9pp (p=0.064) that justified shipping pp-reranker-1.0")
+        print("  was computed on a duplicate-inflated pp_entries_raw table. The")
+        print("  clean re-evaluation is +1.4pp on 220 races (p=0.648), with CT")
+        print("  collapsing from +6.1pp to 0.0pp and ELP not joinable at all.")
+        print("  This live check is no longer confirmation of a prior; it is")
+        print("  the primary evidence. See PHASE_6D_ROADMAP.md, 'Gap #1")
+        print("  re-evaluation on the clean table, 2026-09-13'.")
+
+
+def print_config_reconstruction(scored: list[dict]) -> None:
+    """Live top-pick ITM for all four reranker configurations, from one run.
+
+    Because the two rerankers compose additively in logit space and the
+    class-context delta is shadow-logged on every row whether or not it was
+    applied, a single card run carries enough to rank the field four ways:
+
+        X  base alone                 base_logit
+        Y  base + pp                  + reranker_pp_delta          (LIVE)
+        W  base + classctx            + reranker_classctx_delta_on_base
+        Z  base + pp + classctx       + reranker_pp_delta + reranker_classctx_delta
+
+    W uses ``_delta_on_base`` and Z uses the stacked ``_delta`` because
+    ``base_logit`` is an input feature to the class-context reranker: its
+    adjustment is not the same number when it sits on top of the PP stage as
+    when it sits on the raw base logit. Using one for both would silently
+    fabricate the W arm.
+
+    Every arm is scored on the SAME races with the SAME outcomes -- the only
+    thing that differs is which horse the ranking selected. Races where any arm
+    cannot be computed are dropped from all four, so the table stays paired.
+    """
+    import math
+
+    need = ("base_p_itm", "reranker_classctx_delta_on_base")
+    rows = [r for r in scored if all(r.get(k) is not None for k in need)]
+    print("\n=== Reranker: four-configuration reconstruction (live) ===")
+    if not rows:
+        print("No scored rows carry a shadow class-context delta yet.")
+        print("Shadow logging started 2026-09-13; cards run before that, and")
+        print("cards whose feature table predates Step 3, have no cc delta.")
+        return
+
+    def _logit(prob: float) -> float:
+        prob = min(max(float(prob), 1e-12), 1.0 - 1e-12)
+        return math.log(prob / (1.0 - prob))
+
+    def _d(r: dict, key: str) -> float:
+        v = r.get(key)
+        return 0.0 if v is None else float(v)
+
+    arms = {
+        "X base alone":      lambda r: _logit(r["base_p_itm"]),
+        "Y base+pp  (LIVE)": lambda r: _logit(r["base_p_itm"])
+                                       + _d(r, "reranker_pp_delta"),
+        "W base+cc":         lambda r: _logit(r["base_p_itm"])
+                                       + _d(r, "reranker_classctx_delta_on_base"),
+        "Z base+pp+cc":      lambda r: _logit(r["base_p_itm"])
+                                       + _d(r, "reranker_pp_delta")
+                                       + _d(r, "reranker_classctx_delta"),
+    }
+
+    by_race: dict[tuple, list[dict]] = defaultdict(list)
+    for r in rows:
+        by_race[race_model_key(r)].append(r)
+
+    per_model: dict = defaultdict(
+        lambda: {"n": 0, "incomplete": 0, **{k: 0 for k in arms}})
+    picks_differ = 0
+    for key, g in by_race.items():
+        if g[0].get("top_pick_scratched"):
+            continue
+        st = per_model[key[3]]
+        # A horse with no outcome is absent from the scored file entirely, so a
+        # reconstructed arm could have picked a horse we cannot see. Count those
+        # races rather than pretending the reconstruction is clean on them.
+        n_pred = g[0].get("n_horses_in_race")
+        if n_pred is not None and int(n_pred) != len(g):
+            st["incomplete"] += 1
+            continue
+        st["n"] += 1
+        chosen = {}
+        for label, f in arms.items():
+            top = max(g, key=f)
+            chosen[label] = top["prediction_id"]
+            st[label] += bool(top["hit_itm"])
+        picks_differ += len(set(chosen.values())) > 1
+
+    if not any(v["n"] for v in per_model.values()):
+        print("No fully-scored races available for the reconstruction yet.")
+        for mv, st in sorted(per_model.items(), key=lambda kv: str(kv[0])):
+            if st["incomplete"]:
+                print(f"  base {mv or 'unrecorded'}: {st['incomplete']} race(s) "
+                      "dropped, a predicted horse has no outcome")
+        return
+
+    for mv, st in sorted(per_model.items(), key=lambda kv: str(kv[0])):
+        if not st["n"]:
+            continue
+        print(f"base {mv or 'unrecorded'}   {st['n']} fully-scored race(s), "
+              f"the four arms disagree on {picks_differ}")
+        base_n = st["X base alone"]
+        for label in arms:
+            d = st[label] - base_n
+            tail = "" if label.startswith("X") else f"   {d:+d} vs X"
+            print(f"  {label:<18} {st[label]}/{st['n']} = "
+                  f"{_pct(st[label], st['n'])}{tail}")
+        if st["incomplete"]:
+            print(f"  ({st['incomplete']} race(s) excluded: a predicted horse "
+                  "has no outcome, so an arm's pick may be unobservable)")
+        # Printed at every n, not just small ones: the caveat is structural,
+        # not a sample-size complaint. See PHASE_6D_ROADMAP.md, "Shadow-logged
+        # Arms: Reconstruction Discipline".
+        print("  W and Z are SHADOW arms. They are what a reranker WOULD have")
+        print("  picked, not what one that shipped would have experienced --")
+        print("  live Y has absorbed scratch timing, late odds and downstream")
+        print("  friction; W and Z have absorbed none of it. Any advantage")
+        print("  they show over Y is part artifact, so haircut it, or wait")
+        print("  for it to widen against what live Y accumulates.")
+        if st["n"] < 50:
+            print(f"  {st['n']} races is also far below the ~50-100 needed "
+                  "to read any of this.")
 
 
 def print_corpus_split(races: list[dict]) -> None:
@@ -581,6 +701,7 @@ def _cli() -> int:
 
     print_report(races, label, window)
     print_reranker_split(scored)
+    print_config_reconstruction(scored)
     if attributed:
         by_src: dict[str, set[str]] = defaultdict(set)
         for r in attributed:

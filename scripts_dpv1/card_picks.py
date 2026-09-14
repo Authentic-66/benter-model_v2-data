@@ -56,6 +56,7 @@ import json
 import logging
 import sqlite3
 import sys
+import typing
 from datetime import datetime
 from pathlib import Path
 
@@ -425,10 +426,17 @@ def get_reranker(path=None):
 # their log-loss effects are additive in either order, so they are doing
 # orthogonal work rather than competing. See PHASE_6D_ROADMAP.md.
 #
-# DEFAULT OFF, opt in with --reranker-classctx. Nothing about this has been
-# validated on live races yet, which is exactly the reason dpv1.5.2 is being
-# held rather than promoted; turning it on by default would change live picks
-# on the strength of fold evidence alone. Track 2 runs it as a parallel arm.
+# NOT APPLIED BY DEFAULT, opt in with --reranker-classctx. Nothing about this
+# has been validated on live races yet, which is exactly the reason dpv1.5.2 is
+# being held rather than promoted; applying it by default would change live
+# picks on the strength of fold evidence alone.
+#
+# SHADOW-LOGGED SINCE 2026-09-13. The delta is computed and written to the log
+# on every row regardless of the flag -- measurement is free, and it is the
+# only way to accumulate live evidence for this artifact without letting it
+# choose picks first. ``reranker_classctx_applied`` on each row says which
+# happened. The flag remains the promotion path: when the evidence supports it,
+# turning it on is what makes the delta count.
 #
 # Unlike the PP reranker it applies to the whole field: class context is
 # present for every horse (``class_context_missing`` is itself a modelled
@@ -521,11 +529,45 @@ def _norm_pgm(v) -> str:
     return str(v).strip().upper() if v is not None else ""
 
 
+class RerankResult(typing.NamedTuple):
+    """Everything one race's rerank produced, applied and shadow alike.
+
+    ``p_adjusted`` and ``n_cc_applied`` describe what actually reached the
+    ranking. ``cc_delta`` and ``cc_delta_base`` are measurements, and are
+    populated whether or not the class-context stage was applied.
+    """
+    p_adjusted: object
+    pp_delta: object
+    cc_delta: object        # classctx stacked on the PP-adjusted logit -> Z
+    cc_delta_base: object   # classctx on the base logit, no PP       -> W
+    n_pp: int
+    n_cc_applied: int       # 0 unless --reranker-classctx; gates the ranking
+    n_cc_shadow: int        # >0 whenever the measurement was taken
+
+
+def _cc_delta_depends_on_base() -> bool:
+    """Does the class-context delta change with the logit it is stacked on?
+
+    ``classctx-reranker-0.1`` is an ``offset`` model whose feature list does
+    not contain ``base_logit``, so its delta is ``X . coef + intercept`` and is
+    identical whether it sits on the base logit or on the PP-adjusted one --
+    the W and Z arms differ only by the PP term. A ``free``-mode artifact, or
+    an offset one that adds ``base_logit`` as a feature, would break that, and
+    reconstructing W from the stacked delta would then be silently wrong. This
+    is what decides whether the second call is worth making.
+    """
+    rr = get_classctx_reranker()
+    if rr is None:
+        return False
+    return (getattr(rr, "mode", None) != "offset"
+            or "base_logit" in list(getattr(rr, "feature_names", ())))
+
+
 def rerank_probabilities(card, p_fund, db, track, date, race_num,
                          use_classctx: bool = False):
     """Adjusted fundamental P(ITM) plus the per-horse logit delta of each stage.
 
-    Returns ``(p_adjusted, pp_delta, cc_delta, n_pp, n_cc)``.
+    Returns a :class:`RerankResult`.
 
     Two stages, applied in logit space so they compose additively and the
     order does not change the result:
@@ -539,14 +581,29 @@ def rerank_probabilities(card, p_fund, db, track, date, race_num,
     horse". Either stage can be absent -- artifact missing, no PP file, flag
     off -- and the runner degrades to the remaining ones, or to the base model
     if both are gone.
+
+    SHADOW MEASUREMENT (2026-09-13). The class-context stage is **always
+    computed** and its delta always logged; ``use_classctx`` now controls only
+    whether that delta is *applied* to the ranking. This is what lets Piece 3
+    reconstruct all four configurations from a single live run -- X (base),
+    Y (base+pp, what production ranks on), W (base+cc) and Z (base+pp+cc) --
+    without betting live picks on an artifact that has no live validation.
+    See PHASE_6D_ROADMAP.md, "Gap #1 re-evaluation on the clean table".
+
+    Two class-context calls, not one, because ``base_logit`` is itself an input
+    feature to that reranker: its adjustment differs depending on whether it is
+    stacked on the PP-adjusted logit (the Z arm) or on the raw base logit (the
+    W arm). Reconstructing W from the stacked delta would be wrong. When the PP
+    stage did not fire the two are identical by construction and only one call
+    is made.
     """
     import numpy as _np
     p_fund = _np.asarray(p_fund, dtype=float)
     pp_delta = _np.full(len(p_fund), _np.nan)
-    cc_delta = _np.full(len(p_fund), _np.nan)
 
     from dpv1_pp_reranker_train import logit as _rr_logit
-    cur_logit = _rr_logit(p_fund)
+    base_logit = _rr_logit(p_fund)
+    cur_logit = base_logit
     n_pp = 0
 
     rr = get_reranker()
@@ -557,13 +614,27 @@ def rerank_probabilities(card, p_fund, db, track, date, race_num,
         cur_logit, pp_delta, n_pp = _apply_pp_reranker(
             card, cur_logit, pp, programs, have, rr)
 
-    n_cc = 0
-    if use_classctx:
-        cur_logit, cc_delta, n_cc = apply_classctx_reranker(card, cur_logit)
+    # Stage 2, always measured. cc_adj is discarded unless the flag is on.
+    cc_adj, cc_delta, n_cc = apply_classctx_reranker(card, cur_logit)
+    if n_pp and _cc_delta_depends_on_base():
+        _, cc_delta_base, _ = apply_classctx_reranker(card, base_logit)
+    else:
+        # Either nothing was stacked, or the artifact's delta cannot depend on
+        # what it is stacked on. Both make W's delta equal to Z's exactly.
+        cc_delta_base = cc_delta
 
-    if not n_pp and not n_cc:
-        return p_fund, pp_delta, cc_delta, 0, 0
-    return 1.0 / (1.0 + _np.exp(-cur_logit)), pp_delta, cc_delta, n_pp, n_cc
+    n_cc_applied = int(n_cc) if use_classctx else 0
+    if use_classctx:
+        cur_logit = cc_adj
+
+    if not n_pp and not n_cc_applied:
+        # Nothing reached the ranking. Return the fundamental probability
+        # untouched rather than round-tripping it through the logit, so the
+        # flag-off output stays bit-for-bit what it was before shadowing.
+        return RerankResult(p_fund, pp_delta, cc_delta, cc_delta_base,
+                            0, 0, int(n_cc))
+    return RerankResult(1.0 / (1.0 + _np.exp(-cur_logit)), pp_delta,
+                        cc_delta, cc_delta_base, n_pp, n_cc_applied, int(n_cc))
 
 
 def _apply_pp_reranker(card, base_logit, pp, programs, have, rr):
@@ -813,9 +884,12 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     # then pushed back through normalisation and the Harville inversion, so the
     # win probabilities and the simulator stay consistent with the reranked
     # P(ITM) rather than describing a different race.
-    p_adj, rr_delta, cc_delta, n_pp, n_cc = rerank_probabilities(
+    rrr = rerank_probabilities(
         card, pred.p_fund, db, track, date, race_num,
         use_classctx=use_classctx)
+    p_adj, rr_delta, cc_delta = rrr.p_adjusted, rrr.pp_delta, rrr.cc_delta
+    cc_delta_base = rrr.cc_delta_base
+    n_pp, n_cc = rrr.n_pp, rrr.n_cc_applied
     n_reranked = n_pp or n_cc
     if n_reranked:
         from dpv1_runtime import Prediction, invert_harville, normalise_itm
@@ -840,7 +914,13 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
         "cov": cov["per_horse"],
     })
     d["_rr_delta"] = rr_delta                 # stage 1, PP
-    d["_cc_delta"] = cc_delta                 # stage 2, class context
+    # Stage 2 is measured whether or not it is applied; ``_cc_applied`` below
+    # is what says which. Keeping the measurement out of ``reranker_delta``
+    # matters -- that field has to stay equal to the logit delta actually
+    # realised in ``final_p_itm``.
+    d["_cc_delta"] = cc_delta                 # stage 2 stacked on PP  -> Z
+    d["_cc_delta_base"] = cc_delta_base       # stage 2 on base logit  -> W
+    d["_cc_applied"] = bool(rrr.n_cc_applied)
     mls, pps = [], []
     for nm in names:
         v = ml_map.get((race_num, normalize_name(nm)), (None, None, None))
@@ -873,7 +953,12 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
             "maiden_flag": maiden, "underraced": under,
             "underraced_share": under_share,
             "n_reranked": n_reranked,
+            # APPLIED counts. n_reranked_classctx stays 0 when the flag is
+            # off so reranker_version keeps its existing value and every race
+            # continues pooling into one model_health arm; the shadow count is
+            # separate and deliberately does not feed the version string.
             "n_reranked_pp": n_pp, "n_reranked_classctx": n_cc,
+            "n_shadow_classctx": rrr.n_cc_shadow,
             "table": d}
 
 
@@ -995,6 +1080,11 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
         cc_version = (getattr(get_classctx_reranker(), "version", None)
                       if r.get("n_reranked_classctx") else None)
         reranker_version = "+".join(v for v in (pp_version, cc_version) if v) or None
+        # The shadow arm's artifact, recorded whether or not it was applied, so
+        # a reconstruction can tell which classctx artifact produced the deltas
+        # on a row. Deliberately NOT part of reranker_version.
+        cc_shadow_version = (getattr(get_classctx_reranker(), "version", None)
+                             if r.get("n_shadow_classctx") else None)
         n_horses = int(len(table))
         maiden = bool(r.get("maiden_flag"))
         maiden_share = _round(r.get("underraced_share"), 4)
@@ -1023,14 +1113,24 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
                 "base_p_itm": _round(h.get("base"), 4),
                 "final_p_itm": _round(h.get("P(ITM)"), 4),
                 # Total logit delta from base, the same meaning this field
-                # has always had; NaN stages contribute nothing.
+                # has always had: what is actually realised in final_p_itm.
+                # A shadow-only classctx delta must NOT be summed in here.
                 "reranker_delta": _round(
-                    _delta_sum(h.get("_rr_delta"), h.get("_cc_delta")), 4),
+                    _delta_sum(h.get("_rr_delta"),
+                               h.get("_cc_delta") if h.get("_cc_applied")
+                               else None), 4),
                 "reranker_pp_delta": _round(h.get("_rr_delta"), 4),
+                # Measured on every row since 2026-09-13, applied only when
+                # reranker_classctx_applied is true. Reading a populated delta
+                # as "this moved the pick" is the one wrong inference here.
                 "reranker_classctx_delta": _round(h.get("_cc_delta"), 4),
+                "reranker_classctx_delta_on_base": _round(
+                    h.get("_cc_delta_base"), 4),
+                "reranker_classctx_applied": bool(h.get("_cc_applied")),
                 "reranker_version": reranker_version,
                 "reranker_pp_version": pp_version,
                 "reranker_classctx_version": cc_version,
+                "reranker_classctx_shadow_version": cc_shadow_version,
                 "corpus_coverage": _round(h.get("_corpus_cov"), 4),
                 "shipper_flag": bool(h.get("_shipper", False)),
                 "maiden_flag": maiden,   # race-level, repeated on each row
@@ -1072,9 +1172,12 @@ def _cli() -> int:
     p.add_argument("--db", default=str(DEFAULT_DB))
     p.add_argument("--model", default=str(DEFAULT_MODEL))
     p.add_argument("--reranker-classctx", action="store_true",
-                   help="also apply classctx-reranker-0.1 on top of the PP "
-                        "reranker (Phase 6D Gap #11 Path B). Off by default: "
-                        "not yet validated on live races.")
+                   help="APPLY classctx-reranker-0.1 to the ranking, on top "
+                        "of the PP reranker (Phase 6D Gap #11 Path B). Off by "
+                        "default: not yet validated on live races. Its delta "
+                        "is logged either way -- this flag controls whether "
+                        "the delta moves the picks, not whether it is "
+                        "measured.")
     p.add_argument("--iters", type=int, default=10000)
     p.add_argument("--seed", type=int, default=6001)
     p.add_argument("--save", action="store_true",

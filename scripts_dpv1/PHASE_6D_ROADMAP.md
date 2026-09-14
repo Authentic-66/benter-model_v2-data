@@ -3822,3 +3822,42 @@ offline can answer it — `Y` is in-sample for `pp-reranker-1.0`, and 220 races
 cannot separate configurations a percentage point apart. `model_health.py`'s
 base-only vs with-reranker arms, at ~50-100 scored live races, remain the only
 untainted instrument.
+
+### Shadow-logged Arms: Reconstruction Discipline
+
+Applies to every arm Piece 3 reconstructs rather than ran. As of 2026-09-13
+that is **W** (base + classctx) and **Z** (base + pp + classctx); **Y**
+(base + pp) is the live ranking and **X** (base alone) is recomputed from
+`base_p_itm` on rows a live config produced.
+
+> Shadow-logged reranker arms (W and Z in Piece 3's reconstruction) reflect
+> what a reranker **would have picked**, but not what a reranker **that
+> shipped** would have experienced. Live Config Y has absorbed scratch timing,
+> late odds shifts, and any downstream friction that a reranker actually
+> applied to real cards must survive. W and Z carry none of that.
+>
+> **Implication for promotion decisions:** if shadow W or Z shows a
+> directional advantage over Y in Piece 3's reconstruction, some fraction of
+> that advantage is measurement artifact, not signal. Any promotion decision
+> from shadow evidence should apply a haircut for this gap, or prefer to see
+> the advantage widen over what live Y accumulates.
+
+The asymmetry runs in one direction only, which is what makes it usable: it
+flatters the shadow arms and never the live one. A shadow arm that fails to
+beat Y is therefore a clean negative result, while a shadow arm that beats Y
+is a reason to look harder, not a reason to promote.
+
+`model_health.py` prints an abbreviated form of this beneath the
+reconstruction table so it cannot be read without the caveat attached. Two
+further limits belong with it:
+
+* **Races where a predicted horse has no outcome are dropped from all four
+  arms.** A scratched or unscored horse is absent from the scored file
+  entirely, so a reconstructed arm could have picked a horse that cannot be
+  observed. Counting the best *surviving* horse instead would bias every
+  shadow arm upward. The excluded count is printed.
+* **Config Y is in-sample for `pp-reranker-1.0`** on any race inside that
+  artifact's training window, which flatters Y rather than the shadow arms.
+  On live races after 2026-09-01 this does not apply, and it is the reason
+  the live accumulation is worth waiting for rather than substituting the
+  fold estimate.
