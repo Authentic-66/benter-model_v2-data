@@ -410,6 +410,93 @@ def get_reranker(path=None):
     return _RERANKER
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Class-context reranker (Phase 6D Gap #11 Path B, wired 2026-09-13).
+#
+# A second supplementary model over the same fundamental logit, carrying the
+# multi-race class-context block that Step 3 built. It corrects two measured
+# errors the base model cannot see: a horse's class today relative to its
+# recent average (not just its last race), and the 1-2 ladder-point moves that
+# ``class_change_from_last``'s 3.0 threshold labels SAME.
+#
+# Cross-validated effect over the live base: +0.887pp top-pick ITM on 15,561
+# races (p < 0.0001), leave-one-year-out. Composition with the PP reranker was
+# measured before wiring: the two adjustments are uncorrelated (r = +0.059) and
+# their log-loss effects are additive in either order, so they are doing
+# orthogonal work rather than competing. See PHASE_6D_ROADMAP.md.
+#
+# DEFAULT OFF, opt in with --reranker-classctx. Nothing about this has been
+# validated on live races yet, which is exactly the reason dpv1.5.2 is being
+# held rather than promoted; turning it on by default would change live picks
+# on the strength of fold evidence alone. Track 2 runs it as a parallel arm.
+#
+# Unlike the PP reranker it applies to the whole field: class context is
+# present for every horse (``class_context_missing`` is itself a modelled
+# state, not an absence of data).
+# ─────────────────────────────────────────────────────────────────────────────
+_CC_RERANKER = None
+_CC_RERANKER_TRIED = False
+
+
+def get_classctx_reranker(path=None):
+    """Load the class-context reranker once. Returns None if unavailable.
+
+    Same contract as ``get_reranker``: never raises, so a missing or broken
+    artifact degrades the runner to PP-only reranking rather than failing a
+    card.
+    """
+    global _CC_RERANKER, _CC_RERANKER_TRIED
+    if _CC_RERANKER_TRIED:
+        return _CC_RERANKER
+    _CC_RERANKER_TRIED = True
+    try:
+        from dpv1_classctx_reranker_train import load_reranker as _load_cc
+        _CC_RERANKER = _load_cc(path) if path else _load_cc()
+        log.debug("loaded class-context reranker %s", _CC_RERANKER.version)
+    except Exception as exc:  # noqa: BLE001 - picks must survive a bad artifact
+        log.warning("class-context reranker unavailable (%s); "
+                    "continuing without it", exc)
+        _CC_RERANKER = None
+    return _CC_RERANKER
+
+
+def apply_classctx_reranker(card, base_logit):
+    """Adjusted logit and per-horse delta from the class-context reranker.
+
+    Returns ``(adj_logit, delta, n_applied)``. On any problem the logit is
+    returned unchanged with an all-NaN delta, which the log records as "this
+    reranker had nothing to say".
+    """
+    import numpy as _np
+    base_logit = _np.asarray(base_logit, dtype=float)
+    delta = _np.full(len(base_logit), _np.nan)
+    rr = get_classctx_reranker()
+    if rr is None:
+        return base_logit, delta, 0
+
+    from dpv1_classctx_reranker_train import (
+        NUMERIC_FEATURES, CATEGORICAL_FEATURES, build_features as _cc_build)
+    needed = list(NUMERIC_FEATURES) + list(CATEGORICAL_FEATURES)
+    absent = [c for c in needed if c not in card.frame.columns]
+    if absent:
+        # An older feature table predating the Step 3 build. Skip rather than
+        # silently rerank on zeros.
+        log.warning("class-context columns missing from card frame (%s); "
+                    "skipping class-context rerank", absent)
+        return base_logit, delta, 0
+
+    sub = card.frame[needed].copy()
+    sub["base_logit"] = base_logit
+    X, names, _ = _cc_build(sub, rr.mode, rr.impute)
+    if list(names) != list(rr.feature_names):
+        log.warning("class-context reranker feature mismatch (built %s, "
+                    "expected %s); skipping", names, rr.feature_names)
+        return base_logit, delta, 0
+
+    adj = rr.adjust_logit(base_logit, X.to_numpy())
+    return adj, adj - base_logit, int(len(base_logit))
+
+
 def pp_rows_for_race(db, track: str, date: str, race_num: int) -> dict:
     """``normalised program number -> pp_entries_raw row`` for one race."""
     conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
@@ -434,34 +521,62 @@ def _norm_pgm(v) -> str:
     return str(v).strip().upper() if v is not None else ""
 
 
-def rerank_probabilities(card, p_fund, db, track, date, race_num):
-    """Adjusted fundamental P(ITM) plus the per-horse logit delta.
+def rerank_probabilities(card, p_fund, db, track, date, race_num,
+                         use_classctx: bool = False):
+    """Adjusted fundamental P(ITM) plus the per-horse logit delta of each stage.
 
-    Returns ``(p_adjusted, delta, n_applied)``. Horses with no PP row keep
-    their base probability and a delta of NaN, which is what the log records
-    as "the reranker had nothing to say about this horse".
+    Returns ``(p_adjusted, pp_delta, cc_delta, n_pp, n_cc)``.
+
+    Two stages, applied in logit space so they compose additively and the
+    order does not change the result:
+
+    1. the PP reranker, on horses that have a PP row;
+    2. the class-context reranker, on the whole field, stacked on whatever
+       stage 1 produced.
+
+    A horse a stage did not touch keeps a delta of NaN for that stage, which is
+    what the log records as "this reranker had nothing to say about this
+    horse". Either stage can be absent -- artifact missing, no PP file, flag
+    off -- and the runner degrades to the remaining ones, or to the base model
+    if both are gone.
     """
     import numpy as _np
     p_fund = _np.asarray(p_fund, dtype=float)
-    delta = _np.full(len(p_fund), _np.nan)
+    pp_delta = _np.full(len(p_fund), _np.nan)
+    cc_delta = _np.full(len(p_fund), _np.nan)
+
+    from dpv1_pp_reranker_train import logit as _rr_logit
+    cur_logit = _rr_logit(p_fund)
+    n_pp = 0
+
     rr = get_reranker()
-    if rr is None:
-        return p_fund, delta, 0
-
-    pp = pp_rows_for_race(db, track, date, race_num)
-    if not pp:
-        return p_fund, delta, 0
-
+    pp = pp_rows_for_race(db, track, date, race_num) if rr is not None else None
     programs = [_norm_pgm(p) for p in card.programs()]
-    have = [i for i, pg in enumerate(programs) if pg in pp]
-    if not have:
-        return p_fund, delta, 0
+    have = [i for i, pg in enumerate(programs) if pg in pp] if pp else []
+    if rr is not None and have:
+        cur_logit, pp_delta, n_pp = _apply_pp_reranker(
+            card, cur_logit, pp, programs, have, rr)
 
-    from dpv1_pp_reranker_train import build_features, logit as _rr_logit
+    n_cc = 0
+    if use_classctx:
+        cur_logit, cc_delta, n_cc = apply_classctx_reranker(card, cur_logit)
+
+    if not n_pp and not n_cc:
+        return p_fund, pp_delta, cc_delta, 0, 0
+    return 1.0 / (1.0 + _np.exp(-cur_logit)), pp_delta, cc_delta, n_pp, n_cc
+
+
+def _apply_pp_reranker(card, base_logit, pp, programs, have, rr):
+    """Stage 1. Split out of ``rerank_probabilities`` so the two stages read
+    the same way; the feature construction is unchanged from the shipped
+    version."""
+    import numpy as _np
+    delta = _np.full(len(base_logit), _np.nan)
+
+    from dpv1_pp_reranker_train import build_features
     corpus = (card.frame["career_starts"].to_numpy()
               if "career_starts" in card.frame.columns
-              else _np.zeros(len(p_fund)))
-    base_logit = _rr_logit(p_fund)
+              else _np.zeros(len(base_logit)))
 
     # Build through the training module's own feature builder so inference and
     # training cannot drift apart.
@@ -480,13 +595,13 @@ def rerank_probabilities(card, p_fund, db, track, date, race_num):
     if list(names) != list(rr.feature_names):
         log.warning("reranker feature mismatch (built %s, expected %s); "
                     "skipping rerank", names, rr.feature_names)
-        return p_fund, delta, 0
+        return base_logit, delta, 0
 
     adj_logit = rr.adjust_logit(sub["base_logit"].to_numpy(), X.to_numpy())
-    out = p_fund.copy()
+    out = _np.asarray(base_logit, dtype=float).copy()
     for k, i in enumerate(have):
         delta[i] = adj_logit[k] - base_logit[i]
-        out[i] = 1.0 / (1.0 + _np.exp(-adj_logit[k]))
+        out[i] = adj_logit[k]
     return out, delta, len(have)
 
 
@@ -663,7 +778,8 @@ def ml_lookup(pdf, track: str | None) -> dict:
 
 
 def one_race(track: str, date: str, race_num: int, model, db, pp_file,
-             ml_map: dict, iters: int, seed: int) -> dict | None:
+             ml_map: dict, iters: int, seed: int,
+             use_classctx: bool = False) -> dict | None:
     from equibase_pdf_parser import normalize_name
 
     try:
@@ -697,15 +813,18 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     # then pushed back through normalisation and the Harville inversion, so the
     # win probabilities and the simulator stay consistent with the reranked
     # P(ITM) rather than describing a different race.
-    p_adj, rr_delta, n_reranked = rerank_probabilities(
-        card, pred.p_fund, db, track, date, race_num)
+    p_adj, rr_delta, cc_delta, n_pp, n_cc = rerank_probabilities(
+        card, pred.p_fund, db, track, date, race_num,
+        use_classctx=use_classctx)
+    n_reranked = n_pp or n_cc
     if n_reranked:
         from dpv1_runtime import Prediction, invert_harville, normalise_itm
         p_norm = normalise_itm(p_adj)
         p_win, info = invert_harville(p_norm)
         pred = Prediction(card=card, p_fund=pred.p_fund, p_market=pred.p_market,
                           p_blend=pred.p_blend, p_used=p_adj,
-                          used_name="fundamental+reranker",
+                          used_name=("fundamental+reranker"
+                                     + ("+classctx" if n_cc else "")),
                           p_itm_normalised=p_norm, p_win=p_win, inversion=info)
         sim = simulate_prediction(pred, n_iter=iters, seed=seed)
     else:
@@ -720,7 +839,8 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
         "P(win)": sim.position_matrix()[:, 0],
         "cov": cov["per_horse"],
     })
-    d["_rr_delta"] = rr_delta
+    d["_rr_delta"] = rr_delta                 # stage 1, PP
+    d["_cc_delta"] = cc_delta                 # stage 2, class context
     mls, pps = [], []
     for nm in names:
         v = ml_map.get((race_num, normalize_name(nm)), (None, None, None))
@@ -753,6 +873,7 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
             "maiden_flag": maiden, "underraced": under,
             "underraced_share": under_share,
             "n_reranked": n_reranked,
+            "n_reranked_pp": n_pp, "n_reranked_classctx": n_cc,
             "table": d}
 
 
@@ -863,8 +984,17 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
         table = r["table"]
         # Recorded per row so a later analysis can separate reranked picks from
         # base-only ones without having to know when deployment happened.
-        reranker_version = (getattr(get_reranker(), "version", None)
-                            if r.get("n_reranked") else None)
+        # One string per CONFIGURATION, not per artifact. model_health groups
+        # its base-only vs with-reranker arms by this value, so a card run with
+        # both rerankers has to land in a different arm from one run with the
+        # PP reranker alone -- otherwise two different experiments pool into
+        # one number. Piece 3 can split them further using the per-stage deltas
+        # below.
+        pp_version = (getattr(get_reranker(), "version", None)
+                      if r.get("n_reranked_pp") else None)
+        cc_version = (getattr(get_classctx_reranker(), "version", None)
+                      if r.get("n_reranked_classctx") else None)
+        reranker_version = "+".join(v for v in (pp_version, cc_version) if v) or None
         n_horses = int(len(table))
         maiden = bool(r.get("maiden_flag"))
         maiden_share = _round(r.get("underraced_share"), 4)
@@ -892,14 +1022,30 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
                 "picks_file": picks_file,
                 "base_p_itm": _round(h.get("base"), 4),
                 "final_p_itm": _round(h.get("P(ITM)"), 4),
-                "reranker_delta": _round(h.get("_rr_delta"), 4),
+                # Total logit delta from base, the same meaning this field
+                # has always had; NaN stages contribute nothing.
+                "reranker_delta": _round(
+                    _delta_sum(h.get("_rr_delta"), h.get("_cc_delta")), 4),
+                "reranker_pp_delta": _round(h.get("_rr_delta"), 4),
+                "reranker_classctx_delta": _round(h.get("_cc_delta"), 4),
                 "reranker_version": reranker_version,
+                "reranker_pp_version": pp_version,
+                "reranker_classctx_version": cc_version,
                 "corpus_coverage": _round(h.get("_corpus_cov"), 4),
                 "shipper_flag": bool(h.get("_shipper", False)),
                 "maiden_flag": maiden,   # race-level, repeated on each row
                 "underraced_share": maiden_share,
             })
     return rows
+
+
+def _delta_sum(*vals):
+    """Sum the stages that actually fired. All-NaN -> None, so a row the
+    rerankers never touched logs a null rather than a fake 0.0."""
+    import math
+    got = [float(v) for v in vals
+           if v is not None and not (isinstance(v, float) and math.isnan(v))]
+    return sum(got) if got else None
 
 
 def append_predictions(rows: list[dict], path: Path | None = None) -> int:
@@ -925,6 +1071,10 @@ def _cli() -> int:
     p.add_argument("--pp-file", help="Brisnet PP PDF for this card")
     p.add_argument("--db", default=str(DEFAULT_DB))
     p.add_argument("--model", default=str(DEFAULT_MODEL))
+    p.add_argument("--reranker-classctx", action="store_true",
+                   help="also apply classctx-reranker-0.1 on top of the PP "
+                        "reranker (Phase 6D Gap #11 Path B). Off by default: "
+                        "not yet validated on live races.")
     p.add_argument("--iters", type=int, default=10000)
     p.add_argument("--seed", type=int, default=6001)
     p.add_argument("--save", action="store_true",
@@ -981,7 +1131,7 @@ def _cli() -> int:
         results = []
         for rn in nums:
             r = one_race(args.track, args.date, rn, model, args.db,
-                         args.pp_file, ml_map, args.iters, args.seed)
+                         args.pp_file, ml_map, args.iters, args.seed, use_classctx=args.reranker_classctx)
             if r:
                 print_race(r)
                 results.append(r)
