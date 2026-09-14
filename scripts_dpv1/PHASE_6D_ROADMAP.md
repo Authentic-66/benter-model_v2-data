@@ -3573,7 +3573,11 @@ for, and it is why Z beats Y on ranking while W beats Z.
   config W into live testing, not a reason to act now.
 
 **Flagged, out of scope, needs its own look: the PP reranker's applicable
-population has shrunk.** `pp_entries_raw` now joins to **1,969** corpus entries
+population has shrunk.** *(**CORRECTED 2026-09-13 — this paragraph is wrong.
+The population did not shrink; the comparison below is between a de-duplicated
+count and a duplicate-inflated published figure. See the join-drop
+investigation at the end of this file.** Left in place so the correction is
+traceable.)* `pp_entries_raw` now joins to **1,969** corpus entries
 across 29 cards, up from ingestion; but only **1,582** have an out-of-sample
 base logit, against **1,910 rows / 259 races** when `pp-reranker-1.0` was
 evaluated on 2026-09-01. 387 rows are simply after the base fold cutoff
@@ -3593,3 +3597,110 @@ orthogonal adjustments. That removes the blocker. It does **not** establish
 that Z is better than Y, or that Z is better than W. Those are ranking
 questions at a sample size that cannot answer them, and the instrument for
 them is Track 2's live parallel picks.
+
+### PP join-drop investigation — Step 4 Session A, 2026-09-13
+
+> **RESOLVED: there is no join drop, and nothing is broken. The applicable
+> population is 1,582 unique entries / 220 races, and it is IDENTICAL before
+> and after the period in question.** The apparent loss was my own measurement
+> error: I compared a de-duplicated current count against a published figure
+> that had been inflated by duplicate rows.
+>
+> **But the investigation turned up a real finding underneath it:
+> `pp-reranker-1.0` was trained and evaluated on a dataset containing ~299
+> duplicate rows (~16%), with 75 entries counted more than once and one entry
+> appearing 6 times.** See "What this means for Gap #1", below.
+
+**What was measured**
+
+The `load_dataset` join (`pp_entries_raw` -> `entries` -> base fold
+predictions) was replayed against every surviving database backup. The fold
+file is fixed on disk (written with `dpv1.pkl`, 2026-08-22), so it is a
+constant across all of them.
+
+| backup | mtime (UTC) | pp rows | join rows | join rows in folds |
+|---|---|---|---|---|
+| `pre6b` | 08-22 01:20 | 4,217 | 1,881 | 1,881 |
+| `pre6e` | 08-29 18:26 | 4,318 | 1,982 | 1,881 |
+| `pre-backlog` | 08-29 18:41 | 4,318 | 1,966 | 1,881 |
+| `pre0829` | 08-31 13:18 | 4,318 | 1,966 | 1,881 |
+| `pre-retrain` | 08-31 19:10 | 4,318 | 1,966 | 1,881 |
+| `pre-gap6` | 08-31 19:23 | 4,318 | 1,966 | 1,881 |
+| `pre-ppingest` | 09-01 18:15 | 4,318 | 1,966 | **1,881** |
+| `pre-gp0904` | 09-04 00:04 | 4,330 | 1,974 | **1,582** |
+| `pre-classctx` .. current | 09-12 .. 09-13 | 4,330 | 1,969 | 1,582 |
+
+The drop sits between 09-01 and 09-04 — and note `pp_entries_raw` **grew**
+(4,318 -> 4,330) while the joined count did not fall. That is the shape of a
+de-duplication, not a data loss.
+
+**The cause, confirmed directly**
+
+| database | rows | distinct `(track, race_date, race_num, program_num)` | duplicated keys | excess rows |
+|---|---|---|---|---|
+| `pre-ppingest` (09-01) | 4,318 | 3,978 | **85** | **340** |
+| `pre-gp0904` (09-03) | 4,330 | 4,330 | 0 | 0 |
+| current | 4,330 | 4,330 | 0 | 0 |
+
+The pre-fix table held up to **6 copies** of the same horse in the same race
+(GP 2026-05-09 race 1 had 6 copies of every program number). The
+**2026-09-02 `parse_pp_files.py parse --incremental` change** — each parsed
+card replaces only its own rows, instead of the table being dropped and
+re-accumulated — is what removed them. It is the culprit only in the sense
+that it is the **fix**; the duplicates predate it.
+
+**Counting unique entries rather than join rows, the population is unchanged:**
+
+| | join rows (with duplicates) | in folds | **unique entries** | **races** |
+|---|---|---|---|---|
+| before (09-01) | 1,966 | 1,881 | **1,582** | **220** |
+| now | 1,969 | 1,582 | **1,582** | **220** |
+
+Set difference of joined-and-in-folds entry ids between the two: **0 lost**.
+
+**The three candidate causes, resolved**
+
+* **`parse_pp_files --incremental` change — implicated, as the fix.** No action
+  needed; the table is clean and the mechanism that accumulated duplicates is
+  gone.
+* **GP 9/4 purge-and-reload — not implicated.** No entry ids were lost; the
+  card postdates the fold cutoff and never contributed.
+* **CT backlog loads altering `program_num` — not implicated.** The unique
+  join is byte-identical before and after.
+
+**No data migration and no code fix are required.** A `UNIQUE` constraint on
+`(track, race_date, race_num, program_num)` would be the obvious guard and is
+**still the wrong move**, for the reason already recorded against the
+incremental fix: the parser has legitimately emitted two different horses on
+the same program number in one race, so the constraint would reject real data.
+Card-grain replace is the correct mechanism and it is already in place.
+
+**What this means for Gap #1**
+
+`pp-reranker-1.0`'s published evaluation — **+3.9pp top-pick ITM over 259
+races, p = 0.064** — was computed on the pre-fix table. Reconstructed from the
+closest surviving backup, that dataset carried **1,881 rows for 1,582 unique
+entries: 299 duplicate copies, 75 entries duplicated, one entry six times.**
+Consequences, stated precisely:
+
+* **No fold leakage.** Cross-validation is `GroupKFold` by `race_id`, and
+  duplicates of an entry are by construction in the same race, hence the same
+  fold. Duplicated rows never crossed the train/validation boundary.
+* **The fit is weighted oddly.** Races with duplicated rows carried up to 6x
+  their proper weight in the likelihood, so the shipped coefficients are
+  tilted toward those races.
+* **The reported sample size is overstated.** "259 races" cannot be reproduced
+  from any surviving backup; the closest reconstruction is **220**. Part of the
+  gap is duplicates and part is a PP-table state no backup captured. Either
+  way, `n` and therefore `p = 0.064` were computed on non-independent rows.
+
+**Recommended, not done:** re-run `dpv1_pp_reranker_train.py evaluate` against
+the clean table to get an honest number for Gap #1. That is an evaluation, not
+a retrain, and it does not touch the shipped artifact. Whether to refit
+`pp-reranker-1.0` on de-duplicated data is a separate decision, and it would
+restart that artifact's own validation.
+
+**Correction to the record.** The "applicable population has shrunk by ~330
+rows" note in the Step 4 Session 1 entry above is **wrong** and is retained
+only so the correction is traceable. The population did not shrink; the
+comparison was between a de-duplicated count and a duplicate-inflated one.
