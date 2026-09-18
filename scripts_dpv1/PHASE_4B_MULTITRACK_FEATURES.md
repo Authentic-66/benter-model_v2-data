@@ -148,6 +148,15 @@ python scripts_dpv1/validate_dpv1_features.py          # all checks
 * Reuses the Phase 3C builder for buckets 1, 2, 6 and 7 by importing it —
   `scripts/` and `scripts_v2a/` are not modified. Buckets 3, 4 and 8 are
   re-implemented in `new_features/aggregate_features.py` for the reason in §7.
+
+> **SUPERSEDED (2026-09-18).** `scripts/feature_builder.py` is **not the
+> source of truth for any DPv1 feature.** It is still imported for buckets 1,
+> 2, 6 and 7. Where a DPv1 module emits the same column it wins the merge, and
+> a defect in a Phase 3C-derived column is fixed by re-implementing it DPv1-side,
+> never by editing `scripts/`. The file carries at least one known unfixed
+> defect (the trailing-window bug at `:520` / `:714`, Gap #4). See
+> `PHASE_6D_ROADMAP.md`, *Decisions, 2026-09-18*, for the full statement and
+> the list of columns still computed by Phase 3C code.
 * Where a feature exists in both, the **DPv1 implementation wins** — the merge
   logs anything it supersedes.
 * **Fails loudly** if any active feature is not produced, naming it and its

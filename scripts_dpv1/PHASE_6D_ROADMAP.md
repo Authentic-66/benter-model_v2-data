@@ -154,6 +154,31 @@ the feature can actually move.
 
 ## Gap #1 — Shipper Blindness
 
+> **STATUS (2026-09-17): `pp-reranker-1.0` WAS FITTED AGAINST A CONTAMINATED
+> BASE, ON 100% OF ITS OWN TARGET POPULATION.**
+>
+> The base model it reranks was trained on a feature table in which
+> `last_3_avg_finish` and `gate_break_avg_last_3` — both active, both
+> Doug-rank 2 — carried **fabricated values on every first-corpus-start row**
+> and contaminated values on ~70% of second starts (34,137 + 33,971 and
+> 19,499 + 19,463 rows). First-time starters are precisely the population
+> `pp-reranker-1.0` exists to correct, via `is_first_timer` and
+> `pp_career_starts`.
+>
+> Re-evaluated against a corrected base, the reranker's marginal credit falls
+> from **+3.4pp (p=0.093) to +2.6pp (p=0.210)** with an unchanged reranked
+> ceiling (191/268 both ways), and its mean |logit shift| **on first-timers
+> falls 0.308 → 0.253** while staying flat on other horses. Part of what it
+> was doing was correcting this bug.
+>
+> That compounds c68f2c5, which already found the original +3.9pp shipping
+> justification did not survive clean re-evaluation (+1.4pp, p=0.648). The two
+> findings are independent and point the same way. See the interlude section
+> "the trailing-window contamination fix" below for the full evaluation.
+>
+> `pp-reranker-1.0` remains live and untouched; this is a note about the
+> strength of its evidence, not a change to production.
+
 > **STATUS (2026-08-31): Option A is the natural next Phase 6D target.**
 >
 > It inherited the position from Gap #6 Option C, which was built, tested and
@@ -952,22 +977,1023 @@ That comparison is the empirical case for or against Option A.
 
 ## Gap #2 — Pace Scenario
 
-*Placeholder.* The model reads projected pace per horse but has no explicit
-representation of how a race's pace shape collectively advantages front-runners
-or closers. To be documented with observed cases.
+### Status: DOCUMENTED, TESTED, CLOSED — NEGATIVE (2026-09-17)
+
+The hypothesis was that DPv1 reads per-horse running style but not the
+**race-level pace shape**, so it cannot know that three front-runners in one
+field produce a different race than one front-runner and five closers.
+
+Per the Feature Design Principle, the race-level quantity is constant within a
+race and can only move calibration. The testable form of the hypothesis is
+therefore the **interaction**: own running style × race pace shape. That is
+what was measured.
+
+**Result: four of five pre-registered predictions are null, the fifth does not
+survive multiple-comparison correction or threshold perturbation, and the
+oracle ranking bound is under 0.05pp. There is no ranking signal to build
+around.** Detail below, then two side findings that are worth more than the
+main result.
+
+### What the model already has
+
+Three active features already carry this, all built from prior starts only
+(`new_features/pace_bias_features.py`):
+
+| Feature | Level | Values |
+|---|---|---|
+| `early_pace_position_projected` | horse | front / press / off, from the style of the most recent prior start |
+| `running_style_last_3` | horse | front / stalk / mid / close, dominant over last ≤3 starts |
+| `pace_pressure_in_race` | **race** | hot (`n_front>=3`) / moderate (`==2`) / slow (`<=1`), null when fewer than 3 runners are projectable |
+
+Style itself comes from `style_from_position` on the first pace call of the
+prior race: pos ≤2 front, ≤4 stalk, ≤6 mid, else close. So the corpus already
+encodes the E / E-P / P / S distinction, and it already encodes the field-wide
+pace count. The gap, if any, is only that the two enter as separate main
+effects and never multiply.
+
+### Method
+
+Out-of-sample fold predictions `dpv1_fold_predictions_20260913_step3_base.csv`
+— 119,535 rows, 15,971 races — joined to `entry_features_dpv1`, restricted to
+the 118,825 rows with an observed `finish_pos`. Ranking is measured on
+`p_fund` (top-pick ITM 64.65%), the fundamental column `card_picks` actually
+ranks on, not the market-blended `y_pred`.
+
+Metric: **within-race demeaned residual.** `resid = y_true - p_fund`, then the
+race mean is subtracted. Demeaning removes every quantity that is constant
+inside a race by construction, so whatever survives is necessarily a
+within-race — that is, ranking-capable — effect. Uncertainty is a 2,000–4,000
+draw bootstrap **clustered on race**, since horses in one race are not
+independent.
+
+One correction had to be applied before any cell mean could be read, and it
+changes the answer — see the confounder section below.
+
+### Bucket sizes
+
+15,237 of 15,971 races have ≥3 projectable runners. Mean composition per race:
+1.54 front, 1.77 press, 3.25 off, 6.56 projectable of 7.44 starters.
+`pace_pressure_in_race`: slow 58,561 rows / moderate 32,819 / hot 22,786 /
+null 5,369. Coverage of the horse-level style columns is 84.8–84.9%
+(a horse with no prior start has no projection); the race-level shape is 95.5%.
+
+### The confounder that has to be removed first
+
+The raw cell means looked promising: `front × slow` came in at **+1.99pp**
+[+0.73, +3.18] and `off × slow` at −0.51pp [−0.88, −0.13]. Both vanish or
+halve under a control, because the within-race residual has a large monotone
+dependence on the horse's **own predicted level**:
+
+| predicted rank in race | mean p_fund | actual ITM | resid_wr |
+|---|---|---|---|
+| 1 | 62.2 | 64.6 | **+2.37pp** |
+| 2 | 53.5 | 55.7 | +2.14pp |
+| 3 | 47.3 | 49.2 | +1.87pp |
+| 4 | 41.7 | 42.5 | +0.83pp |
+| 5 | 36.2 | 34.6 | −1.38pp |
+| 6 | 30.5 | 27.9 | −2.02pp |
+| 8 | 20.5 | 16.9 | −3.19pp |
+| 10 | 13.6 | 11.8 | −3.00pp |
+
+That is a 5.7pp spread — **four times any pace effect measured here** — and it
+is present in every cell. Front-runners are over-represented at the top of the
+board and closers at the bottom, so any style × shape table reads this level
+effect as if it were a pace effect. Controlling for it (20 `p_fund` quantile
+bins, and independently a `pred_rank × field_size` grid, which agree) is what
+the numbers below do.
+
+### Interaction strength, after the level control
+
+| prediction | cell | mean | p | 95% CI |
+|---|---|---|---|---|
+| closers over-perform in hot pace | off × hot | +0.61pp | 0.167 | [−0.21, +1.48] |
+| front-runners under-perform in hot pace | front × hot | −0.33pp | 0.405 | [−1.05, +0.41] |
+| front-runners over-perform in soft pace | front × slow | **+1.35pp** | **0.038** | [+0.08, +2.58] |
+| pressers, hot pace | press × hot | +0.94pp | 0.149 | [−0.33, +2.21] |
+| pressers, soft pace | press × slow | −0.18pp | 0.553 | [−0.81, +0.43] |
+
+**The hot-pace half of the hypothesis is rejected outright.** Neither "closers
+over-perform when the pace is contested" nor "front-runners collapse when the
+pace is contested" is detectable. `front × hot` is the single cell the
+hypothesis was most confident about and it is −0.33pp, p=0.405, on 9,602 rows.
+
+One cell survives nominally: the lone front-runner in an uncontested-pace race,
++1.35pp. Bonferroni over the five pre-registered tests requires p < 0.010 and
+it comes in at 0.038, so it does not clear correction. The 4-level
+`running_style_last_3` version of the same table produces `front × slow`
++1.09pp [+0.01, +2.18] and one unhypothesised cell, `mid × moderate` −1.14pp —
+the latter being roughly what 12 cells at α=0.05 will hand you for free.
+
+### Threshold-perturbation stability
+
+The lone-speed cell is a **single-bin** effect:
+
+| cell definition | mean | p | n |
+|---|---|---|---|
+| front-style, `n_front < 2` (hot := 2+) | +1.28pp | 0.049 | 5,284 |
+| front-style, `n_front < 3` (hot := 3+, **shipped cut**) | +0.33pp | 0.379 | 13,976 |
+| front-style, `n_front < 4` | +0.08pp | 0.803 | 20,021 |
+| front-style, `n_front < 5` | −0.03pp | 0.913 | 22,581 |
+| front-style, `n_front` **exactly 1** | +1.28pp | 0.048 | 5,284 |
+| front-style, `n_front` **exactly 2** | −0.25pp | 0.578 | 8,692 |
+| front-style, `n_front` **exactly 3** | −0.50pp | 0.304 | 6,045 |
+
+Replacing the count with `front_share` gives the same shape: Q1 (share 0.19)
++1.05pp p=0.044, Q2–Q4 null and sign-flipped.
+
+This cuts both ways and the report should say so. **Against:** an effect that
+exists in exactly one bin at p≈0.05, among nine-plus cells examined, is
+indistinguishable from noise, and it is the bin the shipped `>=3` threshold
+does *not* isolate. **For:** "nobody else wants the lead" is a genuinely
+binary mechanism, so single-bin concentration is what a real uncontested-lead
+effect would look like, and the +1.28pp at `n_front==1` → −0.25pp at
+`n_front==2` step is mechanistically the right shape. The perturbation test
+cannot separate these two readings. The ranking bound below is what settles it.
+
+### Redundancy with existing features
+
+The effect is not already priced by the other pace machinery, but neither is it
+cleanly its own thing:
+
+* Within quartiles of `pace_progression_last_race`, lone-speed is +0.43pp
+  (Q1, n=3,089) and +4.26pp (Q2, n=1,912) — concentrated, not uniform.
+* Within `track_bias_running_style == front`, lone-speed is +1.94pp [+0.57,
+  +3.31]; the 90-day bias feature does not absorb it.
+* Whether `running_style_last_3` agrees with the projection barely matters:
+  +1.92pp when it agrees, +2.42pp when it does not.
+
+### Distance and surface
+
+No usable distance interaction. Lone-speed is +1.95pp [+0.37, +3.47] in
+sprints (n=3,494) and +2.06pp [−0.12, +4.20] in routes (n=1,745) — the same
+point estimate, the route arm simply smaller. The hot-pace cells are null in
+both. By surface, lone-speed is +1.63pp dirt, +3.03pp all-weather, +2.20pp
+turf; the ordering is not significant and the all-weather arm is 1,072 rows.
+
+The hypothesis that sprint and route pace pressure behave differently is not
+supported.
+
+### The finding that closes the gap: the ranking bound
+
+Even granting every cell effect at full measured strength, the ranking cannot
+move. Cell offsets were fitted on the same data they were measured on and
+added to `p_fund` — an **oracle** that no out-of-sample feature can beat:
+
+| re-ranking | top-pick ITM | change | top pick changed |
+|---|---|---|---|
+| baseline `p_fund` | 64.648% | — | — |
+| oracle, proj × 3-level shape (9 cells) | 64.617% | **−0.031pp** | 2.3% of races |
+| oracle, style3 × shape (12 cells) | 64.692% | **+0.044pp** | 3.1% of races |
+| oracle, lone-speed cell only | 64.667% | **+0.019pp** | 0.8% of races |
+
+An in-sample oracle worth +0.04pp is worth nothing out of sample. The reason
+is structural: the lone-speed cell is 4.4% of rows, at most one horse per race,
+and a +1.35pp nudge to a single horse's P(ITM) crosses the top-pick boundary in
+0.8% of races. The pace interaction passes the Feature Design Principle — it
+does vary within a race — and still cannot reorder anything, which is the
+Principle's own "necessary, not sufficient" clause landing for the third time
+after Gap #6's main effects and interactions.
+
+**No feature should be built for Gap #2.** Not because the pace scenario does
+not matter to a race, but because the corpus-derived style projection resolves
+it too coarsely for the residual to be actionable, and the one cell that shows
+anything cannot reach the picks.
+
+### Two side findings, both larger than the result
+
+**1. `pace_pressure_in_race` and `expected_pace_shape` are the same column.**
+Byte-identical on all **222,362 rows** of `entry_features_dpv1`, and
+identically null. They are the same `shape` Series assigned twice in
+`compute_pace` (`pace_bias_features.py:102-105`), registered as two separate
+active features in buckets 6 and 8. So two of the 95 active fundamental
+features are one feature, and the race-level pace shape enters the linear
+predictor with **double weight** relative to its fitted coefficient. This is
+calibration-only under the no-interaction architecture, so it does not corrupt
+any ranking result on record, and it is not a leak. It does waste a feature
+slot and it will silently double any future pace-shape coefficient. Not fixed
+here — Gap #2 was a read-only diagnostic — and worth a one-line change
+whenever the feature config is next touched.
+
+**2. The fundamental model under-disperses within race.** The rank table above
+is a clean monotone calibration error: rank 1 is priced 62.2% and returns
+64.6%, rank 10 is priced 13.6% and returns 11.8%. `p_fund` sums to 3.004 per
+race on average, so the race-level total is right; the *spread* around it is
+compressed. Because the error is monotone in `p_fund`, it reorders nothing —
+this is a calibration finding, not a ranking one, and it belongs with Gap #8's
+class-drop result rather than with anything in the ranking line of work.
+Anything that would price P(ITM) in absolute terms — ticket EV, Kelly
+sizing, a confidence band on a pick — is reading numbers that are too flat at
+both ends.
+
+**Methodological note for gaps #3, #4, #5 and any future cell diagnostic.**
+The level effect in that table will contaminate any residual-by-bucket table
+where the bucket correlates with the horse's own predicted strength, which is
+most interesting buckets. Strip it — `p_fund` quantile bins or a
+`pred_rank × field_size` grid, they agree here — before reading a cell mean.
+Gap #2's headline cell fell from +1.99pp to +1.35pp and its supporting cells
+fell to nothing under that control alone.
+
+### Reproducing this
+
+Read-only throughout: no model retrained, no feature built, no reranker
+touched, no change to `card_picks.py`. Scripts are session scratch, not
+committed; the analysis is four steps — join folds to `entry_features_dpv1`,
+demean the residual within race, subtract the `p_fund`-quantile mean, then take
+race-clustered bootstrap means by (style, shape) cell.
 
 ## Gap #3 — Hot Trainer/Jockey Combo
 
-*Placeholder.* Trainer and jockey win rates enter separately; the combination —
-a barn and a rider who win together at a rate neither achieves apart — is not
-represented. `pp_entries_raw` already carries `pp_jt_winpct` and
-`pp_hot_jt_combo`. To be documented with observed cases.
+### Status: DOCUMENTED, TESTED, CLOSED — SIGNAL REAL BUT IMMATERIAL (2026-09-17)
+
+The hypothesis was that `trainer_*_winrate_shrunk` and `jockey_*_winrate_shrunk`
+enter separately, so a pairing that produces more together than either rate
+predicts alone is invisible to the model.
+
+**The premise is correct.** The combo features exist in the catalog and are all
+**inactive**: `trainer_jockey_combo_winrate_shrunk`, `trainer_jockey_combo_starts`,
+`trainer_jockey_bond_strength` and `is_first_time_combo` are `active=False`
+(all Doug-rank 3), and no combo column exists in `entry_features_dpv1`. The
+model has no representation of the pairing.
+
+**The signal is real.** Unlike Gap #2, this is not a marginal cell that fails
+under correction: the residual slope on combo delta is positive at every
+minimum-sample threshold tested, with a clean placebo. **And it is still not
+worth building**, because the in-sample oracle re-rank tops out at **+0.069pp**.
+
+This gap closes for the same reason as Gap #2 but on different evidence:
+there Gap #2's effect was probably not there, here Gap #3's effect *is* there
+and cannot reach the picks.
+
+### Method
+
+Same harness as Gap #2. Out-of-sample folds
+`dpv1_fold_predictions_20260913_step3_base.csv`, 118,825 scored rows, 15,971
+races, **2023–2026** (the fold set does not reach back to the corpus start).
+Ranking measured on `p_fund`, baseline top-pick ITM 64.648%.
+
+Combo rates are **strictly prior**: per `(trainer, jockey)` pair, starts and
+ITM finishes are accumulated by race date and the whole of the current day is
+subtracted, so no same-day leakage. Same for the trainer's and the jockey's own
+rates. 220,943 scored entries, 29,330 distinct pairs.
+
+Expected-under-independence is **log-odds additive**:
+`sig(logit(t) + logit(j) - logit(base))`. The union form suggested in the brief,
+`1-(1-t)(1-j)`, is wrong for a rate this size — it predicts 0.688 against an
+observed 0.493 on established pairs, so every pair would score as ice-cold.
+Log-odds independence centres correctly: mean expected 0.4889 against mean
+actual 0.4925 (+0.37pp) on pairs with ≥30 prior starts.
+
+Combo delta = shrunk combo rate − expected, shrinking toward the pair's *own*
+independence expectation with k=30, which is the right null.
+
+**The level effect from Gap #2's methodological note was stripped first**
+(20 `p_fund` quantile bins, cross-checked against a `pred_rank × field_size`
+grid). It mattered in the opposite direction from Gap #2:
+
+| | raw `resid_wr` | level-stripped |
+|---|---|---|
+| slope on combo delta, min 30 starts | +0.033, p=0.394 | **+0.092, p=0.021** |
+
+`corr(combo delta, p_fund) = −0.277`, so the level effect was *masking* the
+signal rather than manufacturing it. Gap #2's note is load-bearing in both
+directions: strip first, then read, whichever way it moves the answer.
+
+### Bucket distributions
+
+35.8% of rows (42,581) have a pair with ≥30 prior starts together; 14,949 of
+15,971 races contain at least one. Within those, at a ±5pp threshold:
+
+| bucket | rows | of qualifying | of all rows |
+|---|---|---|---|
+| HOT (delta ≥ +5pp) | 7,136 | 16.8% | 6.0% |
+| NEUTRAL | 26,793 | 62.9% | 22.5% |
+| COLD (delta ≤ −5pp) | 8,652 | 20.3% | 7.3% |
+
+Prior starts together: median 9, 75th pct 38, 99th pct 695. Half of all rows
+have fewer than 10 starts together, which is why a minimum-sample rule is not
+optional — the unshrunk delta has an 8.01pp standard deviation on ≥30-start
+pairs alone.
+
+### Why bucket means cannot be read against zero
+
+All three buckets came out positive (HOT +1.92pp, NEUTRAL +0.86pp, COLD
++0.30pp at ±5pp). That is not three effects; it is one selection effect.
+Restricting to pairs with many prior starts together selects a population that
+the model under-rates regardless of delta:
+
+| prior starts together | rows | level-stripped residual | mean p_fund |
+|---|---|---|---|
+| 0 (first-time pair) | 13,735 | **−1.73pp** | 33.4 |
+| 1–4 | 23,635 | −0.99pp | 36.2 |
+| 5–9 | 14,381 | −0.32pp | 38.0 |
+| 10–29 | 24,493 | +0.51pp | 40.2 |
+| 30–99 | 22,808 | +0.72pp | 43.2 |
+| 100+ | 19,773 | **+1.15pp** | 48.9 |
+
+So HOT/NEUTRAL/COLD must be read as a **contrast**, never against zero. Every
+number below is a contrast.
+
+### Effect strength, level-stripped
+
+**Continuous (no threshold to choose — the cleanest single test):**
+
+| min prior starts | slope | p | 95% CI | n |
+|---|---|---|---|---|
+| 10 | +0.1225 | 0.001 | [+0.059, +0.185] | 67,074 |
+| 20 | +0.1168 | 0.000 | [+0.046, +0.188] | 51,622 |
+| 30 | +0.0916 | 0.021 | [+0.013, +0.168] | 42,581 |
+| 50 | +0.0984 | 0.040 | [+0.005, +0.184] | 31,865 |
+| 100 | +0.1240 | 0.019 | [+0.015, +0.240] | 19,773 |
+| **placebo** (delta shuffled within `p_fund` bins) | **+0.0186** | **0.628** | [−0.059, +0.094] | — |
+
+Positive at every threshold, stable around +0.09 to +0.12, placebo clean. About
+**10% of the combo delta is unpriced** — a pair beating independence by +10pp
+carries roughly +1pp of ITM the model has not accounted for.
+
+**Bucket contrasts:**
+
+| min starts | threshold | HOT − NEUTRAL | HOT − COLD |
+|---|---|---|---|
+| 20 | ±3pp | +0.45pp (p=0.370) | +1.26pp (p=0.015) |
+| 20 | ±5pp | +1.14pp (p=0.035) | +2.02pp (p=0.005) |
+| 20 | ±7pp | +1.37pp (p=0.043) | **+3.19pp (p=0.000)** |
+| 30 | ±5pp | +1.06pp (p=0.079) | +1.62pp (p=0.030) |
+| 30 | ±7pp | +1.07pp (p=0.163) | +2.99pp (p=0.003) |
+| 50 | ±7pp | +1.19pp (p=0.215) | +2.91pp (p=0.014) |
+
+### Threshold-perturbation stability
+
+Unlike Gap #2's single-bin artifact, this **strengthens monotonically with the
+threshold** (±3 → ±5 → ±7 gives +0.45 → +1.14 → +1.37 against NEUTRAL) and
+holds from 10 to 100 minimum prior starts. That is the shape of a real
+gradient, not a bin that got lucky. The HOT−NEUTRAL contrasts individually do
+not clear Bonferroni over the nine threshold combinations (needed: p<0.0056);
+HOT−COLD at min 20 / ±7pp does. The continuous slope is the test that carries
+the verdict, and it needs no threshold at all.
+
+### The caveat that limits the interpretation
+
+The delta is **mechanically anti-correlated with its own components**:
+`corr(delta, trainer rate) = −0.375`, `corr(delta, jockey rate) = −0.577`. A
+pair containing a strong jockey has a high independence expectation and can
+only fall short of it. So "HOT" is enriched in weak-jockey pairings that
+outperform a low bar, and is not a clean measure of chemistry. Some of the
++0.09 slope is the model over-trusting the standalone jockey rate — which is a
+statement about `jockey_*_winrate_shrunk`, not about the pairing.
+
+### Redundancy with existing features
+
+The signal is not simply the trainer and jockey rates again, but it is unstable
+once conditioned on them. HOT-minus-rest, within quartiles:
+
+| quartile | within trainer rate | within jockey rate |
+|---|---|---|
+| Q1 | +0.42pp | +1.73pp |
+| Q2 | +1.20pp | +0.06pp |
+| Q3 | +2.92pp | **−3.11pp** |
+| Q4 | −0.08pp | **+4.21pp** |
+
+Across the joint 4×4 trainer × jockey grid, all 16 cells usable, the weighted
+mean contrast is **+0.88pp** — so something survives conditioning on both — but
+the per-cell range is −8.70pp to +6.41pp. The effect does not sit in any
+identifiable subpopulation; it is a weak average over a very noisy surface.
+
+### Per-track
+
+Concentrated at Charles Town, reversed at Ellis:
+
+| track | rows (≥30 starts) | HOT | rest | contrast |
+|---|---|---|---|---|
+| CT | 14,506 | +3.24pp | +0.43pp | **+2.81pp** |
+| MNR | 7,848 | +0.90pp | +0.27pp | +0.63pp |
+| GP | 19,176 | +1.49pp | +0.95pp | +0.55pp |
+| ELP | 1,051 | −0.00pp | +4.37pp | **−4.38pp** |
+
+CT being strongest is plausible on the ecosystem argument — a small closed
+colony where the same barns and riders pair constantly. ELP reversing is
+equally consistent with 222 HOT rows being noise. This is a hypothesis the
+diagnostic cannot settle and is not evidence of a per-track feature.
+
+### In-sample oracle re-rank — the bound that closes the gap
+
+Cell offsets fitted on the same data they were measured on, added to `p_fund`:
+
+| re-ranking | top-pick ITM | change | top pick changed |
+|---|---|---|---|
+| baseline `p_fund` | 64.648% | — | — |
+| combo delta × fitted slope, ≥30 starts | 64.667% | **+0.019pp** | 1.4% |
+| HOT/NEUTRAL/COLD cell offsets | 64.605% | **−0.044pp** | 2.3% |
+| established-pair band offsets (6 bands) | 64.642% | **−0.006pp** | 3.7% |
+| both together | 64.717% | **+0.069pp** | 4.0% |
+| full 5×5 `cb_n` × delta grid (25 cells) | 64.636% | **−0.013pp** | 6.0% |
+
+The best oracle is +0.069pp while changing the top pick in 4.0% of races — the
+changes it makes are coin-flips. The 25-cell grid, with the most freedom to
+fit, goes *negative*. No out-of-sample feature beats an in-sample oracle, so
+nothing here can be built into a ranking gain.
+
+The arithmetic is plain: a HOT horse is the model's top pick in 5.3% of races,
+and a +1 to +2pp nudge to one horse's P(ITM) rarely crosses the boundary.
+
+**Recommendation: do not build a combo feature.** The four inactive combo
+entries in `dpv1_feature_config.json` should stay inactive. This is a positive
+finding about the signal's existence and a negative one about its usefulness,
+and only the second governs.
+
+### Side finding: established pairs vs first-time pairs
+
+The band table above is the larger effect — a **2.9pp monotone spread** from
+first-time pairings (−1.73pp, model over-rates) to 100+ start pairings
+(+1.15pp, model under-rates) — and it survives both controls independently
+(under `pred_rank × field_size`: −1.62pp → +0.93pp, every band significant).
+`new_trainer_flag` is active but `is_first_time_combo` and
+`trainer_jockey_combo_starts` are not, so the model sees a new trainer and not
+a new pairing.
+
+Three reasons it is still not actionable, in order of weight:
+
+1. **Its oracle is −0.006pp.** Six band offsets across all 118,825 rows change
+   the top pick in 3.7% of races and lose ground. Same verdict, same reason.
+2. **It is decaying.** Within-year first-time-vs-100+ spread: 2023 **+4.74pp**,
+   2024 +3.28pp, 2025 **+1.16pp**, 2026 +1.92pp — and the 100+ band is
+   *negative* (−0.34pp) in 2026. Whatever drives it is mostly historical.
+3. **It vanishes where the connections are strongest.** Within quartiles of
+   combined trainer+jockey experience the spread runs +1.86, +3.41, +5.31, then
+   **+0.22pp** in Q4.
+
+Part of the raw band effect is corpus maturity — pairs accumulate joint starts
+as the corpus deepens, so `cb_n` partly indexes calendar time. The within-year
+and within-experience breakdowns show it is not *only* that, but they also show
+what is left is shrinking.
+
+### Methodological note added by this gap
+
+Gap #2 established that the level effect must be stripped before reading a
+residual-by-bucket table. Gap #3 adds the second half: **check whether the
+bucket restriction itself carries a residual.** Every one of HOT, NEUTRAL and
+COLD read positive against zero here, and the entire common component was the
+≥30-prior-starts filter, not the delta. Any future diagnostic that restricts to
+a qualifying subpopulation — minimum starts, minimum coverage, a data-quality
+gate — must report the contrast against a matched bucket inside the same
+restriction, never against zero.
+
+### Reproducing this
+
+Read-only throughout: no model retrained, no feature built or activated, no
+reranker touched, no change to `card_picks.py`, no change to the duplicate
+`pace_pressure_in_race` / `expected_pace_shape` pair left by Gap #2. Scripts
+are session scratch, not committed. Five steps — strictly-prior combo/trainer/
+jockey rates from `entries` + `race_days`, log-odds independence expectation,
+shrink the combo toward it, join to folds, strip the level effect, then
+race-clustered bootstrap contrasts and the oracle re-rank.
 
 ## Gap #4 — Declining Speed Trajectory
 
-*Placeholder.* `speed_trajectory_3_races` is a single slope and may not
-distinguish a horse regressing off a peak from one improving off a low base.
-To be documented with observed cases.
+### Status: DOCUMENTED, TESTED, CLOSED — NEGATIVE ON RANKING (2026-09-17)
+
+The hypothesis was that the model summarises recent speed but not its
+**trajectory**, so two horses with the same average figure but opposite
+directions rank the same.
+
+**The trajectory hypothesis is null.** IMPROVING-minus-STABLE is +0.46pp
+(p=0.277) and DECLINING-minus-STABLE is +0.01pp (p=0.995). The model already
+carries `speed_trajectory_3_races` and it is doing its job.
+
+Two residuals the model genuinely cannot represent were found instead —
+**curvature** (+0.70pp/sd) and **recent average speed level** (+1.64pp/sd) —
+both robust to five different level controls. Neither clears the oracle's own
+noise floor, so neither is buildable. The noise-floor measurement is the part
+of this gap most worth carrying forward; it applies retroactively to Gaps #2
+and #3.
+
+### Correcting the placeholder's premise
+
+The stub said `speed_trajectory_3_races` "is a single slope and may not
+distinguish a horse regressing off a peak from one improving off a low base."
+The second half is right. The first half needs correcting, because it misreads
+what the feature is.
+
+`aggregate_features.py:100-103` computes `(sf[-1] - sf[-3]) / 2`. That looks
+like a crude two-point difference that throws away the middle race — but for
+three equally spaced points **the OLS slope is exactly `(y₁-y₃)/2`**: the
+middle point cancels out of the slope algebra. Measured: `corr(traj_shipped,
+slope_ols3) = 1.0000`. The shipped feature *is* the 3-race OLS slope, not an
+approximation to one. Nothing is lost by the encoding.
+
+What the middle race actually carries is **curvature**, which is orthogonal to
+any slope — `corr(curv, traj_shipped) = +0.0098` — and that is the quantity
+the model has no way to see.
+
+### Method
+
+Same harness as Gaps #2 and #3. Folds
+`dpv1_fold_predictions_20260913_step3_base.csv`, 118,825 scored rows, 15,971
+races, ranking on `p_fund` (baseline top-pick ITM 64.648%). Speed figures from
+`computed_speed_figures_dpv1`; per-horse prior windows by date, strictly prior.
+The shipped feature was reproduced exactly (max |diff| = 0.000000 on 103,636
+rows) before anything was built on top of it.
+
+Encodings tested, with whether the model has them:
+
+| encoding | definition | in model? |
+|---|---|---|
+| `traj_shipped` | `(sf1-sf3)/2` = 3-race OLS slope | **yes** (`speed_trajectory_3_races`) |
+| `f_last` | most recent figure | **yes** (`last_race_speed_figure`) |
+| `slope_ols5` | OLS slope over up to 5 starts | no |
+| `step_last_vs_prior` | `sf1 - mean(sf2,sf3)` | partly |
+| `curv` | `sf2 - (sf1+sf3)/2` | **no** |
+| `off_peak` | `sf1 - max(sf1..sf3)` | no |
+| `mean3` | `mean(sf1,sf2,sf3)` | **no** — `career_avg_speed_figure` is inactive |
+
+### Sample-size discipline
+
+60.8% of rows (72,193) have ≥3 prior speed figures; 14,648 of 15,971 races
+contain at least one. The excluded population is materially different —
+mean `p_fund` 37.42 vs 42.29, actual ITM 37.21 vs 42.22 — so per Gap #3's rule
+every contrast below is computed **inside** the ≥3-figure population, never
+against zero. Its level-stripped residual differs by only +0.05pp, so the
+restriction itself carries no offset, unlike Gap #3's.
+
+### The trajectory hypothesis: null
+
+| threshold | IMPROVING − STABLE | DECLINING − STABLE |
+|---|---|---|
+| ±2 pts (24% / 22% / 54%) | +0.46pp (p=0.277) | +0.01pp (p=0.995) |
+| ±4 pts (12% / 10% / 78%) | +0.87pp (p=0.111) | −0.36pp (p=0.513) |
+| ±6 pts (6% / 5% / 90%) | +1.32pp (p=0.070) | −0.79pp (p=0.334) |
+
+The decile table is flat: nine of ten deciles fall between −0.45pp and +0.50pp,
+with only the top decile reaching +1.09pp (p=0.051). Declining-form horses are
+not over-rated; improving-form horses are not under-rated.
+
+**Representation check.** The slope is not a hidden-encoding failure either:
+sd = 4.33, a typical ±2-point move arrives at 0.46σ, only 0.28% of rows lie
+beyond |20| (against 16% for `class_score_change_from_last`), and it is a plain
+numeric with no threshold. Neither Representation Principle failure mode
+applies. The feature is visible to the model and the model is using it.
+
+### What is unpriced, level-stripped
+
+Slope of the level-stripped residual on each encoding, in pp of ITM per
+standard deviation:
+
+| encoding | in model? | effect | p |
+|---|---|---|---|
+| `mean3` | **no** | **+1.64pp/sd** | 0.000 |
+| `f_last` | yes | **+1.07pp/sd** | 0.000 |
+| `curv` | **no** | **+0.70pp/sd** | 0.000 |
+| `traj_shipped` | yes | +0.46pp/sd | 0.006 |
+| `off_peak` | no | +0.14pp/sd | 0.405 |
+| `step_last_vs_prior` | partly | +0.10pp/sd | 0.569 |
+| `slope_ols5` | no | +0.08pp/sd | 0.606 |
+
+A 5-race slope adds nothing over the 3-race one. The signal is in **level** and
+**shape**, not in direction.
+
+**Robustness of the level strip.** `mean3` and `f_last` are the strongest
+`p_fund` correlates here, so their effects are the ones most at risk of being
+the level effect leaking through a coarse control. They are not:
+
+| encoding | corr w `p_fund` | 20 bins | 50 bins | 200 bins | cubic logit | rank × field |
+|---|---|---|---|---|---|---|
+| `mean3` | +0.228 | +1.64 | +1.64 | +1.63 | +1.65 | +1.70 |
+| `f_last` | +0.213 | +1.07 | +1.07 | +1.07 | +1.08 | +1.11 |
+| `curv` | −0.037 | +0.70 | +0.70 | +0.69 | +0.70 | +0.71 |
+| `traj_shipped` | +0.028 | +0.46 | +0.46 | +0.47 | +0.46 | +0.46 |
+
+Every effect is flat from 20 bins to 200 bins to a cubic in `logit(p_fund)` to
+a `pred_rank × field_size` grid. Gap #2's control is not merely adequate here,
+it is demonstrably not the binding choice.
+
+### Curvature: real, but the direction is the opposite of the stub's
+
+`curv > 0` means the middle race was a **spike** (a big run two back, then
+regression); `curv < 0` means a **dip** (a bad run in the middle, bracketed by
+better ones). The continuous slope is +0.70pp/sd and strengthens on longer
+windows (+0.80pp/sd at 4+ and 5 figures, both p<0.001).
+
+But the bucket view shows the effect is **asymmetric**, and not where the stub
+expected:
+
+| |curv| ≥ 8 | n | level-stripped residual |
+|---|---|---|
+| PEAK (spike two back) | 5,062 | +0.86pp |
+| FLAT | 44,782 | +0.62pp |
+| DIP (bad race in the middle) | 5,098 | **−1.66pp** |
+
+PEAK − FLAT is only +0.24pp. The signal is almost entirely the **DIP** tail
+being *over-rated* by the model. So the finding is not "horses regressing off a
+peak are under-rated" — it is "**horses that bounced back from one bad race are
+over-rated**." The model sees a good last figure and a flat-to-positive slope
+and does not discount for the fact that the good figures bracket a bad one.
+
+**Redundancy.** Curvature survives conditioning on both active speed features,
+except in the bottom quartile of each:
+
+| quartile | within `last_race_speed_figure` | within `speed_trajectory_3_races` |
+|---|---|---|
+| Q1 | −0.03pp/sd (p=0.937) | +0.03pp/sd (p=0.946) |
+| Q2 | +1.63pp/sd (p=0.001) | +0.83pp/sd (p=0.028) |
+| Q3 | +1.39pp/sd (p=0.000) | +0.91pp/sd (p=0.015) |
+| Q4 | +0.92pp/sd (p=0.020) | +1.09pp/sd (p=0.009) |
+
+Not captured by what is active. The Q1 nulls are consistent — slow horses and
+sharply declining horses are already rated low enough that shape adds nothing.
+
+**Per-track.** Curvature is consistent at the two large tracks (GP +0.71pp
+p=0.015, CT +0.75pp p=0.025) and not significant at the small ones (MNR
++0.62pp p=0.140, ELP +0.80pp p=0.629 on 901 rows). `mean3` is significant at
+GP, CT and MNR. No track-specific story; the small-track nulls are sample size.
+
+### The oracle, and its noise floor
+
+Gaps #2 and #3 compared an in-sample oracle against zero. That is not the right
+comparison, and this gap measured why. Fitting cell offsets in-sample and
+re-ranking the same rows produces apparent lift **from nothing**, and the
+amount grows with the number of cells. Placebo = the same grid built on
+independently shuffled inputs, 40 draws:
+
+| grid | real gain | placebo mean | placebo sd | z |
+|---|---|---|---|---|
+| 3×3 (9 cells) | +0.006pp | −0.009pp | 0.050 | +0.31 |
+| 5×5 (25 cells) | +0.106pp | +0.009pp | 0.081 | +1.20 |
+| 10×10 (100 cells) | +0.257pp | **+0.101pp** | 0.125 | +1.25 |
+| trajectory-only 5×5 | +0.175pp | +0.012pp | 0.077 | +2.12 |
+| trajectory-only 10×10 | +0.144pp | +0.141pp | 0.125 | +0.03 |
+
+A 100-cell oracle gains **+0.101pp from pure noise**. The real 100-cell grid's
++0.257pp sits at the placebo 95th percentile (+0.263pp) — z = +1.25, not
+significant. The trajectory-only 5×5 reaches z = +2.12, but the same
+construction at 10×10 gives z = +0.03; an effect that appears at one grid
+resolution and vanishes at another is not an effect.
+
+Linear oracles were also tried (`p_fund` + fitted slope × encoding) and all
+*lose* ground — `mean3` at −1.039pp while changing 20.1% of top picks. That is
+a defect of the construction rather than a finding: the residual slope is
+measured on a within-race-demeaned quantity, so adding it back additively in
+probability space re-ranks by `mean3` instead of nudging. Recorded so the next
+diagnostic does not repeat it. The cell-offset grid is the right form, and it
+is the form that must be compared to its own placebo.
+
+**Retroactive note on Gaps #2 and #3.** Their oracle figures — Gap #2's
++0.044pp on 12 cells, Gap #3's +0.069pp combined — were read against zero. The
+floor measured here for grids of that size is roughly +0.01pp with sd ≈ 0.05 to
+0.08, so both sit inside their own noise. **Neither verdict changes**; both
+were already negative, and this makes them more clearly so, not less. Any
+future gap that reports a positive oracle must report its placebo alongside it.
+
+### Recommendation
+
+**Do not build a trajectory feature.** The direction hypothesis is null, the
+shipped slope is correct and visible, the 5-race slope adds nothing, and the
+two real residuals — curvature and recent-average level — do not clear the
+oracle's noise floor.
+
+`mean3` is the largest unpriced quantity found in any Phase 6D gap so far
+(+1.64pp/sd) and it is tempting, but it is a **level** signal, not a trajectory
+one, and level signals are what the model already ranks on. Adding more of a
+quantity the ordering already tracks scales that ordering rather than
+reordering it — the same structural reason Gap #2's pace interaction failed,
+arriving from the opposite direction. If it is ever revisited it should be as a
+calibration question alongside Gap #8 and the within-race under-dispersion from
+Gap #2, not as a ranking feature.
+
+### Side finding: `last_3_avg_finish` averages across horse boundaries
+
+`aggregate_features.py:96-99` does:
+
+```python
+s.groupby("horse_id")["finish_pos"].shift(1).rolling(3, min_periods=1).mean()
+```
+
+The `groupby` applies to the `shift`, but the `.rolling(3)` that follows runs
+on the **whole series**, not within group. At each horse's first and second row
+the window reaches back into the *previous horse's* rows.
+
+Verified rather than inferred — the shipped column was reproduced exactly
+(max |diff| = 0.000000) and compared against a correct per-horse rolling mean:
+
+* **19,499 of 217,938 non-null rows are wrong (8.95%)**
+* **100.0%** of them are at a horse's 1st or 2nd corpus start
+* mean error **1.54 finish positions**
+
+> **CORRECTION (2026-09-17, same day).** Those three figures **understate the
+> defect** and should not be quoted. The comparison that produced them required
+> a correct value to exist and differ, which silently excluded every row at a
+> horse's *first* corpus start — where the correct value is NULL because there
+> are no prior starts, and the shipped column carried a **fabricated** one.
+>
+> | ord | rows | wrong | |
+> |---|---|---|---|
+> | 0 (first corpus start) | 38,526 | **34,137 fabricated** | correct value is NULL |
+> | 1 (second) | 27,938 | 19,499 (**69.8%** of that ord) | contaminated window |
+> | 2+ | — | **0** | correct |
+>
+> True scope is **53,636 rows, 24.6% of non-null**, not 8.95%. And
+> `gate_break_avg_last_3` carries the **identical** defect from
+> `scripts/feature_builder.py:714` — another 53,434 rows. Both features are
+> active and Doug-rank 2. See the interlude below for the fix and its
+> evaluation.
+
+This is contamination, not a label leak: the imported values are a *different*
+horse's finish positions and say nothing about this row's own outcome. It is
+temporally improper as well — rows are sorted by `horse_id`, so the neighbouring
+horse's races can post-date the row being scored — but since the contaminating
+quantity is unrelated to the target, the effect is noise in a rank-2 feature on
+the population that can least afford it: first- and second-time starters, which
+is exactly Gap #1 and Gap #6 territory.
+
+Not fixed here — Gap #4 was a read-only diagnostic, and the fix changes a
+feature column, which means a retrain to evaluate. Logged for whoever next
+touches `aggregate_features.py`. The correct form is
+`.groupby("horse_id")["finish_pos"].apply(lambda x: x.shift(1).rolling(3, min_periods=1).mean())`
+or a `transform` equivalent.
+
+### Reproducing this
+
+Read-only throughout: no model retrained, no feature built or activated, no
+reranker touched, no change to `card_picks.py`, and none of the three
+previously logged defects fixed (duplicate `pace_pressure_in_race` /
+`expected_pace_shape` from Gap #2, the `dd-` → `ded-` Delta Downs rename which
+is intentional, and the `last_3_avg_finish` bug above). Scripts are session
+scratch, not committed.
+
+---
+
+## Interlude — the trailing-window contamination fix (2026-09-17)
+
+### Status: FIXED IN CODE, RETRAINED, **HELD — NOT PROMOTED**
+
+Candidate `dpv1.5.3-4track-g4fix` is built and evaluated. `dpv1.pkl` is
+untouched, both reranker artifacts are untouched, `card_picks.py` is untouched.
+Same discipline as the Path A candidates and `dpv1.5.2`.
+
+### The defect
+
+`groupby(...).shift(1)` is group-aware. A `.rolling()` **chained onto its
+result** is not — the shifted Series carries no grouping, so the window spans
+the whole frame and, at each horse's first rows, averages in the *previous
+horse's* values. Rows are ordered by `horse_id`, so the neighbour's races can
+also post-date the row being scored.
+
+Two active Doug-rank-2 features had it:
+
+| feature | site | ord 0 fabricated | ord 1 wrong | ord 2+ |
+|---|---|---|---|---|
+| `last_3_avg_finish` | `new_features/aggregate_features.py:98` | 34,137 | 19,499 (69.8%) | 0 |
+| `gate_break_avg_last_3` | `scripts/feature_builder.py:714` | 33,971 | 19,463 | 0 |
+
+**53,636 and 53,434 rows respectively — about 24.6% of non-null.** Not a label
+leak: the imported values are a *different* horse's finishes/gate breaks and
+say nothing about this row's outcome. It is noise, landing entirely on first-
+and second-start horses — Gap #1's and Gap #6's populations.
+
+A repo-wide sweep found no third instance; `.rolling(` appears exactly twice in
+`scripts/` and once in `scripts_dpv1/`, and the remaining `groupby().shift()`
+uses (`speed_trajectory_3_races`, `pace_bias_features.py:52`) are correct
+because `shift` alone stays inside the group.
+
+### The fix
+
+`groupby(...).transform(lambda x: x.shift(1).rolling(3, min_periods=1).mean())`
+keeps both operations inside the group and stays aligned to the frame.
+
+`gate_break_avg_last_3` lives in `scripts/`, which the DPv1 brief leaves
+untouched. It is therefore corrected **DPv1-side** in `aggregate_features.py`
+instead, using the mechanism `feature_builder_dpv1.py` already documents —
+`DPV1_MODULES` run before `V1_BUCKETS`, so the DPv1 implementation wins the
+merge. The build log confirms it: `superseded by an earlier frame:
+['gate_break_avg_last_3', ...]`. **`scripts/feature_builder.py` still contains
+the bug** and anything else driven from it is still exposed. By decision on
+2026-09-18 it will **not** be fixed there — `scripts/feature_builder.py` is
+formally superseded for DPv1; see *Decisions, 2026-09-18* at the end of this
+interlude.
+
+### Verification of the rebuilt table
+
+Control and candidate tables were rebuilt **from the same config
+(`dpv1.5.2`, 124 active)** into two isolated DB copies under
+`scripts_dpv1/_gap4fix/`, differing only by the code change, so that config
+drift could not contaminate the comparison.
+
+* **2 of 131 columns changed** — exactly the two above, nothing else
+* changes at ord 0: 34,137 / 33,971 · ord 1: 19,592 / 19,463 · **ord ≥ 2: 0**
+* 34,230 / 34,021 rows went from a fabricated value to correctly NULL
+* candidate mismatches against an independently computed ground truth:
+  **0 and 0**, where the control had 53,729 and 53,434
+
+The training pipeline is deterministic — a repeated control run reproduced
+`p_fund` bit-for-bit (`max|diff| = 0.0`) and the same blend coefficients — so
+there is no seed to pin.
+
+### Retrain results
+
+118,825 scored rows, 15,971 races. 30,942 rows (26.0%) are affected; **10,222
+races (64.0%)** contain at least one affected horse.
+
+**Top-pick ITM, McNemar:**
+
+| population | control | candidate | delta | b01/b10 | p |
+|---|---|---|---|---|---|
+| all races | 65.312% | 65.538% | **+0.225pp** | 249/213 | 0.103 |
+| races with an affected horse | 64.146% | 64.576% | **+0.430pp** | 186/142 | **0.017** |
+| GP | 65.285% | 65.300% | +0.015pp | 103/102 | 1.000 |
+| CT | 67.138% | 67.349% | +0.211pp | 65/55 | 0.411 |
+| MNR | 65.191% | 65.703% | +0.512pp | 51/34 | 0.082 |
+| ELP | 57.529% | 58.301% | +0.772pp | 30/22 | 0.332 |
+
+The gain concentrates where the fix applies, which is the right shape. Read it
+honestly in both directions: the affected-races subgroup is the **pre-specified
+endpoint** for a fix of this kind, and at p=0.017 it is the only significant
+cell — but six populations were tested, and Bonferroni over six needs p<0.0083,
+which it does not clear. The overall +0.225pp (p=0.103) is not significant on
+its own. This is a **plausible small improvement, not a demonstrated one.**
+
+**Log-loss** (fundamental / blended):
+
+| population | n | fund Δ | blend Δ |
+|---|---|---|---|
+| ALL | 118,825 | −0.00031 | −0.00000 |
+| AFFECTED (1st/2nd start) | 30,942 | −0.00038 | −0.00001 |
+|   ord 0 | 17,799 | **−0.00069** | −0.00001 |
+|   ord 1 | 13,143 | +0.00005 | −0.00001 |
+| UNAFFECTED (3rd start on) | 87,883 | −0.00029 | −0.00000 |
+
+Improvements everywhere and largest at ord 0, but all are ~1e-4 — negligible.
+Unaffected rows move too, because the refitted coefficients shift every
+prediction slightly; that is expected, not a sign of leakage.
+
+**Gap #11 class-direction residual table** — undisturbed. DROPPING +0.93 →
++0.92, SAME −0.74 → −0.73, RISING −1.15 → −1.18, NO_HISTORY +0.16 → +0.18.
+Every shift ≤ 0.03pp.
+
+**Gap #8 calibration recheck** — undisturbed. Weighted mean |calibration error|
+across predicted deciles is **0.522pp on both** arms; on affected rows only it
+improves 0.673pp → 0.653pp. Gap #8's finding is a calibration effect and the
+fix neither creates nor removes it.
+
+### Downstream: both rerankers
+
+**pp-reranker-1.0 — its credit shrinks, as predicted.** It was trained on the
+contaminated table, and *100% of its target population* (first-time starters,
+ord 0) carried fabricated values in both features.
+
+| base | base ITM | reranked (offset) | delta | p |
+|---|---|---|---|---|
+| control | 67.9% (182/268) | 71.3% (191/268) | **+3.4pp** | 0.093 |
+| candidate | 68.7% (184/268) | 71.3% (191/268) | **+2.6pp** | 0.210 |
+
+The corrected base absorbs **0.8pp** of what the reranker was previously
+credited with, and the reranked ceiling is unchanged at 191/268 — the fix
+reaches the same horses the reranker was reaching. The mechanism shows in the
+logit shifts: the reranker's mean |shift| **on first-timers falls 0.308 →
+0.253 (−18%)**, while on "others" it is flat (0.187 → 0.188). Part of what
+pp-reranker-1.0 was doing on first-time starters was correcting this bug.
+
+This compounds c68f2c5, which already found the +3.9pp shipping justification
+did not survive clean re-evaluation (+1.4pp, p=0.648). **Gap #1's status should
+now read that the artifact was fitted against a base whose first-start rows
+were 100% fabricated in two rank-2 features.**
+
+**classctx-reranker-0.1 — null on both bases, for an unrelated reason.**
+5-fold CV, shipped hyperparameters:
+
+| arm | race/offset | race/free | year/offset | year/free |
+|---|---|---|---|---|
+| control | −0.031pp | +0.025pp | −0.013pp | −0.013pp |
+| candidate | −0.013pp | +0.019pp | +0.013pp | +0.025pp |
+
+All p > 0.79. That is not the fix's doing — it is null on the control too. The
+stored `dpv1_classctx_reranker_eval.json` (+0.82 to +0.88pp, p≈3e-5) was
+measured against the **dpv1.2.0 base with 95 features**. Against the
+dpv1.5.2 base with 124, which includes the Step 3 class features,
+classctx-reranker-0.1 adds nothing — those features appear to have absorbed it.
+Its log-loss z of +2.1 to +2.3 says it slightly *worsens* calibration.
+**This is a finding about the W/Y/Z decision independent of the bug fix.**
+
+### Are the W and Z shadow arms invalidated?
+
+**The reconstruction machinery is robust; the accumulated comparison is not
+portable across a base promotion.**
+
+Both artifacts are `mode="offset"` and neither carries `base_logit` as a
+feature (pp: 12 features, classctx: 15). Their deltas are `X·coef + intercept`
+and cannot depend on what they sit on — the property d3c86d5 established and
+short-circuited on. The fix touched none of their input columns, so measured
+directly: `max |cc_delta(ctrl) − cc_delta(cand)| = 0.000e+00`. **The deltas are
+bit-identical.**
+
+What does move is the arms' *relative standing*, because the same fixed delta
+lands on a different base:
+
+| base | X | W | W − X | W reorders |
+|---|---|---|---|---|
+| control | 65.062% | 65.193% | **+0.131pp** | 10.69% of races |
+| candidate | 65.268% | 65.331% | **+0.063pp** | 10.39% of races |
+
+W's edge over X **halves** on the corrected base, and the two bases disagree on
+the W top pick in 5.01% of races (X: 4.89%). So:
+
+* Nothing currently logged is invalidated — the shadow instrument is still
+  **empty**, so there is no accumulated W/Z data to void.
+* Shadow rows accumulated under one base **cannot be pooled** with rows
+  accumulated under another. If this candidate is ever promoted, W/Z
+  accumulation restarts from zero — the same reasoning that made d3c86d5 keep
+  `reranker_version` stable so races pool into one arm.
+* Promoting the base **before** accumulating shadow data is therefore strictly
+  cheaper than promoting after.
+
+### Effect on the closed gaps
+
+Gaps #2, #3 and #4 were all measured on `p_fund` from the pre-fix table. Their
+residual tables shift by ≤0.03pp where checked (the Gap #11 table above is the
+direct evidence), and all three closed **negative** — a fix that slightly
+improves the base cannot turn a null into a signal. **No prior conclusion is
+reversed.** The one number that changes materially is pp-reranker-1.0's
+marginal credit, above.
+
+### Recommendation — hold, and what to decide next
+
+The fix is unambiguously correct: it removes 53,636 + 53,434 fabricated or
+contaminated values and introduces none. Its *measured* benefit is small and
+not significant at the whole-corpus level.
+
+Two things should be settled before promotion, neither of which needs new PP
+files:
+
+1. **`scripts/feature_builder.py:714` and `:520` still carry the bug.** The
+   DPv1 path is now clean, the v1 path is not. Decide whether v1 is fixed or
+   formally declared superseded.
+2. **classctx-reranker-0.1 appears dead on the current base.** That bears
+   directly on the open W/Y/Z question and was found independently of this
+   work. It deserves its own confirmation before W or Z is considered further.
+
+Artifacts are in `scripts_dpv1/_gap4fix/` (two DB copies, two models, two fold
+CSVs, two reranker eval JSONs). Nothing there is wired into anything.
+
+### Decisions, 2026-09-18
+
+**1. `scripts/feature_builder.py` is formally superseded for DPv1. It is not
+the source of truth for any DPv1 feature.** Question 1 above is closed by
+declaration, not by a fix: `:520` and `:714` keep their bug.
+
+What that means in practice, stated precisely, because "superseded" is a
+policy and not a claim that DPv1 no longer calls the file:
+
+* `feature_builder_dpv1.py` still **imports** it (`import feature_builder as
+  v1`), and `dpv1_common.py` imports helpers from it. `V1_BUCKETS` still runs
+  Phase 3C buckets 1, 2, 6 and 7. A static read of the current config
+  (`dpv1.5.2`, 124 active) finds **10 active columns still computed by
+  Phase 3C code**: `distance_furlongs`, `is_sealed_track` (bucket 1);
+  `distance_change_from_last_race`, `pace_type_last_race`, `post_position`,
+  `weight_change_from_last_race`, `weight_lbs` (bucket 6); `implied_probability`,
+  `is_favorite`, `log_final_odds` (bucket 7).
+* **Authority rests with the DPv1 implementation.** `DPV1_MODULES` run before
+  `V1_BUCKETS`, and any column both emit is taken from DPv1 on merge. That is
+  the route the `gate_break_avg_last_3` fix took, and it is how the Phase 4B.1
+  alignment bug was routed around (buckets 3, 4 and 8 are not run at all).
+* **When a defect is found in a Phase 3C-derived DPv1 column, the fix is a
+  DPv1-side re-implementation that supersedes it on merge — never an edit to
+  `scripts/`.** A clean audit of a DPv1 column means auditing the code path
+  that actually wins the merge.
+* Out of DPv1 scope, flagged and not fixed: `entry_features_v1` — the table
+  `scripts/feature_builder.py` writes — is read by the v2 pipeline
+  (`scripts/prepare_training.py`, `cross_validation.py`, `baselines.py`,
+  `apply_v10_priors.py`, `diagnostics.py`) and by v2a
+  (`scripts_v2a/prepare_training_v2a.py`). Those still carry both
+  trailing-window defects wherever those features are active in their
+  configs. DPv1 only *deletes* `entry_features_v1` rows during card purges
+  (`retrain_pipeline.purge_card`, `_load_pending_results.py`); it never reads
+  them.
+
+**2. `classctx-reranker-0.1` stays shadow-logged. It is not unwired from
+`card_picks.py`.** The fold-level null above is evidence, not a verdict. The
+shadow framework (`d3c86d5`) exists to measure live behaviour over 50–100
+scored races and has not had the chance yet. This is the same discipline that
+held `dpv1.5.2` on fold evidence, applied in the other direction.
+
+**The evaluation baseline matters, and it is not the same base in every
+number on this page.** `classctx-reranker-0.1`'s stored +0.82 to +0.88pp
+(`dpv1_classctx_reranker_eval.json`, p≈3e-5) was measured against
+**`dpv1.2.0` with 95 features** — the live base, with no class-context
+features. Against **`dpv1.5.2` with 124**, which includes Path A's and Step 3's
+class features, it is null (all p > 0.79, table above). Step 3's class
+features appear to have absorbed the signal. That replicates Step 4 Track 1's
+own stacking test, which already found a class-context reranker over the
+Path A base worth **−0.039pp (p 0.757)** — "an either/or", as that section put
+it. So:
+
+* On the **live** `dpv1.2.0-4track` base, the W and Z shadow arms measure the
+  configuration in which `classctx-reranker-0.1` was shown to work. They are
+  worth accumulating as they stand.
+* If a base carrying the Step 3 / Path A class features is ever promoted, W
+  and Z would be expected to collapse onto X and Y, and their accumulated rows
+  would not pool across the promotion in any case (above).
+* Any future reranker number must state the base, and the base's feature
+  count, that it was measured against.
+
+**3. The `dpv1.5.3-4track-g4fix` candidate — decision pending Doug.** See the
+2026-09-18 session report. `dpv1.pkl` is unchanged.
 
 ## Gap #5 — Brisnet Angles Ingest
 
@@ -1656,9 +2682,11 @@ Feature Design Principle applied before any work.
   taking a class drop. Calibration-only; do not re-test with top-pick ITM.
 * **Field-relative talent shift** — a horse's ability measured *against the
   specific field it faces today* rather than against an absolute scale.
-* **Pace shape** — partially covered by **Gap #2**; as noted there it is
-  race-level and needs an interaction with each horse's running style to
-  reorder anything.
+* **Pace shape** — **TESTED AND CLOSED NEGATIVE, see Gap #2.** The
+  style × pace-shape interaction was measured on 15,971 fold races. The
+  hot-pace predictions are null; the lone-front-runner cell is +1.35pp but
+  fails Bonferroni and exists in a single bin; the in-sample oracle re-rank is
+  worth +0.04pp. Do not build a feature here.
 * **Distance-surface interactions** — whether distance aptitude is being
   modelled separately enough per surface.
 * **Form reliability (consistent good form)** — **found incidentally in
@@ -3401,6 +4429,15 @@ races before any promotion.
 >
 > **Not promoted, nothing shipped.** `dpv1.pkl`, `dpv1_pp_reranker.pkl` and
 > `dpv1_3track.pkl` are byte-identical to HEAD.
+>
+> **EVALUATION-BASELINE NOTE (2026-09-18).** Every Path B number in this
+> section was measured against **`dpv1.2.0` with 95 features**. Against
+> **`dpv1.5.2` with 124**, which includes the Step 3 class features,
+> `classctx-reranker-0.1` is null (all p > 0.79; see *the trailing-window
+> contamination fix*, "Downstream: both rerankers"). The Step 3 features appear
+> to have absorbed the signal. That is consistent with the stacking result
+> directly above. Read +0.887pp as "worth this much *over a base without
+> class-context features*", not as a property of the artifact.
 
 **What was built**
 
