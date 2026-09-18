@@ -1,0 +1,37 @@
+scored rows 118,825  races 15,971  affected rows 30,942 (26.0%)
+races with an affected horse 10,222
+rows whose windowed value actually changed 24,750
+max|dp_fund| on unaffected rows 0.05064
+
+TOP-PICK ITM (p_fund)
+population                    races     ctrl     cand    delta   b01/b10       p
+all races                     15971  64.461%  64.636%  +0.175   229/201   0.193
+races w/ affected horse       10222  63.344%  63.735%  +0.391   174/134   0.026
+races w/o affected horse       5749  66.446%  66.238%  -0.209     55/67   0.319
+GP                             6876  63.831%  64.136%  +0.305    106/85   0.148
+CT                             4738  66.294%  66.357%  +0.063     45/42   0.830
+MNR                            3321  65.372%  65.372%  +0.000     52/52   1.000
+ELP                            1036  57.336%  57.722%  +0.386     26/22   0.665
+top pick changed in 5.11% of races
+
+LOG-LOSS delta (cand - ctrl); negative = better
+population                           n     fund d      z    blend d      z
+ALL                            118,825   -0.00032  -4.60   -0.00000  -0.65
+AFFECTED (1st/2nd start)        30,942   -0.00036  -1.82   -0.00000  -0.15
+  ord 0                         17,799   -0.00052  -1.83   -0.00000  -0.02
+  ord 1                         13,143   -0.00015  -0.56   -0.00001  -0.23
+UNAFFECTED ROWS                 87,883   -0.00030  -4.94   -0.00000  -0.79
+ALL ROWS IN AFFECTED RACES      78,424   -0.00030  -3.24   -0.00000  -0.56
+
+GAP #11 CLASS-DIRECTION RESIDUAL (within-race demeaned y - p_fund, pp)
+  DROPPING     n= 36,219  ctrl +2.55  cand +2.63  shift +0.08
+  NO_HISTORY   n= 41,260  ctrl +0.08  cand +0.06  shift -0.03
+  NULL         n=     23  ctrl -0.00  cand -0.00  shift -0.00
+  RISING       n= 24,351  ctrl -2.57  cand -2.62  shift -0.05
+  SAME         n= 16,972  ctrl -1.96  cand -1.99  shift -0.03
+
+GAP #8 CALIBRATION: weighted mean |cal error| (pp)
+  ALL      own deciles      ctrl 0.556  cand 0.532
+  ALL      fixed 0.1 bins   ctrl 0.620  cand 0.612
+  AFFECTED own deciles      ctrl 0.611  cand 0.619
+  AFFECTED fixed 0.1 bins   ctrl 0.668  cand 0.462

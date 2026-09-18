@@ -1722,7 +1722,7 @@ scratch, not committed.
 
 ## Interlude — the trailing-window contamination fix (2026-09-17)
 
-### Status: FIXED IN CODE, RETRAINED, **HELD — NOT PROMOTED**
+### Status: FIXED IN CODE; `dpv1.5.3` candidate HELD; live-configuration retrain (Option C) PROMOTED 2026-09-18 as `dpv1.2.2-4track-g4fix`
 
 Candidate `dpv1.5.3-4track-g4fix` is built and evaluated. `dpv1.pkl` is
 untouched, both reranker artifacts are untouched, `card_picks.py` is untouched.
@@ -1831,6 +1831,10 @@ Every shift ≤ 0.03pp.
 across predicted deciles is **0.522pp on both** arms; on affected rows only it
 improves 0.673pp → 0.653pp. Gap #8's finding is a calibration effect and the
 fix neither creates nor removes it.
+
+> **RETRACTED 2026-09-18:** the affected-rows figure (0.673 → 0.653) is
+> bin-definition dependent and not a defensible finding. See the retraction
+> under *Option C* below. The 0.522pp whole-population figure stands.
 
 ### Downstream: both rerankers
 
@@ -1992,8 +1996,116 @@ it. So:
 * Any future reranker number must state the base, and the base's feature
   count, that it was measured against.
 
-**3. The `dpv1.5.3-4track-g4fix` candidate — decision pending Doug.** See the
-2026-09-18 session report. `dpv1.pkl` is unchanged.
+**3. The `dpv1.5.3-4track-g4fix` candidate was NOT promoted.** It is the
+`dpv1.5.2` configuration plus the fix: 119 fundamental columns against live's
+95, carrying all 24 held Path A / Step 3 / Gap #6 features. Promoting it would
+have shipped Step 3 without its pre-registered live evaluation and settled
+W/Y/Z by default. What was promoted instead is Option C, below.
+
+### Option C — live's 95-feature configuration, corrected (2026-09-18)
+
+**Status: PROMOTED to `dpv1.pkl` as `dpv1.2.2-4track-g4fix`.**
+
+Live's exact 95 `fund_cols` were retrained on the fixed table (candidate) and
+on the buggy table (control), from the same corpus with the same grid
+(half-life 913 d, l2 0.001) and no interaction terms. Nothing else differs.
+The feature list was pinned to `dpv1.pkl`'s `fund_cols` by a wrapper
+(`_gap4fix/train_c95.py`) with no change to `train_dpv1.py`. A repeat control
+run reproduced coefficients and `p_fund` bit-for-bit (`max|diff| = 0.0`).
+
+The harness (`_gap4fix/eval_pair.py`) was validated by reproducing the
+2026-09-17 numbers on the `dpv1.5.2` pair first. Definitions that matter:
+"affected" = a horse's 1st or 2nd start **within the feature table** (30,942
+scored rows, 10,222 races). The class-direction table is the
+**within-race demeaned** residual.
+
+**Top-pick ITM (`p_fund`), exact McNemar, 15,971 races:**
+
+| population | control | candidate | delta | b01/b10 | p |
+|---|---|---|---|---|---|
+| all races | 64.461% | 64.636% | **+0.175pp** | 229/201 | 0.193 |
+| races with an affected horse (10,222) | 63.344% | 63.735% | **+0.391pp** | 174/134 | **0.026** |
+| races without one (5,749) | 66.446% | 66.238% | −0.209pp | 55/67 | 0.319 |
+| GP | 63.831% | 64.136% | +0.305pp | 106/85 | 0.148 |
+| CT | 66.294% | 66.357% | +0.063pp | 45/42 | 0.830 |
+| MNR | 65.372% | 65.372% | +0.000pp | 52/52 | 1.000 |
+| ELP | 57.336% | 57.722% | +0.386pp | 26/22 | 0.665 |
+
+The top pick changes in 5.11% of races. Same shape as the `dpv1.5.2` pair: the
+gain is where the fix applies, the affected-races cell is the pre-specified
+endpoint, and it does not clear Bonferroni over 7 populations. The per-track
+pattern **reverses** between the two bases (MNR/ELP carried it on 5.2, GP
+carries it here), so per-track readings are noise.
+
+**Log-loss, candidate − control (race-clustered z):**
+
+| population | n | fund Δ | z | blend Δ | z |
+|---|---|---|---|---|---|
+| ALL | 118,825 | −0.00032 | −4.60 | −0.00000 | −0.65 |
+| AFFECTED (1st/2nd start) | 30,942 | −0.00036 | −1.82 | −0.00000 | −0.15 |
+|   ord 0 | 17,799 | −0.00052 | −1.83 | −0.00000 | −0.02 |
+|   ord 1 | 13,143 | −0.00015 | −0.56 | −0.00001 | −0.23 |
+| UNAFFECTED (3rd start on) | 87,883 | −0.00030 | −4.94 | −0.00000 | −0.79 |
+
+Every cell improves, all by ~1e-4. The fundamental improvement is
+statistically clear and practically tiny; the blend does not move.
+
+**Gap #11 class-direction residual** (within-race demeaned, pp): DROPPING
++2.55 → +2.63, SAME −1.96 → −1.99, RISING −2.57 → −2.62, NO_HISTORY +0.08 →
++0.06. Every shift ≤ 0.08pp. The spread is far larger than on the 5.2 base
+(+0.93 / −1.15) because the 95-feature base has no class-context features.
+Gap #11's error is present here, and the fix neither creates nor removes it.
+
+**Gap #8 calibration** (weighted mean |calibration error|, pp):
+
+| population | bins | control | candidate |
+|---|---|---|---|
+| ALL | own deciles | 0.556 | 0.532 |
+| ALL | fixed 0.1 bins | 0.620 | 0.612 |
+| AFFECTED | own deciles | 0.611 | 0.619 |
+| AFFECTED | fixed 0.1 bins | 0.668 | 0.462 |
+
+Overall calibration is unharmed. On the affected subgroup the answer depends
+on the bin definition, so the defensible reading is "not worse", not
+"improved".
+
+Neither arm over-rates the first-start population on average (ord 0: −0.07pp
+control, −0.20pp candidate).
+
+> **RETRACTION — the 2026-09-17 affected-row calibration reading.** The
+> interlude's "on affected rows only it improves 0.673pp → 0.653pp" is **not a
+> defensible finding** and should not be quoted. That subgroup's weighted
+> calibration error is **bin-definition dependent**. On the same `dpv1.5.2`
+> pair, the candidate arm alone reads 0.405, 0.502, 0.616 or 0.617pp
+> depending on how the deciles are drawn, and 0.653 could not be reproduced
+> under any of the four definitions tried. The control's 0.673 does
+> reproduce, as own-subset deciles. The whole-population figure (0.522 on
+> both arms) is robust and stands.
+
+**Why it was promoted.** This is a bug fix, and the promotion standard for a
+bug fix is "correct, and not measurably worse", not a corrected-significance
+improvement. The measured effect is consistent with the size of the error.
+The deciding factor was the rebuild hazard: with the fix in code and an
+unfixed live model, the next routine feature rebuild would have fed corrected
+values to a model trained on contaminated ones. Measured: +1.28pp mean P(ITM)
+on 53k first/second-start rows, and a top-pick change in 2.66% of races, all
+unvalidated.
+
+**Bundled with the fix** (held constant by the matched control, so not
+measured above): corpus growth since `dpv1.2.0-4track`'s 2026-08-22 training
+(149,995 → 152,865 training rows), and the `running_style_last_3` tie-break
+fix (`d317f76`).
+
+**Not included:** none of the 24 held `dpv1.5.2` features (Path A class
+context, Step 3 last-race deadband, Gap #6 field experience). The Step 3
+decision is still separate and still gated on races after 2026-09-13.
+
+**Consequences.** The live record on `dpv1.2.0-4track` (40/64 top-pick ITM)
+does not carry over; the new version string starts its own window in
+`model_health.py`. Both rerankers are offset models whose deltas do not depend
+on the base, so they apply unchanged. The W/Z shadow arms remain meaningful,
+since the new base still lacks class-context features, which is where
+`classctx-reranker-0.1`'s +0.88pp was measured.
 
 ## Gap #5 — Brisnet Angles Ingest
 

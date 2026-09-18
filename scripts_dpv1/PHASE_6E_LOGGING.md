@@ -715,6 +715,49 @@ Storage is not a concern at this size, and `prune_models` already caps dated
 artifacts at the newest 5 automatically, so the store cannot grow without
 bound whatever we decide here.
 
+### Promotion decision, 2026-09-18: PROMOTED `dpv1.2.2-4track-g4fix`
+
+`dpv1.pkl` is now **`dpv1.2.2-4track-g4fix`** (trained 2026-09-18). It
+replaces `dpv1.2.0-4track`. This was a manual promotion of a bug-fix retrain,
+not a Piece 4 run. Full evaluation is in `PHASE_6D_ROADMAP.md`, *Option C*.
+
+* **What it is.** Live's exact 95-feature configuration, retrained on a feature
+  table with the trailing-window contamination fixed (`last_3_avg_finish`,
+  `gate_break_avg_last_3`, 53k rows each at a horse's 1st/2nd start).
+* **Measured vs a matched control:** top-pick ITM +0.175pp (p 0.193) overall,
+  and +0.391pp (p 0.026, uncorrected) on races with an affected horse.
+  Fundamental log-loss −0.00032 (z −4.6).
+* **Why the 2026-08-31 precedent did not hold it.** That precedent held a
+  non-material *refresh*. This is a *correction*, and the rebuild hazard
+  decided it. With the fix in code, the next routine feature rebuild would have
+  fed corrected values to a model trained on contaminated ones.
+* **Bundled:** corpus growth since 2026-08-22 and the `running_style_last_3`
+  tie-break fix (`d317f76`). **Not included:** any of the 24 held `dpv1.5.2`
+  features.
+* **Live baseline resets.** The 40/64 record belongs to `dpv1.2.0-4track`,
+  and Piece 3's `model_version` filter starts a fresh window for the new
+  version automatically.
+
+Procedure, so it can be repeated or reversed:
+
+| step | detail |
+|---|---|
+| DB backup | `scripts/racing_full.db.pre-g4fix.bak` |
+| feature rebuild | `feature_builder_dpv1.py build`. The result is identical to the table the model was trained on (`_gap4fix/racing_cand.db`, 0 differing columns). Only the 2 fixed columns differ from the backup. |
+| old model | `dpv1_20260822_142019_retired.pkl` (byte copy). It is named by its training timestamp plus a non-numeric suffix, so `prune_models` never reaps it. A bare `dpv1_YYYYMMDD_HHMMSS.pkl` name would count as a pipeline candidate and be pruned. |
+| new model | `_gap4fix/dpv1_c95_cand.pkl` with only `version` rewritten. Coefficients and predictions are identical to the candidate. |
+| verification | GP 2026-09-04, logged to a scratch file. All 9 races produce output with the same 9 top picks. `pp-reranker-1.0` is applied; `classctx-reranker-0.1` is shadow-only (applied=false). The pp, Z and W deltas are bit-identical to the pre-promotion run. `logs/predictions.jsonl` is untouched. |
+
+**To roll back:** restore both the model and the feature table. The old model
+must not read the fixed table (+1.28pp mean P(ITM) on affected rows, top pick
+changed in 2.66% of races):
+
+    copy scripts_dpv1\dpv1_20260822_142019_retired.pkl scripts_dpv1\dpv1.pkl
+    copy scripts\racing_full.db.pre-g4fix.bak scripts\racing_full.db
+
+Restoring the DB drops any card loaded since. A rollback after new cards are
+loaded should instead revert the code fix (`5344478`) and rebuild features.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
