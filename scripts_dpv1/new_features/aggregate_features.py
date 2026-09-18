@@ -89,19 +89,44 @@ def compute_recent_form(raw: pd.DataFrame, ctx: dict, cfg: dict,
                                d["shrinkage_k_defaults"]["horse_career"])
         out["career_itm_pct_shrunk"] = np.where(starts == 0, np.nan, rate)
 
-    if {"last_3_avg_finish", "speed_trajectory_3_races"} & active:
+    # ── Trailing per-horse windows ──────────────────────────────────────
+    # `groupby(...).shift(1)` is group-aware, but a `.rolling()` CHAINED onto
+    # its result is not: the shifted Series carries no grouping, so the window
+    # spans the whole frame and, at each horse's first rows, averages in the
+    # PREVIOUS horse's values. Rows are ordered by horse_id, so the neighbour's
+    # races can also post-date the row being scored.
+    #
+    # Measured on the pre-fix table (Gap #4, 2026-09-17): 34,137 rows at a
+    # horse's first corpus start carried a fabricated value where the correct
+    # one is NULL, and 19,499 of 27,938 second starts (69.8%) carried a wrong
+    # one — 53,636 rows, 24.6% of non-null. Third starts onward were correct.
+    # First- and second-start rows are exactly Gap #1's and Gap #6's
+    # populations, so the damage fell where the model can least afford it.
+    #
+    # `groupby(...).transform(...)` keeps the shift AND the rolling inside the
+    # group and stays aligned to `s`. Do not unchain these again.
+    #
+    # `gate_break_avg_last_3` has the identical defect at
+    # scripts/feature_builder.py:714. `scripts/` is left untouched per the
+    # DPv1 brief (see this module's docstring), so it is corrected here
+    # instead: DPV1_MODULES run before V1_BUCKETS in feature_builder_dpv1, so
+    # this implementation supersedes the Phase 3C one on merge.
+    _WINDOWED = {"last_3_avg_finish": "finish_pos",
+                 "gate_break_avg_last_3": "start_pos"}
+    if set(_WINDOWED) & active or "speed_trajectory_3_races" in active:
         s = raw[["entry_id", "horse_id", "race_date_dt", "finish_pos",
-                 "speed_figure_own"]].sort_values(
+                 "start_pos", "speed_figure_own"]].sort_values(
             ["horse_id", "race_date_dt", "entry_id"])
-        if "last_3_avg_finish" in active:
-            s["last_3_avg_finish"] = (
-                s.groupby("horse_id")["finish_pos"].shift(1)
-                 .rolling(3, min_periods=1).mean().to_numpy())
+        for name, src in _WINDOWED.items():
+            if name in active:
+                s[name] = s.groupby("horse_id")[src].transform(
+                    lambda x: x.shift(1).rolling(3, min_periods=1).mean())
         if "speed_trajectory_3_races" in active:
+            # shift() alone is group-aware; these are correct as written.
             sf1 = s.groupby("horse_id")["speed_figure_own"].shift(1)
             sf3 = s.groupby("horse_id")["speed_figure_own"].shift(3)
             s["speed_trajectory_3_races"] = ((sf1 - sf3) / 2.0).to_numpy()
-        cols = [c for c in ("last_3_avg_finish", "speed_trajectory_3_races")
+        cols = [c for c in (*_WINDOWED, "speed_trajectory_3_races")
                 if c in active]
         out = out.merge(s[["entry_id"] + cols], on="entry_id", how="left")
     return out
