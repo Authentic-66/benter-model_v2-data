@@ -619,7 +619,7 @@ Backup at `scripts/racing_full.db.pre-retrain.bak`.
 | load errors | **4** (see below) |
 | features rebuilt | yes, 221,399 rows |
 | label guard | PASSED — 151,902 rows / 20,380 races, no unrun race in labels |
-| candidate | `dpv1_20260831.pkl` (`dpv1.2.1-4track`) |
+| candidate | written as `dpv1_20260831.pkl` (`dpv1.2.1-4track`); **now at `dpv1_20260831_corpus_only.pkl`** — see the correction under *Promotion decision, 2026-08-31* |
 | elapsed | 165s |
 
 Comparison on 15,561 shared fold races:
@@ -708,12 +708,52 @@ the artifact that actually enables that comparison, so both are retained:
 
 | file | size | why |
 |---|---|---|
-| `dpv1_20260831.pkl` | 21 KB | the control model |
-| `dpv1_fold_predictions_20260831.csv` | 15 MB | its out-of-sample predictions |
+| `dpv1_20260831_corpus_only.pkl` | 21 KB | the control model (`dpv1.2.1-4track`, 95 features) |
+| `dpv1_fold_predictions_20260831_corpus_only.csv` | 15 MB | its out-of-sample predictions |
+
+> **CORRECTION (2026-09-18).** This table originally named
+> `dpv1_20260831.pkl` and `dpv1_fold_predictions_20260831.csv`. **Those files
+> no longer hold the `dpv1.2.1-4track` control.** Two Piece 4 runs on
+> 2026-08-31 wrote the same date-only candidate path:
+>
+> | run (UTC) | version | features | now at |
+> |---|---|---|---|
+> | 19:10–19:12 | `dpv1.2.1-4track` (this control) | 95 | `dpv1_20260831_corpus_only.pkl` |
+> | 19:25–19:28 | `dpv1.3.0-4track` (Gap #6 Option C main effects) | 102 | `dpv1_20260831.pkl` |
+>
+> The control was renamed out of the way before the second run, per the
+> collision workaround in *Follow-ups* item 4. This table was not updated
+> when that happened; git first saw both files in `6ba48f9` (2026-09-03),
+> after the overwrite, so no commit ever held the 2.1 model under the plain
+> name. Identity is verified, not inferred:
+>
+> * `_corpus_only.pkl` reports `dpv1.2.1-4track` and
+>   `trained_at 2026-08-31T19:12:54Z`, which matches the first run's
+>   `retrain_history.jsonl` record (finished 19:12:57Z).
+> * Re-scored with Piece 4's own `fold_metrics` on the same 15,561 shared
+>   races, `_corpus_only.csv` reproduces the table above **exactly** — ITM
+>   9976/15561 = 64.1090%, win 4412/15467, log-loss 0.615292. The plain-named
+>   CSV gives 9969/15561 = 64.0640%, which is Gap #6's −0.045pp.
+>
+> `PHASE_6D_ROADMAP.md` already uses the correct names for both
+> (`dpv1_20260831.pkl` = `dpv1.3.0-4track`, `_corpus_only` = control), so
+> the Gap #6 result stands.
+>
+> **Status of the control's purpose.** It did the job it was kept for: it is
+> the control that exposed Gap #6's apparent maiden gain as corpus growth. It
+> is **not** a usable control for any new comparison. The feature table has
+> changed twice since (`d317f76` `running_style_last_3` tie-break, `5344478`
+> trailing-window fix), and the practice since Step 3 is to train a matched
+> control on the current table per experiment (`_gap4fix/dpv1_c95_ctrl.pkl`
+> is the current one for the live configuration). Keep it as Gap #6
+> evidence. Do not compare new candidates against it.
 
 Storage is not a concern at this size, and `prune_models` already caps dated
 artifacts at the newest 5 automatically, so the store cannot grow without
-bound whatever we decide here.
+bound whatever we decide here. (`_corpus_only` has a non-numeric suffix and is
+protected from pruning; `dpv1_20260831.pkl` is a pipeline-shaped name and is
+not, although with the pipeline now writing timestamped names it will only be
+reaped once five newer dated artifacts exist.)
 
 ### Promotion decision, 2026-09-18: PROMOTED `dpv1.2.2-4track-g4fix`
 
