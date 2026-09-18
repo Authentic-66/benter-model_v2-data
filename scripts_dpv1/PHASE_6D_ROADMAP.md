@@ -2337,7 +2337,7 @@ is still the only mitigation in place.
 |---|---|
 | feature module | `new_features/field_experience_features.py` |
 | distribution diagnostic | `logs/gap6_diagnostic.txt` (`diagnose_field_experience.py`) |
-| candidate model | `dpv1_20260831.pkl` (`dpv1.3.0-4track`), 102 fundamental cols vs 95 |
+| candidate model | `dpv1_20260831_gap6_main.pkl` (named `dpv1_20260831.pkl` until 2026-09-18) (`dpv1.3.0-4track`), 102 fundamental cols vs 95 |
 | corpus-only control | `dpv1_20260831_corpus_only.pkl` (`dpv1.2.1-4track`) |
 | retrain log | `logs/retrain_history.jsonl` |
 
@@ -2557,7 +2557,7 @@ stays there.
 | candidate | `dpv1_20260901_interact.pkl` (`dpv1.3.1-4track-interact`), 108 fund cols |
 | fold predictions | `dpv1_fold_predictions_20260901_interact.csv` |
 | reference: corpus-only | `dpv1_20260831_corpus_only.pkl` (`dpv1.2.1-4track`) |
-| reference: main effects | `dpv1_20260831.pkl` (`dpv1.3.0-4track`) |
+| reference: main effects | `dpv1_20260831_gap6_main.pkl` (`dpv1.3.0-4track`) |
 | main-effects diagnostic | `logs/gap6_diagnostic.txt` |
 
 All thirteen features stay in the config and the built table. They cost no

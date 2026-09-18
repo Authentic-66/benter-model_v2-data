@@ -719,7 +719,7 @@ the artifact that actually enables that comparison, so both are retained:
 > | run (UTC) | version | features | now at |
 > |---|---|---|---|
 > | 19:10–19:12 | `dpv1.2.1-4track` (this control) | 95 | `dpv1_20260831_corpus_only.pkl` |
-> | 19:25–19:28 | `dpv1.3.0-4track` (Gap #6 Option C main effects) | 102 | `dpv1_20260831.pkl` |
+> | 19:25–19:28 | `dpv1.3.0-4track` (Gap #6 Option C main effects) | 102 | `dpv1_20260831_gap6_main.pkl` (renamed from `dpv1_20260831.pkl` 2026-09-18) |
 >
 > The control was renamed out of the way before the second run, per the
 > collision workaround in *Follow-ups* item 4. This table was not updated
@@ -736,7 +736,7 @@ the artifact that actually enables that comparison, so both are retained:
 >   CSV gives 9969/15561 = 64.0640%, which is Gap #6's −0.045pp.
 >
 > `PHASE_6D_ROADMAP.md` already uses the correct names for both
-> (`dpv1_20260831.pkl` = `dpv1.3.0-4track`, `_corpus_only` = control), so
+> (`dpv1_20260831_gap6_main.pkl` = `dpv1.3.0-4track`, `_corpus_only` = control), so
 > the Gap #6 result stands.
 >
 > **Status of the control's purpose.** It did the job it was kept for: it is
@@ -751,9 +751,10 @@ the artifact that actually enables that comparison, so both are retained:
 Storage is not a concern at this size, and `prune_models` already caps dated
 artifacts at the newest 5 automatically, so the store cannot grow without
 bound whatever we decide here. (`_corpus_only` has a non-numeric suffix and is
-protected from pruning; `dpv1_20260831.pkl` is a pipeline-shaped name and is
-not, although with the pipeline now writing timestamped names it will only be
-reaped once five newer dated artifacts exist.)
+protected from pruning. The Gap #6 main-effects model was renamed from the
+pipeline-shaped `dpv1_20260831.pkl` to `dpv1_20260831_gap6_main.pkl` on
+2026-09-18 for the same protection. Its fold CSV keeps the name
+`dpv1_fold_predictions_20260831.csv`; the pruner only globs `.pkl`.)
 
 ### Promotion decision, 2026-09-18: PROMOTED `dpv1.2.2-4track-g4fix`
 
