@@ -79,14 +79,20 @@ def compute_pace(raw: pd.DataFrame, ctx: dict, cfg: dict,
         out["pace_progression_last_race"] = prev["prev_pace_progression"]
 
     projected = None
-    if {"early_pace_position_projected", "pace_pressure_in_race",
-            "expected_pace_shape"} & active:
+    if {"early_pace_position_projected", "pace_pressure_in_race"} & active:
         # Projection = style of the most recent prior start.
         projected = prev["prev_own_style"].map(STYLE_TO_PROJECTED)
     if "early_pace_position_projected" in active:
         out["early_pace_position_projected"] = projected
 
-    if {"pace_pressure_in_race", "expected_pace_shape"} & active:
+    # The race-level pace shape is emitted ONCE, as pace_pressure_in_race.
+    # It used to be assigned to expected_pace_shape as well: the same Series
+    # under two names, both active (Gap #2, 2026-09-17), byte-identical on all
+    # 222,362 rows. Under L2 the fit splits one effect evenly across the two
+    # copies, so each printed coefficient showed half the feature's weight and
+    # the penalty on it was halved. expected_pace_shape is now inactive in
+    # dpv1_feature_config.json. Do not re-add a second name for this Series.
+    if "pace_pressure_in_race" in active:
         front = (projected == "front").astype(int)
         n_front = front.groupby(raw["race_id"]).transform("sum")
         # Horses with no prior start have no projection; if most of the field
@@ -99,10 +105,7 @@ def compute_pace(raw: pd.DataFrame, ctx: dict, cfg: dict,
                               np.where(n_front == 2, "moderate", "slow"))),
             index=raw.index, dtype="object",
         )
-        if "pace_pressure_in_race" in active:
-            out["pace_pressure_in_race"] = shape
-        if "expected_pace_shape" in active:
-            out["expected_pace_shape"] = shape
+        out["pace_pressure_in_race"] = shape
 
     if "running_style_last_3" in active:
         out["running_style_last_3"] = _dominant_style_last_3(raw)

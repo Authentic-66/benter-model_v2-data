@@ -1,0 +1,38 @@
+scored rows 118,825  races 15,971
+|dp_fund| mean 0.00146  p99 0.00747  max 0.02511
+top pick changed in 0.88% of races
+
+TOP-PICK ITM (p_fund), exact McNemar
+population    races      ctrl      cand    delta   b01/b10       p
+all races     15971   64.636%   64.648%   +0.013     38/36   0.908
+GP             6876   64.136%   64.238%   +0.102     18/11   0.265
+CT             4738   66.357%   66.378%   +0.021      10/9   1.000
+MNR            3321   65.372%   65.312%   -0.060      9/11   0.824
+ELP            1036   57.722%   57.336%   -0.386       1/5   0.219
+
+LOG-LOSS delta (cand - ctrl), race-clustered z; negative = better
+population                    n     fund d      z    blend d      z
+ALL                     118,825   +0.00003  +2.64   -0.00000  -0.41
+GP                       52,120   +0.00002  +1.10   +0.00000  +0.06
+CT                       35,182   +0.00001  +0.26   +0.00000  +0.59
+MNR                      23,128   +0.00006  +2.04   -0.00000  -1.14
+ELP                       8,395   +0.00014  +2.46   -0.00000  -0.39
+pace = hot               22,638   +0.00003  +0.91   +0.00000  +0.40
+pace = moderate          32,632   +0.00003  +1.53   +0.00000  +0.39
+pace = slow              58,212   +0.00004  +2.26   -0.00000  -0.34
+pace = NULL               5,343   -0.00003  -0.48   -0.00001  -2.68
+
+GAP #11 CLASS-DIRECTION RESIDUAL (within-race demeaned y - p_fund, pp)
+  DROPPING     n= 36,219  ctrl +2.63  cand +2.63  shift -0.00
+  NO_HISTORY   n= 41,260  ctrl +0.06  cand +0.06  shift +0.00
+  NULL         n=     23  ctrl -0.00  cand +0.00  shift +0.00
+  RISING       n= 24,351  ctrl -2.62  cand -2.62  shift -0.00
+  SAME         n= 16,972  ctrl -1.99  cand -2.00  shift -0.00
+
+GAP #8 CALIBRATION: weighted mean |cal error| (pp)
+  ALL own deciles      ctrl 0.532  cand 0.508
+  ALL fixed 0.1 bins   ctrl 0.612  cand 0.598
+  per pace shape, own deciles:
+    hot       ctrl 1.278  cand 1.300  (mean pred-actual: ctrl -0.06  cand -0.06)
+    moderate  ctrl 0.701  cand 0.738  (mean pred-actual: ctrl +0.02  cand +0.04)
+    slow      ctrl 0.551  cand 0.569  (mean pred-actual: ctrl +0.08  cand +0.10)

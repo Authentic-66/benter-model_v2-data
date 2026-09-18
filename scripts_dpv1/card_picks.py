@@ -25,8 +25,8 @@ largest coefficient and that anchoring is the specific flaw the v2/DPv1 rebuild
 exists to correct, so it is shown beside the model's opinion and never inside
 it.
 
-``cov`` is the fraction of DPv1's 95 features that were available for that
-horse. It is the most important column on the page and the easiest to skip.
+``cov`` is the fraction of the model's features (``len(model.fund_cols)``,
+printed in the page header) that were available for that horse. It is the most important column on the page and the easiest to skip.
 A horse at 45% is one the corpus has never seen — a shipper or a first-time
 starter — and its probability is closer to a field-average prior than to a
 real assessment. Phase 6A measured what low coverage does: at 27% coverage the
@@ -1221,8 +1221,8 @@ def _cli() -> int:
         print(" P(ITM) is the model's own opinion, formed without odds.")
         print(" ML is the morning line, shown for comparison only — it is not "
               "a model input.")
-        print(" cov is how much of the 95-feature set was available; low cov "
-              "means a")
+        print(f" cov is how much of the {len(model.fund_cols)}-feature set "
+              "was available; low cov means a")
         print(" near-prior guess, not a real assessment.")
         trained = tuple(model.hyperparameters.get("tracks", ("GP", "CT", "MNR")))
         if args.track.upper() not in trained:

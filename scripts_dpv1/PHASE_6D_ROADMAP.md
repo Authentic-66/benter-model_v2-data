@@ -1166,13 +1166,34 @@ Byte-identical on all **222,362 rows** of `entry_features_dpv1`, and
 identically null. They are the same `shape` Series assigned twice in
 `compute_pace` (`pace_bias_features.py:102-105`), registered as two separate
 active features in buckets 6 and 8. So two of the 95 active fundamental
-features are one feature, and the race-level pace shape enters the linear
-predictor with **double weight** relative to its fitted coefficient. This is
-calibration-only under the no-interaction architecture, so it does not corrupt
-any ranking result on record, and it is not a leak. It does waste a feature
-slot and it will silently double any future pace-shape coefficient. Not fixed
-here — Gap #2 was a read-only diagnostic — and worth a one-line change
-whenever the feature config is next touched.
+features are one feature. It is not a leak, and the pace shape is constant
+within a race, so it could not affect any ranking result on record.
+
+> **CORRECTED 2026-09-18.** This paragraph originally said the pace shape
+> entered the linear predictor with "double weight" and that the duplicate
+> would "silently double any future pace-shape coefficient". **That was
+> wrong.** The fit is regularized (L2), and with two identical columns it
+> **split one effect evenly across the two copies**. `dpv1.2.2-4track-g4fix`
+> carries identical coefficients on both, e.g. −0.0374 on each `__hot` level.
+> Fitted without the duplicate, the single coefficient is −0.0767, roughly
+> their sum (MISSING +0.0784 → +0.0881, moderate −0.0305 → −0.0318, slow
+> +0.0185 → +0.0191). So the pace shape's total contribution to the predictor
+> was about what one column would give. What the duplicate actually did:
+>
+> * **Cosmetic.** Each printed coefficient showed **half** the feature's true
+>   size, so any coefficient-rank or importance reading understated it.
+> * **Regularization.** Splitting a weight across two copies halves its L2
+>   penalty, so the feature was regularized **less** than intended. At
+>   `l2 = 0.001` that is a mild shift.
+> * A wasted feature slot.
+>
+> Removing it moved predictions by a mean |Δp| of 0.0015, left top-pick ITM
+> flat (+0.013pp, p 0.908), and cost +0.00003 fundamental log-loss (z +2.64),
+> most likely optimizer termination rather than a feature effect: both fits
+> converged in under 100 of 400 iterations, and the de-duplicated fit reached
+> a slightly *lower* training objective. Source: the 2026-09-18 pace-duplicate
+> retrain, `_pacefix/` (control reproduced live bit-for-bit). Fixed and
+> promoted as `dpv1.2.3-4track-pacefix`; see `PHASE_6E_LOGGING.md`.
 
 **2. The fundamental model under-disperses within race.** The rank table above
 is a clean monotone calibration error: rank 1 is priced 62.2% and returns

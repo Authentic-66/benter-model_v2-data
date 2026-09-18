@@ -1,0 +1,80 @@
+diff --git a/scripts_dpv1/dpv1_feature_config.json b/scripts_dpv1/dpv1_feature_config.json
+index f8a18a5..fcf5dce 100644
+--- a/scripts_dpv1/dpv1_feature_config.json
++++ b/scripts_dpv1/dpv1_feature_config.json
+@@ -1,5 +1,5 @@
+ {
+-  "version": "dpv1.5.2",
++  "version": "dpv1.5.4",
+   "generated": "2026-08-03",
+   "generated_by": "scripts_dpv1/build_dpv1_config.py + scripts_dpv1/add_pp_bucket9.py",
+   "source_ranking": "DPv1_Feature_Ranking.xlsx",
+@@ -24,7 +24,8 @@
+     "  they are candidates for Phase 5B, not part of the trained DPv1.",
+     "pp_ml_decimal is bucket 9, not bucket 7, and anchor=false. The v1",
+     "  model's log_ml anchor (~40% of the prediction) is NOT ported.",
+-    "dpv1.4.0 (2026-09-12): adds 8 class-context features from Phase 6D Gaps #10/#11 (new_features/class_context_features.py)."
++    "dpv1.4.0 (2026-09-12): adds 8 class-context features from Phase 6D Gaps #10/#11 (new_features/class_context_features.py).",
++    "dpv1.5.4 (2026-09-18): expected_pace_shape deactivated as a duplicate of pace_pressure_in_race (Gap #2). 123 active. Config 5.3 is skipped because 'dpv1.5.3-4track-g4fix' already names a model built on config 5.2."
+   ],
+   "activation_policy": {
+     "rank_1": "active",
+@@ -1914,7 +1915,7 @@
+       "implemented": true
+     },
+     "expected_pace_shape": {
+-      "active": true,
++      "active": false,
+       "bucket": 8,
+       "bucket_name": "Track-Specific Dynamics",
+       "type": "categorical",
+@@ -1923,7 +1924,8 @@
+       "doug_notes": null,
+       "phase3c_status": "BUILT",
+       "v2_active": "NO",
+-      "implemented": true
++      "implemented": true,
++      "inactive_reason": "Duplicate of pace_pressure_in_race: the same Series was assigned to both names in pace_bias_features.compute_pace, byte-identical on all 222,362 rows (Gap #2, 2026-09-17). Deactivated 2026-09-18; pace_pressure_in_race is the canonical column. The builder no longer computes this column, so re-activating it fails the build loudly."
+     },
+     "historical_condition_winrate_shrunk": {
+       "active": true,
+diff --git a/scripts_dpv1/new_features/pace_bias_features.py b/scripts_dpv1/new_features/pace_bias_features.py
+index 188fce9..d6dd3a7 100644
+--- a/scripts_dpv1/new_features/pace_bias_features.py
++++ b/scripts_dpv1/new_features/pace_bias_features.py
+@@ -79,14 +79,20 @@ def compute_pace(raw: pd.DataFrame, ctx: dict, cfg: dict,
+         out["pace_progression_last_race"] = prev["prev_pace_progression"]
+ 
+     projected = None
+-    if {"early_pace_position_projected", "pace_pressure_in_race",
+-            "expected_pace_shape"} & active:
++    if {"early_pace_position_projected", "pace_pressure_in_race"} & active:
+         # Projection = style of the most recent prior start.
+         projected = prev["prev_own_style"].map(STYLE_TO_PROJECTED)
+     if "early_pace_position_projected" in active:
+         out["early_pace_position_projected"] = projected
+ 
+-    if {"pace_pressure_in_race", "expected_pace_shape"} & active:
++    # The race-level pace shape is emitted ONCE, as pace_pressure_in_race.
++    # It used to be assigned to expected_pace_shape as well: the same Series
++    # under two names, both active (Gap #2, 2026-09-17), byte-identical on all
++    # 222,362 rows. Under L2 the fit splits one effect evenly across the two
++    # copies, so each printed coefficient showed half the feature's weight and
++    # the penalty on it was halved. expected_pace_shape is now inactive in
++    # dpv1_feature_config.json. Do not re-add a second name for this Series.
++    if "pace_pressure_in_race" in active:
+         front = (projected == "front").astype(int)
+         n_front = front.groupby(raw["race_id"]).transform("sum")
+         # Horses with no prior start have no projection; if most of the field
+@@ -99,10 +105,7 @@ def compute_pace(raw: pd.DataFrame, ctx: dict, cfg: dict,
+                               np.where(n_front == 2, "moderate", "slow"))),
+             index=raw.index, dtype="object",
+         )
+-        if "pace_pressure_in_race" in active:
+-            out["pace_pressure_in_race"] = shape
+-        if "expected_pace_shape" in active:
+-            out["expected_pace_shape"] = shape
++        out["pace_pressure_in_race"] = shape
+ 
+     if "running_style_last_3" in active:
+         out["running_style_last_3"] = _dominant_style_last_3(raw)

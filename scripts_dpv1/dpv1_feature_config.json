@@ -1,5 +1,5 @@
 {
-  "version": "dpv1.5.2",
+  "version": "dpv1.5.4",
   "generated": "2026-08-03",
   "generated_by": "scripts_dpv1/build_dpv1_config.py + scripts_dpv1/add_pp_bucket9.py",
   "source_ranking": "DPv1_Feature_Ranking.xlsx",
@@ -24,7 +24,8 @@
     "  they are candidates for Phase 5B, not part of the trained DPv1.",
     "pp_ml_decimal is bucket 9, not bucket 7, and anchor=false. The v1",
     "  model's log_ml anchor (~40% of the prediction) is NOT ported.",
-    "dpv1.4.0 (2026-09-12): adds 8 class-context features from Phase 6D Gaps #10/#11 (new_features/class_context_features.py)."
+    "dpv1.4.0 (2026-09-12): adds 8 class-context features from Phase 6D Gaps #10/#11 (new_features/class_context_features.py).",
+    "dpv1.5.4 (2026-09-18): expected_pace_shape deactivated as a duplicate of pace_pressure_in_race (Gap #2). 123 active. Config 5.3 is skipped because 'dpv1.5.3-4track-g4fix' already names a model built on config 5.2."
   ],
   "activation_policy": {
     "rank_1": "active",
@@ -1914,7 +1915,7 @@
       "implemented": true
     },
     "expected_pace_shape": {
-      "active": true,
+      "active": false,
       "bucket": 8,
       "bucket_name": "Track-Specific Dynamics",
       "type": "categorical",
@@ -1923,7 +1924,8 @@
       "doug_notes": null,
       "phase3c_status": "BUILT",
       "v2_active": "NO",
-      "implemented": true
+      "implemented": true,
+      "inactive_reason": "Duplicate of pace_pressure_in_race: the same Series was assigned to both names in pace_bias_features.compute_pace, byte-identical on all 222,362 rows (Gap #2, 2026-09-17). Deactivated 2026-09-18; pace_pressure_in_race is the canonical column. The builder no longer computes this column, so re-activating it fails the build loudly."
     },
     "historical_condition_winrate_shrunk": {
       "active": true,

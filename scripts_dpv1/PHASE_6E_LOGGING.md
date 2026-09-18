@@ -799,6 +799,61 @@ changed in 2.66% of races):
 Restoring the DB drops any card loaded since. A rollback after new cards are
 loaded should instead revert the code fix (`5344478`) and rebuild features.
 
+### Promotion decision, 2026-09-18 (second): PROMOTED `dpv1.2.3-4track-pacefix`
+
+`dpv1.pkl` is now **`dpv1.2.3-4track-pacefix`**, replacing
+`dpv1.2.2-4track-g4fix` the same day. It is the same configuration with the
+duplicate pace column removed: **94 features**. Evidence is in
+`scripts_dpv1/_pacefix/`, and `PHASE_6D_ROADMAP.md` Gap #2 has the corrected
+side finding.
+
+* **The original premise was wrong.** Gap #2 reported that
+  `pace_pressure_in_race` and `expected_pace_shape` (the same Series under two
+  names) gave the pace shape "double weight". It did not. The L2 fit split one
+  effect evenly across the two copies (identical coefficients, e.g. −0.0374
+  on each `__hot`), and the de-duplicated fit's single coefficient is roughly
+  their sum (−0.0767). Corrected in this session.
+* **What the duplicate really did.** It was cosmetic plus a mild
+  regularization shift. Each displayed coefficient showed half the feature's
+  true size, and the feature carried half its intended L2 penalty. It also
+  used a slot.
+* **Measured vs a control that reproduced live 2.2 bit-for-bit.** Top-pick
+  ITM +0.013pp (p 0.908, 38/36); the top pick changes in 0.88% of races.
+  Fundamental log-loss is **+0.00003, worse** (z +2.64); the blend is
+  unchanged. The Gap #11 table is unchanged, and overall Gap #8 calibration is
+  0.532 → 0.508. The log-loss cost is most likely optimizer termination, not a
+  feature effect: both fits converged in under 100 of 400 iterations, and the
+  de-duplicated fit reached a slightly *lower* training objective.
+* **Why promote a change with no upside and a tiny measured cost.**
+  * **Rebuild-hazard closure.** While the fix lived outside the tree as a
+    patch, whoever applied it without a matching promotion would have dropped
+    the column. `dpv1_runtime._ensure_columns` then fills it with NaN silently
+    and scores every horse as "pace missing" (calibration-only, since the
+    column is constant within a race).
+  * **The record reset was free.** `dpv1.2.2-4track-g4fix` had **zero** logged
+    or scored races.
+* **Not included:** any held `dpv1.5.2` feature or other held work. The
+  feature config moved to `dpv1.5.4` (123 active; `expected_pace_shape` is
+  inactive with a reason). It was numbered 5.4 because `dpv1.5.3` already
+  names the held g4fix research model.
+
+| step | detail |
+|---|---|
+| old model | `dpv1_20260918_124608_retired.pkl` (byte copy; named by its training timestamp, pruner-protected) |
+| new model | `_pacefix/dpv1_pace_cand.pkl`, byte copy; its version string was already `dpv1.2.3-4track-pacefix` |
+| code/config | `_pacefix/pacefix.patch` applied: `pace_bias_features.py`, `dpv1_feature_config.json` |
+| DB backup | `scripts/racing_full.db.pre-pacefix.bak` |
+| feature rebuild | 131 → 130 columns. Versus the backup, only `expected_pace_shape` is gone and every shared column is identical. Identical to the training table `_pacefix/racing_cand.db`. |
+| Piece 4 baseline | `dpv1_fold_predictions.csv` ← `_pacefix/folds_pace_cand.csv`. The 2.2 folds it replaced are in git at `77882cd`. |
+| verification | GP 2026-09-04, scratch log. All 9 races produce output; top picks identical to the 2.2 run; max \|Δ P(ITM)\| 0.003. `pp-reranker-1.0` is applied and `classctx-reranker-0.1` is shadow-only; the pp, Z and W deltas are bit-identical. `logs/predictions.jsonl` is untouched. |
+
+**To roll back to 2.2:** restore the model, the DB **and** the code/config,
+because 2.2 needs the `expected_pace_shape` column.
+
+    copy scripts_dpv1\dpv1_20260918_124608_retired.pkl scripts_dpv1\dpv1.pkl
+    copy scripts\racing_full.db.pre-pacefix.bak scripts\racing_full.db
+    git revert <this promotion's commit>   (restores the builder and config)
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
