@@ -1,0 +1,28 @@
+loading tables...
+  live  316,333 rows x 129 cols
+  train 316,333 rows x 129 cols
+
+-- LIVE vs ARM-B TRAIN: 316,333 shared rows, 129 shared columns
+   OK - identical on every shared cell
+
+-- LIVE vs PRE-REBUILD BACKUP: 222,362 shared rows, 129 shared columns
+   96 of 129 columns changed on 222,362 existing-track rows
+      jockey_at_other_tracks_winrate                  32,728  (14.72%)
+      jockey_at_other_tracks_starts                   32,728  (14.72%)
+      field_avg_career_starts                         31,539  (14.18%)
+      career_starts_vs_field_mean                     31,492  (14.16%)
+      field_experience_variance                       31,287  (14.07%)
+      jockey_at_distance_winrate_shrunk               28,714  (12.91%)
+      career_starts_x_field_variance                  27,549  (12.39%)
+      experience_edge_x_pct_underraced                26,226  (11.79%)
+      trainer_at_other_tracks_winrate                 25,953  (11.67%)
+      trainer_at_other_tracks_starts                  25,953  (11.67%)
+      jockey_at_surface_winrate_shrunk                23,529  (10.58%)
+      trainer_at_distance_winrate_shrunk              21,475  ( 9.66%)
+      jockey_365d_winrate_shrunk                      19,156  ( 8.61%)
+      trainer_at_surface_winrate_shrunk               17,828  ( 8.02%)
+      trainer_365d_winrate_shrunk                     16,942  ( 7.62%)
+
+-- numeric |value| > 1e12 in the live table: none
+
+VERIFY PASS

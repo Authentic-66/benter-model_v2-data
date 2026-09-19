@@ -854,6 +854,154 @@ because 2.2 needs the `expected_pace_shape` column.
     copy scripts\racing_full.db.pre-pacefix.bak scripts\racing_full.db
     git revert <this promotion's commit>   (restores the builder and config)
 
+### Promotion decision, 2026-09-19: PROMOTED `dpv1.3.0-5track`
+
+`dpv1.pkl` is now **`dpv1.3.0-5track`** (trained 2026-09-19T04:03:26Z, 94
+features), replacing `dpv1.2.3-4track-pacefix`. It is Arm B of the Delta Downs
+Stage 4 evaluation, copied byte-for-byte with only `version` rewritten. The
+full evaluation is in `PHASE_6D_ROADMAP.md`, *Delta Downs: fifth training
+track*; the evidence is in `scripts_dpv1/_ded/`.
+
+The minor version moved 2.x → 3.0 because this is the first change to the
+**training corpus shape** since Phase 6C added ELP. Everything before it was a
+fix or a refit at four tracks.
+
+**This promotion bundles four things.** They are separable in principle and
+were not separated, so they are listed explicitly:
+
+1. **The `TRACK_CODES` fix** (`f40d392`) — the hard-coded four-track dict is
+   gone from DPv1. Required for DED to have features at all.
+2. **DED added to the training corpus** — 3,690 races / 29,234 entries loaded,
+   2022+ used for training (23,599 finished rows), validated 2023-2026.
+3. **Three history-only tracks** — EVD, FG, LAD (64,737 entries), in the
+   corpus for prior-race context only. Never trained on, never predicted.
+4. **A full feature-table rebuild** — 222,362 → 316,333 rows.
+
+**Why it was promoted against a failing rule.** Stage 4's Rule 2 required the
+new track to gain in at least 3 of 4 validation years; DED gained in 2. Rule 1
+passed (incumbents unharmed) and Rule 3 removed the specialist alternative.
+The override rests on a measurement the rules did not take: on DED the
+four-track model **under-predicts by 2.34pp on average**, and Arm B cuts that
+to +0.30pp — mean absolute calibration error 2.340 → 0.607, fundamental
+log-loss z −11.51, negative in all four DED years including both years where
+top-pick ITM went the wrong way. The rules grade ranking; the output is
+consumed as a probability. The roadmap carries the full argument, the
+admission that the rules were authored in the same hour as the run they grade,
+and the falsification condition.
+
+**The live record resets, and the reset is free.** `dpv1.2.3-4track-pacefix`
+had **zero** logged predictions and **zero** scored races
+(`logs/scored_predictions.jsonl` holds 66 races for `dpv1.2.0-4track` and 17
+for `dpv1.1.0`, and nothing for 2.2 or 2.3). Piece 3's `model_version` filter
+opens a fresh window automatically. Nothing measured was thrown away.
+
+Procedure, so it can be repeated or reversed:
+
+| step | detail |
+|---|---|
+| DB backup | `scripts/racing_full.db.pre-ded-rebuild.bak` — the four-track feature table and four-track speed figures, plus DED raw rows the old model never reads. See the caveat below. |
+| corpus load | `db_loader.py pipeline` for EVD / FG / LAD against the existing `scripts/ct_cache`. Totals reproduce the experiment load exactly: EVD 2,774 r / 21,373 e, FG 27,246 e, LAD 2,329 r / 16,118 e. Two charts fail to parse (`20230810-usa-evd`, `20250215-usa-fg`, `Non-Ascii85 digit`); they are absent from the experiment DB too, so the two agree. |
+| speed figures | `speed_figures_dpv1.py compute`. Output is line-for-line identical to the experiment run (`_ded/speed_la.log` vs `_ded/speed_live.log`): 41,429 races with distance+surface, 353 par cells (170 fine / 162 coarse / 21 insufficient), 268,427 figures, identical per-track counts. |
+| feature rebuild | `feature_builder_dpv1.py build`, `PYTHONHASHSEED=0`. 316,333 rows × 130 columns, config `dpv1.5.4`. |
+| old model | `dpv1_20260918_180128_retired.pkl` (byte copy; named by its own `trained_at`, so `prune_models` never reaps it) |
+| new model | `_ded/dpv1_armB.pkl` via `_ded/promote_armB.py --apply`, which asserts the 94-feature lists match and that alpha/beta/gamma survive the rewrite |
+| Piece 4 baseline | `dpv1_fold_predictions.csv` ← `_ded/folds_armB.csv` (md5 `d57d6b67…`, 137,908 rows, up from 119,535). The 2.3 folds it replaced are in git at `a7b56f8`. |
+| verification | `_ded/verify_live_rebuild.py` → `_ded/verify_live_rebuild.txt`, plus the two card runs below |
+
+#### Verification
+
+**1. The rebuilt live table reproduces the table Arm B was fitted on, exactly.**
+Compared on natural keys (track, date, race number, program number) rather than
+row ids, so a different load order could not fake a match: **316,333 shared rows
+× 129 shared columns, zero differing cells.** This is the check that matters —
+the model is not being served a table that differs from its training table.
+
+**2. Existing-track movement is confined to what a wider corpus must move.**
+Against the pre-rebuild backup, on the 222,362 pre-existing-track rows,
+**72 of the 94 live model features changed** — independently the same figure
+`_ded/stage275_compare.txt` predicted. By family:
+
+| family | cols | largest mover |
+|---|---|---|
+| connection rates (jockey/trainer) | 28 | `jockey_at_other_tracks_winrate` 14.72% |
+| career / field-experience | 18 | `field_avg_career_starts` 14.18% (not a model feature) |
+| class | 9 | `class_score_change_from_last` 0.74% |
+| speed / pace | 6 | `pace_pressure_in_race` 1.13% |
+| track-keyed | 1 | `track_specialist_flag` 0.78% |
+| other | 34 | `horse_shipping_starts` 2.00% |
+
+One cause explains all of it: four more tracks of history make prior starts
+visible that were not visible before. That widens every pooled jockey/trainer
+denominator (the 7-15% band) and lengthens some horses' known careers, which
+moves the field-relative experience columns. Everything outside those two
+families moves on under 2% of rows. **22 of the 94 model features did not move
+at all.**
+
+**3. No INT64_MIN garbage.** No numeric `|value| > 1e12` anywhere in the live
+table — the standing assertion from the `TRACK_CODES` bug.
+
+**4. GP 2026-09-04 is unchanged in ordering.** New model on the new table vs
+the retired model on the backup DB — a true before/after, not a re-run against
+a table the old model was never trained on. All 9 races produce output;
+**the top pick and the full running order are identical in 9 of 9 races**;
+max |Δ P(ITM)| **2.1pp**. `pp-reranker-1.0` is applied (base ≠ reranked
+P(ITM) on the card) and `classctx-reranker-0.1` is shadow-only, exactly as
+before; neither artifact was touched and neither emitted a load warning.
+`logs/predictions.jsonl` is byte-identical before and after
+(md5 `d3e267e300c6725515b492b48e3a9ea1`).
+
+**5. A DED card runs clean.** No live DED PP file exists, so verification used
+a corpus card, **DED 2026-02-21** (10 races, in `fold_val2026`, so
+out-of-sample for the model). All 10 races produce output at 60-96% feature
+coverage (median ~92%), one race correctly flagged under 60%. `base` equals
+reranked `P(ITM)` throughout, which is right — no PP file, so the PP reranker
+has nothing to apply. The contrast is the point: **the retired model on the
+backup DB produces the "DED is outside that set" note and zero races.**
+
+On results, that card's top pick hit the board in 4 of 10 — below the 62.96%
+validation figure. Ten races is not a measurement and this is recorded so it
+is not later mistaken for one; it is a smoke test that the pipeline runs, and
+nothing more.
+
+#### Caveats recorded with this promotion
+
+* **A backup was overwritten during this work.** An earlier
+  `racing_full.db.pre-ded.bak` (2026-09-18 13:12, the genuine pre-DED-load
+  snapshot) was clobbered by the backup taken for this promotion, which was
+  then renamed `racing_full.db.pre-ded-rebuild.bak` so the name matches the
+  contents. No rollback capability was lost: `pre-pacefix.bak`,
+  `pre-ded2526.bak` and `pre-ded-rebuild.bak` all carry the identical
+  four-track feature table (222,362 rows) and four-track speed figures, which
+  is all `dpv1.2.3` reads. What was lost is provenance, not function.
+* **The rerankers were trained against the *old* fold file.**
+  `dpv1_pp_reranker_train.py` and `dpv1_classctx_reranker_train.py` both read
+  `dpv1_fold_predictions.csv`, which now holds Arm B's 5-track folds. The
+  shipped artifacts are unchanged and still valid, but **any future reranker
+  retrain will sit on a different basis than the current artifacts do.** That
+  is a decision to take deliberately, not to discover.
+* **149 extra empty race rows on FG.** The live load produced 3,653 FG race
+  rows against the experiment DB's 3,504. All 149 extras are QuarterHorse
+  race shells with no entries, NULL `distance_yards` and NULL `final_time`, on
+  15 Aug-Sep 2024 cards. They cannot reach a par cell (the speed calculator
+  requires distance + surface) and cannot produce a feature row (no entries),
+  which the identical speed-figure output and the zero-cell table diff both
+  confirm. Entry counts are equal in both DBs at 316,333.
+
+**To roll back:** restore the model, the fold baseline and the DB. The old
+model must not read the new table — it has no DED coefficients and the
+existing-track features have moved under it.
+
+    copy scripts_dpv1\dpv1_20260918_180128_retired.pkl scripts_dpv1\dpv1.pkl
+    copy scripts\racing_full.db.pre-ded-rebuild.bak scripts\racing_full.db
+    git revert <this promotion's commit>        (restores dpv1_fold_predictions.csv)
+    git revert f40d392                          (restores the TRACK_CODES source)
+
+Restoring the DB drops any card loaded since. A rollback after new cards are
+loaded should instead revert both commits and rebuild features — but note that
+reverting `f40d392` reinstates the hard-coded four-track dict, so DED, EVD, FG
+and LAD must be dropped from the database as well or the builder will silently
+produce the INT64_MIN values again on every non-GP/CT/MNR/ELP row.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
