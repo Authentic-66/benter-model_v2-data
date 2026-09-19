@@ -1,0 +1,94 @@
+validation: 136,959 scored rows, 18,220 races (A,B identical; C = the 2,249 DED races, identical rows)
+
+=== TOP-PICK ITM, B (5-track) vs A (4-track control); first=A second=B ===
+  population                     races     first    second   delta   b01/b10       p
+  GP (primary)                    6876    64.21%    64.37%   +0.16     85/74   0.428
+  CT (primary)                    4738    66.29%    66.57%   +0.27     74/61   0.302
+  MNR (primary)                   3321    65.19%    65.40%   +0.21     67/60   0.595
+  ELP (secondary)                 1036    56.95%    56.85%   -0.10     22/23   1.000
+  DED (primary)                   2249    62.34%    62.96%   +0.62     97/83   0.333
+  POOLED incumbents (4)          15971    64.56%    64.75%   +0.19   248/218   0.179
+  POOLED primary incumbents (3)  14935    65.09%    65.30%   +0.21   226/195   0.144
+  ALL 5 tracks                   18220    64.29%    64.53%   +0.24   345/301   0.091
+
+  incumbents by validation year:
+  incumbents 2023                 4498    64.18%    64.27%   +0.09     87/83   0.818
+  incumbents 2024                 4392    65.62%    65.92%   +0.30     70/57   0.287
+  incumbents 2025                 4389    64.80%    64.94%   +0.14     61/55   0.643
+  incumbents 2026                 2692    63.08%    63.34%   +0.26     30/23   0.410
+
+  delta by track x year (pp):
+  GP (primary)          2023: +0.11  2024: +0.69  2025: -0.31  2026: +0.17
+  CT (primary)          2023: +0.00  2024: +0.16  2025: +1.09  2026: -0.35
+  MNR (primary)         2023: +0.10  2024: +0.20  2025: +0.00  2026: +0.97
+  ELP (secondary)       2023: +0.28  2024: -1.75  2025: -0.88  2026: +1.75
+  DED (primary)         2023: -0.83  2024: +2.33  2025: +1.35  2026: -1.18
+
+  DED by year:
+  DED 2023                         727    61.21%    60.39%   -0.83     27/33   0.519
+  DED 2024                         600    62.67%    65.00%   +2.33     29/15   0.049
+  DED 2025                         667    60.87%    62.22%   +1.35     35/26   0.306
+  DED 2026                         255    68.63%    67.45%   -1.18       6/9   0.607
+
+  DED by race family:
+  DED CLAIMING                     990    59.19%    59.70%   +0.51     47/42   0.672
+  DED MAIDENCLAIMING               427    67.68%    69.09%   +1.41     17/11   0.345
+  DED ALLOWANCE                    377    58.36%    57.56%   -0.80     17/20   0.743
+  DED MAIDENSPECIALWEIGHT          227    66.52%    68.28%   +1.76       7/3   0.344
+  DED STARTER                      158    70.25%    70.89%   +0.63       6/5   1.000
+  DED STAKES                        70    64.29%    65.71%   +1.43       3/2   1.000
+
+=== LOG-LOSS delta B - A (race-clustered z; negative = B better) ===
+  population                            n     fund d      z    blend d      z   AUC A   AUC B
+  GP (primary)                     52,120   -0.00014  -1.61   +0.00001  +1.27  0.6957  0.6960
+  CT (primary)                     35,182   -0.00028  -2.18   +0.00003  +2.73  0.6994  0.6998
+  MNR (primary)                    23,128   -0.00010  -0.54   +0.00001  +0.63  0.6933  0.6934
+  ELP (secondary)                   8,395   +0.00163  +4.31   +0.00009  +2.76  0.6613  0.6585
+  DED (primary)                    18,134   -0.00525 -11.51   -0.00007  -2.00  0.6850  0.6914
+  POOLED incumbents               118,825   -0.00005  -0.67   +0.00002  +3.54  0.6947  0.6948
+  incumbents 2023                  33,891   -0.00020  -1.22   -0.00000  -0.10  0.6925  0.6928
+  incumbents 2024                  32,902   +0.00005  +0.42   +0.00004  +2.95  0.7031  0.7032
+  incumbents 2025                  32,537   -0.00022  -1.86   +0.00001  +1.85  0.6941  0.6945
+  incumbents 2026                  19,495   +0.00034  +2.28   +0.00004  +2.73  0.6852  0.6846
+  DED 2023                          5,873   -0.00109  -1.75   +0.00005  +1.09  0.6758  0.6770
+  DED 2024                          4,865   -0.00582  -7.97   -0.00023  -2.80  0.6948  0.6975
+  DED 2025                          5,425   -0.00859  -8.35   -0.00006  -0.95  0.6878  0.6962
+  DED 2026                          1,971   -0.00701  -4.39   -0.00006  -0.59  0.6997  0.7039
+
+=== C (DED-only specialist) vs B (5-track) on DED; first=B second=C ===
+  population                     races     first    second   delta   b01/b10       p
+  DED all                         2249    62.96%    60.78%   -2.18   177/226   0.017
+  DED 2023                         727    60.39%    57.63%   -2.75    80/100   0.157
+  DED 2024                         600    65.00%    61.83%   -3.17     37/56   0.061
+  DED 2025                         667    62.22%    62.07%   -0.15     51/52   1.000
+  DED 2026                         255    67.45%    63.92%   -3.53      9/18   0.122
+  C vs A on DED: delta -1.56pp p=0.126
+  log-loss C - B on DED: fund +0.01275 (z +8.10) | AUC A 0.6850  B 0.6914  C 0.6789
+
+=== GAP #11 class-direction residual (within-race demeaned y - p_fund, pp) ===
+  incumbents DROPPING     n= 37,001  A +2.67  B +2.60
+  incumbents NO_HISTORY   n= 39,815  A +0.01  B +0.09
+  incumbents RISING       n= 24,952  A -2.60  B -2.61
+  incumbents SAME         n= 17,034  A -2.02  B -2.03
+  DED        DROPPING     n=  6,810  A +3.15  B +3.09
+  DED        NO_HISTORY   n=  3,896  A -0.44  B -0.39
+  DED        RISING       n=  4,637  A -2.49  B -2.49
+  DED        SAME         n=  2,791  A -2.93  B -2.85
+
+=== GAP #8 calibration: weighted mean |cal error| pp (own deciles / fixed 0.1 bins) ===
+  GP    A 0.687/0.674   B 0.781/0.729   mean pred-actual A +0.61 B +0.67
+  CT    A 1.280/1.298   B 1.261/1.293   mean pred-actual A -0.67 B -0.57
+  MNR   A 1.032/0.869   B 1.004/0.815   mean pred-actual A -0.13 B -0.24
+  ELP   A 2.461/2.017   B 2.241/2.008   mean pred-actual A -0.11 B -0.16
+  DED   A 2.340/2.461   B 0.607/0.369   C 2.450/2.441   mean pred-actual A -2.34 B +0.30
+  ALL   A 0.694/0.651   B 0.468/0.564   mean pred-actual A -0.28 B +0.10
+
+=== RULES ===
+Rule 1 (revised): primary >= -0.5pp: True [('GP', np.float64(0.16)), ('CT', np.float64(0.27)), ('MNR', np.float64(0.21))]
+   every incumbent incl. ELP >= -2pp: True (ELP -0.10)
+   pooled incumbents not significantly negative: True (+0.188pp, p=0.179)
+   (context) incumbent deltas by year: [('2023', np.float64(0.09)), ('2024', np.float64(0.3)), ('2025', np.float64(0.14)), ('2026', np.float64(0.26))]; incumbent fund log-loss z -0.67
+   RULE 1 PASS
+Rule 2: DED delta +0.622pp (p=0.333) | positive years 2/4 [('2023', np.float64(-0.83)), ('2024', np.float64(2.33)), ('2025', np.float64(1.35)), ('2026', np.float64(-1.18))] | DED fund log-loss -0.00525 (z -11.51) | DED years below A by >2pp: none
+   RULE 2 FAIL
+Rule 3: C - B on DED -2.179pp (p=0.017), C ahead in 0/4 years -> generalist stands

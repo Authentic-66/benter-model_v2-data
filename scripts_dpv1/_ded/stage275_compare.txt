@@ -1,0 +1,55 @@
+{'DED prev start FILLED by load': 5226, 'DED prev start already in corpus': 15365}
+
+== DED prev start FILLED by load (n=5,226)
+   feature                            null% before null% after  mean before  mean after
+   career_starts                              0.0%        0.0%        3.076      10.145
+   career_wins                                0.0%        0.0%        0.456       1.440
+   last_race_finish_pos                      34.5%        0.5%        4.478       4.872
+   last_race_speed_figure                    42.3%       16.2%       77.066      76.631
+   last_race_days_ago                        33.9%        0.0%      294.338      79.364
+   days_since_last_race                      33.9%        0.0%      294.338      79.364
+   last_3_avg_finish                         34.0%        0.0%        4.368       4.518
+   class_change_from_last                    34.1%        0.1%            -           -
+   class_score_change_from_last              34.1%        0.1%       -3.408      -1.666
+   running_style_last_3                      33.9%        0.0%            -           -
+   early_pace_position_projected             34.0%        0.1%            -           -
+   is_shipping_today                         33.9%        0.0%        0.051       1.000
+   horse_shipping_starts                      0.0%        0.0%        0.041       2.811
+   trainer_365d_winrate_shrunk                0.0%        0.0%        0.127       0.127
+   jockey_365d_winrate_shrunk                 0.0%        0.0%        0.124       0.129
+   trainer_home_track                         2.0%        0.4%            -           -
+   jockey_home_track                          0.8%        0.2%            -           -
+
+== DED prev start already in corpus (n=15,365)
+   feature                            null% before null% after  mean before  mean after
+   career_starts                              0.0%        0.0%        5.127      10.058
+   career_wins                                0.0%        0.0%        0.707       1.315
+   last_race_finish_pos                       0.6%        0.6%        4.446       4.446
+   last_race_speed_figure                    11.1%       11.1%       77.860      77.860
+   last_race_days_ago                         0.0%        0.0%       31.010      31.010
+   days_since_last_race                       0.0%        0.0%       31.010      31.010
+   last_3_avg_finish                          0.2%        0.1%        4.449       4.482
+   class_change_from_last                     0.2%        0.2%            -           -
+   class_score_change_from_last               0.2%        0.2%       -0.087      -0.087
+   running_style_last_3                       0.0%        0.0%            -           -
+   early_pace_position_projected              0.1%        0.1%            -           -
+   is_shipping_today                          0.0%        0.0%        0.006       0.006
+   horse_shipping_starts                      0.0%        0.0%        0.085       2.616
+   trainer_365d_winrate_shrunk                0.0%        0.0%        0.126       0.124
+   jockey_365d_winrate_shrunk                 0.0%        0.0%        0.123       0.125
+   trainer_home_track                         0.2%        0.1%            -           -
+   jockey_home_track                          0.1%        0.1%            -           -
+
+EXISTING-TRACK rows (222,362): live features changed by adding EVD/FG/LAD: 72 of 94; top:
+   jockey_at_other_tracks_starts          24,508 (11.02%)
+   jockey_at_other_tracks_winrate         24,508 (11.02%)
+   trainer_at_other_tracks_starts         24,251 (10.91%)
+   trainer_at_other_tracks_winrate        24,251 (10.91%)
+   jockey_at_distance_winrate_shrunk      21,829 (9.82%)
+   trainer_at_distance_winrate_shrunk     20,448 (9.20%)
+   jockey_at_surface_winrate_shrunk       17,550 (7.89%)
+   trainer_at_surface_winrate_shrunk      16,902 (7.60%)
+   jockey_365d_winrate_shrunk             15,795 (7.10%)
+   trainer_365d_winrate_shrunk            15,648 (7.04%)
+
+no garbage: numeric |value|>1e12 in new table: none

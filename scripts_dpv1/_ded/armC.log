@@ -1,0 +1,10 @@
+2026-09-18 23:02:19,402 [INFO] arm dpv1.2.4-dedonly-armC: 94 features, tracks=DED train_tracks=DED
+2026-09-18 23:02:35,708 [INFO] corpus=['DED']  train_on=['DED']
+2026-09-18 23:02:35,749 [INFO] best combo from grid: half_life=2.50y l2=0.001
+2026-09-18 23:02:37,343 [INFO]   fold_val2023: n=5946 alpha=-0.0361 beta=0.8019 gamma=-0.1137
+2026-09-18 23:02:40,866 [INFO]   fold_val2024: n=4944 alpha=0.1040 beta=0.7258 gamma=-0.0712
+2026-09-18 23:02:42,776 [INFO]   fold_val2025: n=5484 alpha=0.0294 beta=0.7566 gamma=-0.0992
+2026-09-18 23:02:45,369 [INFO]   fold_val2026: n=1999 alpha=0.0519 beta=0.7728 gamma=-0.0739
+2026-09-18 23:02:45,652 [INFO] wrote _ded/folds_armC.csv (18373 val entries)
+2026-09-18 23:02:48,467 [INFO] wrote _ded/dpv1_armC.pkl
+2026-09-18 23:02:48,467 [INFO] blend: alpha=0.1503 beta=0.7212 gamma=-0.0520

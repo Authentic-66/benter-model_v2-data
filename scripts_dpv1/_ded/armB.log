@@ -1,0 +1,10 @@
+2026-09-18 23:02:19,400 [INFO] arm dpv1.2.4-5track-armB: 94 features, tracks=GP,CT,MNR,ELP,DED train_tracks=GP,CT,MNR,ELP,DED
+2026-09-18 23:02:36,718 [INFO] corpus=['GP', 'CT', 'MNR', 'ELP', 'DED']  train_on=['GP', 'CT', 'MNR', 'ELP', 'DED']
+2026-09-18 23:02:36,738 [INFO] best combo from grid: half_life=2.50y l2=0.001
+2026-09-18 23:02:42,873 [INFO]   fold_val2023: n=40034 alpha=0.0790 beta=0.8010 gamma=-0.0494
+2026-09-18 23:02:50,866 [INFO]   fold_val2024: n=38050 alpha=0.1324 beta=0.7630 gamma=-0.0391
+2026-09-18 23:02:59,893 [INFO]   fold_val2025: n=38199 alpha=0.0696 beta=0.7811 gamma=-0.0531
+2026-09-18 23:03:12,028 [INFO]   fold_val2026: n=21625 alpha=0.0773 beta=0.7532 gamma=-0.0558
+2026-09-18 23:03:13,480 [INFO] wrote _ded/folds_armB.csv (137908 val entries)
+2026-09-18 23:03:26,045 [INFO] wrote _ded/dpv1_armB.pkl
+2026-09-18 23:03:26,045 [INFO] blend: alpha=0.1018 beta=0.7709 gamma=-0.0447

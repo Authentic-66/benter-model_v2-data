@@ -45,16 +45,25 @@ DEFAULT_CONFIG = DPV1_DIR / "dpv1_feature_config.json"
 FEATURES_TABLE = "entry_features_dpv1"
 SPEED_TABLE = "computed_speed_figures_dpv1"
 
-# Track ids, per Phase 4A load. ELP added in Phase 6B (1,540 races, 2021-2026)
-# and folded into the training corpus in Phase 6C.
+# Track ids come from the database, never from a hard-coded dict.
+#
+# This used to be ``TRACK_CODES = {1: "GP", 2: "CT", 3: "MNR", 4: "ELP"}``.
+# When Delta Downs was loaded as track 5 (2026-09-18), every track-keyed
+# feature silently failed on it: ``track_code``, ``*_at_other_tracks_*`` and
+# ``track_specialist_flag`` came out 100% NULL, ``*_home_track`` 85% NULL, and
+# ``starts_at_track`` / ``wins_at_track`` came out as INT64_MIN (a NaN cast to
+# int64). Any track loaded by ``db_loader.get_or_create_track`` is now picked
+# up automatically, whether or not it is in the training config.
 #
 # ``track_code`` is a one-hot categorical and the preprocessor is fitted with
 # ``handle_unknown="ignore"``, so a track the model was not trained on lands as
 # all-zeros across the block rather than raising — it is scored as a track with
-# no coefficient. Through Phase 6B that applied to ELP; it now applies to any
-# fifth track (CD, IND, KDW…) loaded but not retrained on. The limitation is
-# real, not a bug, and is reported at prediction time rather than hidden.
-TRACK_CODES = {1: "GP", 2: "CT", 3: "MNR", 4: "ELP"}
+# no coefficient. That limitation is real, not a bug, and is reported at
+# prediction time (``card_picks`` prints the model's training tracks).
+def load_track_codes(conn) -> dict[int, str]:
+    """``{track_id: code}`` for every row in the ``tracks`` table."""
+    return {int(i): str(c) for i, c in
+            conn.execute("SELECT id, code FROM tracks ORDER BY id")}
 
 
 # ---------------------------------------------------------------------------

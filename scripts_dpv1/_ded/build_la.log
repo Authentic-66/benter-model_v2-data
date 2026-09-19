@@ -1,0 +1,27 @@
+2026-09-18 21:58:51,144 [INFO] Loading entries across all loaded tracks…
+2026-09-18 21:58:56,534 [INFO]   316333 entries; by track: {'GP': 118104, 'CT': 55493, 'MNR': 37080, 'DED': 29234, 'FG': 27246, 'EVD': 21373, 'LAD': 16118, 'ELP': 11685}
+2026-09-18 21:58:56,534 [INFO] Deriving row-local columns…
+2026-09-18 21:59:04,392 [INFO]   detecting trouble in trip comments…
+2026-09-18 21:59:05,576 [INFO] Config dpv1.5.4 — 123 active features
+2026-09-18 21:59:05,576 [INFO] Building prior-race context…
+2026-09-18 21:59:09,966 [INFO]   prior-race lookup in 4.4s
+2026-09-18 21:59:09,966 [INFO] Building career counts…
+2026-09-18 22:00:13,773 [INFO]   [dpv1 aggregates] 39 cols in 62.7s
+2026-09-18 22:00:13,817 [INFO]   [dpv1 class_change] 5 cols in 0.0s
+2026-09-18 22:00:18,812 [INFO]   [dpv1 class_change/trainer] 4 cols in 5.0s
+2026-09-18 22:00:24,206 [INFO]   [dpv1 class_context] 11 cols in 5.4s
+2026-09-18 22:00:29,620 [INFO]   [dpv1 recent_form] 6 cols in 5.4s
+2026-09-18 22:00:37,372 [INFO]   [dpv1 cross_track] 11 cols in 7.8s
+2026-09-18 22:00:43,982 [INFO]   [dpv1 pace_bias] 7 cols in 6.6s
+2026-09-18 22:00:44,141 [INFO]   [dpv1 pedigree] 0 cols in 0.2s
+2026-09-18 22:00:44,362 [INFO]   [dpv1 equipment] 6 cols in 0.2s
+2026-09-18 22:00:49,230 [INFO]   [dpv1 field_experience] 13 cols in 4.9s
+2026-09-18 22:00:50,422 [INFO]   [dpv1 extras] 4 cols in 1.2s
+2026-09-18 22:00:50,437 [INFO]   [v1 bucket 1] 8 cols in 0.0s
+2026-09-18 22:00:53,355 [INFO]   [v1 bucket 6] 7 cols in 2.9s
+2026-09-18 22:00:53,355 [INFO]   [v1 bucket 7] 4 cols in 0.0s
+2026-09-18 22:00:53,355 [INFO] Merging 14 frames…
+2026-09-18 22:00:53,402 [INFO]     superseded by an earlier frame: ['gate_break_avg_last_3', 'surface_change_from_last_race']
+2026-09-18 22:00:53,402 [INFO] Final frame: 316333 rows x 130 columns
+2026-09-18 22:00:53,469 [INFO] Writing entry_features_dpv1 (drop-and-replace)…
+2026-09-18 22:01:04,663 [INFO] done — 316333 rows to entry_features_dpv1 in 133.5s

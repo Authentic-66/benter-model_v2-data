@@ -1,0 +1,14 @@
+2026-09-18 18:40:23,155 [INFO] Loading race times…
+2026-09-18 18:40:23,331 [INFO]   32973 races with a distance + surface
+2026-09-18 18:40:23,363 [INFO]   222 (track, surf, dist, cond) par cells
+2026-09-18 18:40:23,363 [INFO]     fine         116 cells
+2026-09-18 18:40:23,363 [INFO]     coarse       92 cells
+2026-09-18 18:40:23,363 [INFO]     insufficient 14 cells
+2026-09-18 18:40:24,321 [INFO] Scoring 251596 entries…
+2026-09-18 18:40:24,738 [INFO]   213685 with a figure (84.9%)
+2026-09-18 18:40:24,777 [INFO]     track 1: 100276/118104 (84.9%)
+2026-09-18 18:40:24,777 [INFO]     track 2: 47534/55493 (85.7%)
+2026-09-18 18:40:24,778 [INFO]     track 3: 30677/37080 (82.7%)
+2026-09-18 18:40:24,778 [INFO]     track 4: 10006/11685 (85.6%)
+2026-09-18 18:40:24,778 [INFO]     track 5: 25192/29234 (86.2%)
+2026-09-18 18:40:26,500 [INFO] Wrote 251596 rows to computed_speed_figures_dpv1

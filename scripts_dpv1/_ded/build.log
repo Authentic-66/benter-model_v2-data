@@ -1,0 +1,31 @@
+2026-09-18 18:40:27,483 [INFO] Loading entries across GP + CT + MNR…
+2026-09-18 18:40:31,695 [INFO]   251596 entries; by track: {'GP': 118104, 'CT': 55493, 'MNR': 37080, 'ELP': 11685}
+2026-09-18 18:40:31,695 [INFO] Deriving row-local columns…
+2026-09-18 18:40:37,826 [INFO]   detecting trouble in trip comments…
+2026-09-18 18:40:38,776 [INFO] Config dpv1.5.4 — 123 active features
+2026-09-18 18:40:38,776 [INFO] Building prior-race context…
+2026-09-18 18:40:42,118 [INFO]   prior-race lookup in 3.3s
+2026-09-18 18:40:42,118 [INFO] Building career counts…
+D:\Benter Model_v2 Data\benter-model_v2-data\scripts_dpv1\new_features\aggregate_features.py:241: RuntimeWarning: invalid value encountered in cast
+  counts, raw["track_id"], "horse_starts_t{t}").astype("int64")
+D:\Benter Model_v2 Data\benter-model_v2-data\scripts_dpv1\new_features\aggregate_features.py:244: RuntimeWarning: invalid value encountered in cast
+  counts, raw["track_id"], "horse_wins_t{t}").astype("int64")
+2026-09-18 18:41:33,181 [INFO]   [dpv1 aggregates] 39 cols in 50.2s
+2026-09-18 18:41:33,213 [INFO]   [dpv1 class_change] 5 cols in 0.0s
+2026-09-18 18:41:37,035 [INFO]   [dpv1 class_change/trainer] 4 cols in 3.8s
+2026-09-18 18:41:40,931 [INFO]   [dpv1 class_context] 11 cols in 3.9s
+2026-09-18 18:41:45,024 [INFO]   [dpv1 recent_form] 6 cols in 4.1s
+2026-09-18 18:41:49,508 [INFO]   [dpv1 cross_track] 11 cols in 4.5s
+2026-09-18 18:41:54,674 [INFO]   [dpv1 pace_bias] 7 cols in 5.2s
+2026-09-18 18:41:54,782 [INFO]   [dpv1 pedigree] 0 cols in 0.1s
+2026-09-18 18:41:54,958 [INFO]   [dpv1 equipment] 6 cols in 0.2s
+2026-09-18 18:41:58,734 [INFO]   [dpv1 field_experience] 13 cols in 3.8s
+2026-09-18 18:41:59,678 [INFO]   [dpv1 extras] 4 cols in 0.9s
+2026-09-18 18:41:59,694 [INFO]   [v1 bucket 1] 8 cols in 0.0s
+2026-09-18 18:42:01,909 [INFO]   [v1 bucket 6] 7 cols in 2.2s
+2026-09-18 18:42:01,919 [INFO]   [v1 bucket 7] 4 cols in 0.0s
+2026-09-18 18:42:01,919 [INFO] Merging 14 frames…
+2026-09-18 18:42:01,956 [INFO]     superseded by an earlier frame: ['gate_break_avg_last_3', 'surface_change_from_last_race']
+2026-09-18 18:42:01,962 [INFO] Final frame: 251596 rows x 130 columns
+2026-09-18 18:42:02,007 [INFO] Writing entry_features_dpv1 (drop-and-replace)…
+2026-09-18 18:42:10,931 [INFO] done — 251596 rows to entry_features_dpv1 in 103.4s

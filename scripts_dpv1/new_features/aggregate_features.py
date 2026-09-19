@@ -235,13 +235,17 @@ def compute_track_specific(raw: pd.DataFrame, ctx: dict, cfg: dict,
         out["track_distance_par_time_sec"] = raw["par_time_sec_own"].to_numpy()
 
     if {"starts_at_track", "wins_at_track"} & active:
+        # Nullable Int64, not int64: a plain .astype("int64") turns a NaN
+        # into INT64_MIN (-9.22e18) without complaint, which is what every
+        # Delta Downs row got while the track list was hard-coded. A missing
+        # count must stay NULL.
         counts = _per_track_prior_counts(raw, "horse_id", "horse")
         if "starts_at_track" in active:
-            out["starts_at_track"] = _pick_by_track(
-                counts, raw["track_id"], "horse_starts_t{t}").astype("int64")
+            out["starts_at_track"] = pd.array(_pick_by_track(
+                counts, raw["track_id"], "horse_starts_t{t}"), dtype="Float64").astype("Int64")
         if "wins_at_track" in active:
-            out["wins_at_track"] = _pick_by_track(
-                counts, raw["track_id"], "horse_wins_t{t}").astype("int64")
+            out["wins_at_track"] = pd.array(_pick_by_track(
+                counts, raw["track_id"], "horse_wins_t{t}"), dtype="Float64").astype("Int64")
 
     for ctx_col, name in (("surface", "historical_surface_winrate_shrunk"),
                           ("track_condition",

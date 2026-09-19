@@ -48,7 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent / "new_features"))
 
 from dpv1_common import (  # noqa: E402
-    DEFAULT_CONFIG, DEFAULT_DB, FEATURES_TABLE, SPEED_TABLE, TRACK_CODES,
+    DEFAULT_CONFIG, DEFAULT_DB, FEATURES_TABLE, SPEED_TABLE, load_track_codes,
     class_score_vec, dist_bucket_vec, distance_change_bucket_vec,
     early_pace_position, pace_progression, style_from_position,
     _prior_last_value, _prior_by_entity_expanding,
@@ -70,8 +70,8 @@ log = logging.getLogger("feature_builder_dpv1")
 # ---------------------------------------------------------------------------
 
 def load_raw(conn: sqlite3.Connection) -> pd.DataFrame:
-    """Entry-grain frame across all three tracks."""
-    log.info("Loading entries across GP + CT + MNR…")
+    """Entry-grain frame across every track in the database."""
+    log.info("Loading entries across all loaded tracks…")
     df = pd.read_sql_query(
         f"""
         SELECT
@@ -127,7 +127,13 @@ def load_raw(conn: sqlite3.Connection) -> pd.DataFrame:
     df["race_date_dt"] = pd.to_datetime(df["race_date"])
     df["is_win"] = (df["finish_pos"] == 1).astype("float64")
     df["is_itm"] = (df["finish_pos"].fillna(999) <= 3).astype("float64")
-    df["track_code"] = df["track_id"].map(TRACK_CODES)
+    codes = load_track_codes(conn)
+    df["track_code"] = df["track_id"].map(codes)
+    unmapped = df["track_code"].isna()
+    if unmapped.any():
+        raise RuntimeError(
+            f"{int(unmapped.sum())} entries have a track_id with no row in "
+            f"`tracks`: {sorted(df.loc[unmapped, 'track_id'].unique())}")
     log.info("  %d entries; by track: %s", len(df),
              df["track_code"].value_counts().to_dict())
     return df

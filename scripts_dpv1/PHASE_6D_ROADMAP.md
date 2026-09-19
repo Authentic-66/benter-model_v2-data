@@ -5031,3 +5031,258 @@ further limits belong with it:
   On live races after 2026-09-01 this does not apply, and it is the reason
   the live accumulation is worth waiting for rather than substituting the
   fold estimate.
+
+---
+
+## Delta Downs: fifth training track (2026-09-18)
+
+Delta Downs (DED) was loaded, audited, and tested as a fifth training track
+against a matched four-track control. The evidence lives in
+`scripts_dpv1/_ded/`. This section records the infrastructure work, the
+decision rules **as they actually existed at evaluation time**, the Stage 4
+result, and a calibration finding the rules did not measure.
+
+### Infrastructure
+
+**The corpus.** DED result charts parsed and loaded for 2021-01-04 through
+2026-02-21: 3,690 races, 29,234 entries, 28,860 with a recorded finish. The
+training corpus is filtered to 2022+, which is 23,599 finished DED rows
+against 151,950 for the four existing tracks. Validation folds are 2023-2026,
+2,249 DED races.
+
+**The `TRACK_CODES` bug — the reason Stage 2 had to be redone.** `dpv1_common`
+carried a hard-coded `TRACK_CODES = {1: "GP", 2: "CT", 3: "MNR", 4: "ELP"}`,
+and `cross_track_features` derived a module-level `TRACK_IDS` from it. DED
+loaded as track 5, outside both. The failure was silent and total on the new
+track:
+
+| column | what DED got |
+|---|---|
+| `track_code` | 100% NULL (a `.map()` of an absent key) |
+| `jockey_at_other_tracks_*`, `trainer_at_other_tracks_*` | 100% NULL — no `t5` column was ever created |
+| `track_specialist_flag` | 100% NULL |
+| `trainer_home_track` / `jockey_home_track` | 86.1% / 84.9% NULL |
+| `starts_at_track`, `wins_at_track` | **INT64_MIN** (−9.22e18) — a NaN through `.astype("int64")` |
+
+The last row is the dangerous one. The other columns went NULL, which the
+null-rate audit in `_ded/stage2.txt` catches on sight. `.astype("int64")` on a
+NaN does not raise and does not warn; it produces a finite, enormous,
+plausible-looking integer that flows into the model as a real count. Nothing
+downstream would have flagged it.
+
+Fixed in four files, committed ahead of this evaluation:
+
+* `dpv1_common.py` — `TRACK_CODES` replaced by `load_track_codes(conn)`, which
+  reads the `tracks` table. There is no hard-coded track list left in DPv1.
+* `feature_builder_dpv1.py` — maps `track_code` from the database and **raises**
+  on any `track_id` with no `tracks` row, so the 100%-NULL mode cannot recur
+  quietly.
+* `cross_track_features.py` — per-track ids derived from the frame;
+  `_home_track` takes an explicit `{id: code}` map.
+* `aggregate_features.py` — `starts_at_track` / `wins_at_track` are nullable
+  `Int64`, so a missing count stays NULL instead of becoming INT64_MIN.
+
+`scripts/feature_builder.py` is untouched, consistent with the 2026-09-18
+decision that it is formally superseded for DPv1.
+
+**History-only tracks.** DED's field is heavily Louisiana-circuit, so a DED
+starter's prior form frequently ran at a track the corpus did not contain.
+Evangeline Downs, Fair Grounds and Louisiana Downs were loaded as
+**history-only** — present in the corpus for prior-race context, never trained
+on and never predicted:
+
+| track | races | entries | span |
+|---|---|---|---|
+| EVD | 2,774 | 21,373 | 2022-04-06 .. 2026-06-25 |
+| FG | 3,504 | 27,246 | 2021-11-25 .. 2026-03-22 |
+| LAD | 2,329 | 16,118 | 2022-05-07 .. 2026-09-16 |
+
+Two charts failed to parse (`20230810-usa-evd`, `20250215-usa-fg`, both
+`Non-Ascii85 digit found`). They are absent from the experiment DB and from
+live, so the two agree; they are not silently different.
+
+What the history load actually bought, from `_ded/stage275_compare.txt`:
+
+* **5,226 DED rows gained a prior start they did not have.** On those rows
+  `last_race_days_ago` went 33.9% NULL → 0.0% and its mean fell 294 → 79 days;
+  `last_race_finish_pos` 34.5% → 0.5% NULL; `career_starts` mean 3.08 → 10.15.
+  Those rows were not first-time starters — they were shippers whose record
+  was invisible.
+* **15,365 DED rows already had their prior start in the corpus** and were
+  largely unmoved, which is the control that says the fill is real.
+* **Existing-track rows moved too**, which is expected and was checked:
+  72 of 94 live features changed on some rows out of 222,362, concentrated in
+  pooled connection rates — `jockey_at_other_tracks_*` 11.02%,
+  `trainer_at_other_tracks_*` 10.91%, `*_at_distance_winrate_shrunk` ~9-10%,
+  `*_365d_winrate_shrunk` ~7%. Adding tracks widens the denominator on every
+  pooled jockey/trainer statistic. No numeric `|value| > 1e12` anywhere in the
+  new table — the INT64_MIN check, kept as a standing assertion.
+
+**Feature table.** Rebuilt across all eight loaded tracks: 316,333 rows ×
+130 columns, config `dpv1.5.4` (123 active). The live model reads 94 of them.
+
+### Stage 4: the arms
+
+Four training runs on `_ded/racing_ded.db`, live's 94 fundamental features
+pinned by `_ded/train_arm.py` (it asserts every live feature is present and
+fits exactly that list, so no arm can quietly gain or lose a column).
+`<tracks>` sets the corpus loaded and validated; `<train_tracks>` restricts
+only what is fitted, which is the Phase 6C design and is what makes the
+validation rows identical across arms.
+
+| arm | trained on | purpose |
+|---|---|---|
+| **A** | GP, CT, MNR, ELP | four-track control |
+| **B** | GP, CT, MNR, ELP, DED | the candidate |
+| **C** | DED only | is a specialist better than a generalist on DED? |
+| **A2** | = A | determinism re-run |
+
+All four validate on the same 136,959 rows / 18,220 races. A and B are
+row-identical by construction; C covers the 2,249 DED races.
+
+**A2 reproduced A exactly**: `folds_armA2.csv` is byte-identical to
+`folds_armA.csv` (md5 `baadd611c006c01212fc5c387c8941f9`). The `.pkl` files
+differ only in an embedded timestamp. `PYTHONHASHSEED=0`, and the
+`running_style_last_3` set-iteration fix (`d317f76`) is in place.
+
+### The decision rules, and an honest note about them
+
+The three rules are reproduced below as they ran. **They were not committed
+before the evaluation.** They live in `_ded/eval_stage4.py`, which was written
+in the same session and in the same hour as the run it judges, and Rule 1
+carries the label `Rule 1 (revised)` — it was changed late in that session.
+The reasoning for the revision was not written down and is not recoverable.
+
+This is a real weakness and it is recorded rather than smoothed over. A rule
+authored next to the numbers it grades is not a pre-registration; it is a
+summary with a pass/fail header. The rules below are still useful — they are
+specific, they bind, and one of them fails — but they carry less evidential
+weight than the same rules committed a day earlier would have, and **Rule 1's
+thresholds in particular should be read as descriptive.** Future track
+additions should commit the rule file before the arms are trained; the
+`_ded/train_arm.py` / `_ded/eval_stage4.py` split makes that easy, because the
+evaluator never needs the arms to exist in order to be written.
+
+> **Rule 1 (revised) — do not damage the incumbents.** Each primary incumbent
+> (GP, CT, MNR) at ≥ −0.5pp top-pick ITM vs control; every incumbent including
+> ELP at ≥ −2pp; pooled incumbents not significantly negative.
+>
+> **Rule 2 — the new track must actually gain.** DED delta ≥ 0, positive in
+> **at least 3 of 4** validation years, and DED fundamental log-loss improved.
+>
+> **Rule 3 — does a specialist beat the generalist?** Reopen a DED-only model
+> only if C − B on DED exceeds +1pp with p < 0.05 and C leads in ≥ 3 of 4 years.
+
+### Stage 4: results
+
+**Rule 1 — PASS.** Adding DED does not cost the incumbents anything; if
+anything it helps slightly.
+
+| population | races | A (4-track) | B (5-track) | delta | p |
+|---|---|---|---|---|---|
+| GP | 6,876 | 64.21% | 64.37% | +0.16 | 0.428 |
+| CT | 4,738 | 66.29% | 66.57% | +0.27 | 0.302 |
+| MNR | 3,321 | 65.19% | 65.40% | +0.21 | 0.595 |
+| ELP | 1,036 | 56.95% | 56.85% | −0.10 | 1.000 |
+| pooled incumbents | 15,971 | 64.56% | 64.75% | +0.19 | 0.179 |
+| all five tracks | 18,220 | 64.29% | 64.53% | +0.24 | 0.091 |
+
+Positive in all four validation years (2023 +0.09, 2024 +0.30, 2025 +0.14,
+2026 +0.26). Incumbent fundamental log-loss z −0.67. Separately, B was checked
+against the **live** `dpv1.2.3-4track-pacefix` on the old four-track table
+(`_ded/eval_vs_live.txt`): +0.10pp pooled, p 0.577 — B is not quietly worse
+than what is actually deployed, which the A-vs-B comparison alone would not
+establish.
+
+**Rule 2 — FAIL.** DED top-pick ITM is +0.62pp (62.34% → 62.96%, p 0.333,
+97/83 discordant races) and DED fundamental log-loss improves sharply. But the
+year test fails: **2 of 4 positive**, needing 3.
+
+| DED year | races | A | B | delta | p |
+|---|---|---|---|---|---|
+| 2023 | 727 | 61.21% | 60.39% | **−0.83** | 0.519 |
+| 2024 | 600 | 62.67% | 65.00% | +2.33 | 0.049 |
+| 2025 | 667 | 60.87% | 62.22% | +1.35 | 0.306 |
+| 2026 | 255 | 68.63% | 67.45% | **−1.18** | 0.607 |
+
+No year is below control by more than 2pp, and the two negative years are the
+smallest-n and the least significant of the four — but the rule as written is
+a count, and the count is 2. **Rule 2 fails.**
+
+**Rule 3 — generalist stands.** The DED-only specialist is *worse on its own
+track* than the generalist: C − B = **−2.18pp** (p 0.017), behind in all four
+years, fundamental log-loss +0.01275 (z +8.10), AUC 0.6789 vs B's 0.6914. C is
+also behind the four-track control A (−1.56pp, p 0.126) — a model trained only
+on DED loses to a model that has never seen DED. 23,599 DED training rows are
+not enough to learn what ~175,000 rows across five tracks transfer for free.
+**No specialist. The generalist stands, and the transfer direction is the
+finding.**
+
+### What the rules did not measure: DED calibration
+
+The rules grade ranking (top-pick ITM) and one pooled log-loss sign. They do
+not grade calibration. On DED, calibration is where nearly all of the movement
+actually is:
+
+| DED, Gap #8 metric | A (4-track) | B (5-track) |
+|---|---|---|
+| mean predicted − actual | **−2.34pp** | **+0.30pp** |
+| weighted mean abs. calibration error (own deciles) | 2.340 | **0.607** |
+| same, fixed 0.1 bins | 2.461 | **0.369** |
+| fundamental log-loss delta B − A | — | **−0.00525 (z −11.51)** |
+| AUC | 0.6850 | 0.6914 |
+
+The four-track model was under-predicting DED horses by **2.34 percentage
+points on average** — a systematic bias, not noise. Arm B removes essentially
+all of it. The log-loss improvement is negative in all four DED years
+(z −1.75, −7.97, −8.35, −4.39), including both years where top-pick ITM went
+the wrong way. That is the signature of a calibration gain that ranking cannot
+see: the ordering barely moves, the numbers attached to the ordering get much
+closer to right.
+
+Incumbent calibration is not harmed overall (all-track mean abs. error
+0.694 → 0.468 own-deciles), though it is mildly worse on GP (0.687 → 0.781)
+and mildly better on CT, MNR and ELP.
+
+The Gap #11 class-direction residual table is essentially unchanged between A
+and B on both incumbents and DED (e.g. DED DROPPING +3.15 → +3.09), so B is
+not achieving this by disturbing the class-direction structure.
+
+### Decision: promote Arm B, against Rule 2
+
+**`dpv1.3.0-5track` is promoted**, and Rule 2's failure is overridden
+deliberately. The reasoning, stated so it can be argued with later:
+
+1. **The rule measured the wrong quantity for how these numbers get used.**
+   Rule 2 is a ranking test. The model's output is consumed as P(ITM) — a
+   probability, used in EV-shaped reasoning, not only as an ordering. A
+   −2.34pp systematic bias on every DED horse is a defect in the thing being
+   consumed, and Rule 2 is blind to it by construction. Overriding a rule
+   because the result is disappointing would be indefensible; overriding it
+   because it does not measure the output's actual use is a different claim,
+   and it is the one being made here.
+2. **The evidence that survives is the stronger kind.** The year-count test
+   fails on 255- and 727-race slices with p 0.607 and 0.519 — it is being
+   decided by noise. The calibration and log-loss results are z −11.51 pooled
+   and negative in 4 of 4 years. Where the two disagree, the low-variance
+   measurement is the one to believe.
+3. **Rule 1 passes on its own terms and against live.** Nothing is being traded
+   away. The incumbents are flat-to-slightly-better both against the control
+   and against the deployed model.
+4. **Rule 3 removes the alternative.** There is no specialist option to fall
+   back to — a DED-only model is materially worse on DED.
+5. **The rule itself is weakly held.** Rules authored in the same hour as the
+   run they grade cannot be leaned on as hard as committed ones. That cuts
+   against treating Rule 2's failure as decisive, and it cuts equally against
+   treating this override as cost-free. Both are recorded.
+
+**What would falsify this.** The claim is that DED calibration improves in a
+way that matters and DED ranking is roughly neutral. If live DED cards show
+top-pick ITM running below the four-track control's ~62.3%, or if realised
+P(ITM) on DED continues to sit above predicted, this decision was wrong and
+the promotion should be reverted — not re-argued. Per Phase 6E, the promotion
+resets the live record, so that measurement starts clean.
+
+**What is explicitly not included:** none of the 24 held `dpv1.5.2` features,
+no reranker change (`pp-reranker-1.0` applied, `classctx-reranker-0.1`
+shadow-only, both artifacts untouched), and no change under `scripts/`.

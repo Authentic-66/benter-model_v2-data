@@ -38,10 +38,17 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from dpv1_common import (  # noqa: E402
-    TRACK_CODES, shrink_rate_vec, _prior_by_entity_expanding,
+    shrink_rate_vec, _prior_by_entity_expanding,
 )
 
-TRACK_IDS = sorted(TRACK_CODES)
+
+def _track_ids(raw: pd.DataFrame) -> list[int]:
+    """Every track id present in the frame, not a hard-coded list.
+
+    A module-level ``TRACK_IDS = sorted(TRACK_CODES)`` used to live here, so a
+    track outside the four hard-coded ones got no per-track columns at all.
+    """
+    return sorted(int(t) for t in pd.unique(raw["track_id"].dropna()))
 
 
 def _per_track_prior_counts(raw: pd.DataFrame, entity_col: str,
@@ -56,7 +63,8 @@ def _per_track_prior_counts(raw: pd.DataFrame, entity_col: str,
                  "track_id"]].copy()
     local["one"] = 1.0
     value_cols = ["one", "is_win"]
-    for t in TRACK_IDS:
+    track_ids = _track_ids(raw)
+    for t in track_ids:
         at_t = (local["track_id"] == t).astype(float)
         local[f"s_t{t}"] = at_t
         local[f"w_t{t}"] = at_t * local["is_win"].astype(float)
@@ -70,7 +78,7 @@ def _per_track_prior_counts(raw: pd.DataFrame, entity_col: str,
     out = pd.DataFrame({"entry_id": raw["entry_id"]})
     out[f"{prefix}_starts_all"] = rolled["x_one"].to_numpy()
     out[f"{prefix}_wins_all"] = rolled["x_is_win"].to_numpy()
-    for t in TRACK_IDS:
+    for t in track_ids:
         out[f"{prefix}_starts_t{t}"] = rolled[f"x_s_t{t}"].to_numpy()
         out[f"{prefix}_wins_t{t}"] = rolled[f"x_w_t{t}"].to_numpy()
     return out
@@ -81,19 +89,25 @@ def _pick_by_track(counts: pd.DataFrame, track_id: pd.Series,
     """Select ``pattern.format(t)`` column per row according to track_id."""
     result = np.full(len(counts), np.nan)
     tid = track_id.to_numpy()
-    for t in TRACK_IDS:
+    for t in sorted(int(x) for x in pd.unique(track_id.dropna())):
         mask = tid == t
         result[mask] = counts.loc[mask, pattern.format(t=t)].to_numpy()
     return result
 
 
-def _home_track(counts: pd.DataFrame, prefix: str) -> pd.Series:
-    """Track code with the most prior starts. NULL before any prior start."""
-    cols = [f"{prefix}_starts_t{t}" for t in TRACK_IDS]
+def _home_track(counts: pd.DataFrame, prefix: str,
+                track_codes: dict[int, str]) -> pd.Series:
+    """Track code with the most prior starts. NULL before any prior start.
+
+    ``track_codes`` maps every track id in the frame to its code; ties go to
+    the lowest track id, as before.
+    """
+    track_ids = sorted(track_codes)
+    cols = [f"{prefix}_starts_t{t}" for t in track_ids]
     mat = counts[cols].to_numpy()
     total = mat.sum(axis=1)
     idx = mat.argmax(axis=1)
-    codes = np.array([TRACK_CODES[t] for t in TRACK_IDS], dtype=object)
+    codes = np.array([track_codes[t] for t in track_ids], dtype=object)
     home = codes[idx]
     return pd.Series(np.where(total > 0, home, None), index=counts.index,
                      dtype="object")
@@ -132,7 +146,10 @@ def compute_connection_cross_track(
         out[f"{role}_at_other_tracks_starts"] = other_starts
 
     if wanted & {f"{role}_home_track", f"is_at_{role}_home_track"} & active:
-        home = _home_track(counts, role)
+        pairs = raw[["track_id", "track_code"]].dropna().drop_duplicates()
+        home = _home_track(counts, role,
+                           dict(zip(pairs["track_id"].astype(int),
+                                    pairs["track_code"])))
         if f"{role}_home_track" in active:
             out[f"{role}_home_track"] = home
         if f"is_at_{role}_home_track" in active:
