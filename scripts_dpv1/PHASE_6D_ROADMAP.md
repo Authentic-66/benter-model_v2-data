@@ -2130,10 +2130,220 @@ since the new base still lacks class-context features, which is where
 
 ## Gap #5 — Brisnet Angles Ingest
 
-*Placeholder.* The PP parser extracts trainer and jockey angle statistics
-(`pp_has_strong_trainer_angle`, `pp_positive_trainer_angles`,
-`pp_pos_angle_count`, `pp_neg_angle_count`) that no model feature consumes.
-To be documented with observed cases.
+### Status: DOCUMENTED, TESTED, CLOSED — NEGATIVE ON RANKING (2026-09-22)
+
+The PP parser extracts angle statistics (`pp_has_strong_trainer_angle`,
+`pp_positive_trainer_angles`, `pp_pos_angle_count`, `pp_neg_angle_count`) plus
+the Brisnet proprietary ratings (`pp_prime_power`, the E1/E2/Late pace figures,
+running style, the workout tab) that no model feature consumes. This gap asked
+whether any of it carries ranking signal the model is missing.
+
+**It does not.** 27 candidate angles were tested; exactly one CI excluded zero,
+against 1.4 expected by chance, and that one fails every follow-up control.
+
+### The coverage constraint, stated first
+
+This diagnostic is the most sample-limited in Phase 6D, and the limit is worse
+than Gap #1's headline number suggests.
+
+| population | rows | races |
+|---|---|---|
+| `pp_entries_raw` | 4,330 | — |
+| `match_status = 'matched'` | 1,605 | — |
+| `entry_pp_features` (de-duplicated) | 1,579 | — |
+| **joins to `dpv1_fold_predictions.csv`** | **1,579** | **220** |
+
+**Two tracks, seven weeks.** The joinable population is CT (569 rows, 77 races)
+and GP (1,010 rows, 143 races), 2026-05-08 to 2026-06-26. ELP, MNR, and the
+August CT cards are **not** in it. 220 races is 0.74% of the 29,910-race corpus.
+
+97.7% of those races (215 of 220) have PP rows for every runner, so within-race
+contrasts and re-ranking are well-posed where they are run.
+
+**What this sample can and cannot resolve.** sd(within-race residual) = 44.1pp.
+At 220 races the SE on a race-level mean is ~3.0pp. The Gap #2 level effect —
+clean and monotone on the full corpus — is **not recoverable here**: residual by
+predicted rank runs -6.67, +3.09, +2.00, +5.20, -4.30, +4.52, -3.71, spread
+11.87pp against a typical SE of 3.32pp, which is what noise across nine cells
+looks like. The level control was applied regardless (20 `y_pred` quantile bins,
+re-stripped inside each angle's own coverage restriction per Gap #3), but it is
+being applied to a sample that cannot verify it is working.
+
+Any angle below ~200 rows carrying the signal was not tested rather than tested
+and cleared. That covers `pp_has_recent_bullet` (104 rows with a bullet),
+`pp_blinkers_added_today` (47), `pp_blinkers_removed_today` (16) and
+`pp_first_time_lasix` (16). **These are untested, not negative.**
+
+### Two parser defects found by enumerating
+
+* **`pp_figure_high_recent` is degenerate.** 92.2% coverage, and every one of
+  the 1,456 non-null values is `1`. Zero within-race variation. It cannot
+  affect ranking or calibration; it carries no information at all. Whatever the
+  parser intended to capture here, it is not capturing it.
+* **`pp_best_speed_aw` remains 0.0%.** Confirms the 2026-09-01 finding — no
+  all-weather surface in this corpus. Still do not build on it.
+
+### What was tested
+
+All 27 angles vary within a race (the Feature Design Principle's necessary
+condition), which is why they were testable at all. Binary angles were
+contrasted 1-vs-0 **inside their own coverage restriction**; continuous angles
+were within-race rank-normalised and correlated with the level-stripped
+residual. CIs are race-clustered bootstrap, B = 2,000.
+
+Nothing in the Brisnet ratings block moved:
+
+| angle | n | rho | 95% CI |
+|---|---|---|---|
+| `pp_prime_power` | 1,508 | +0.0167 | [-0.0338, +0.0659] |
+| `pp_prime_power_rank` | 1,508 | -0.0177 | [-0.0672, +0.0332] |
+| `pp_best_e1` | 1,339 | +0.0314 | [-0.0285, +0.0945] |
+| `pp_best_e2` | 1,456 | +0.0168 | [-0.0385, +0.0750] |
+| `pp_best_late` | 1,451 | +0.0344 | [-0.0193, +0.0902] |
+
+Nor the trainer/jockey angle statistics the placeholder named
+(`pp_has_strong_trainer_angle` -1.27pp [-7.35, +4.61];
+`pp_has_strong_jky_angle` -2.27pp [-7.51, +3.03];
+`pp_positive_trainer_angles` rho -0.0271; `pp_positive_jky_angles` rho -0.0259),
+nor the workout tab (`pp_bullet_count_60d` rho -0.0072,
+`pp_workout_avg_pace` -0.0497 [-0.1016, +0.0008]).
+
+### The one hit, and why it is an artifact
+
+`pp_pos_angle_count` came in at rho **-0.0667** [-0.1181, -0.0183] — CI excludes
+zero, and the sign says *more positive Brisnet angles predicts running **below**
+model expectation*. Four checks kill it.
+
+**1. It is not directional.** Decomposing into total and net:
+
+| form | rho | 95% CI | |
+|---|---|---|---|
+| `pos` | -0.0667 | [-0.1170, -0.0167] | excludes 0 |
+| `neg` | -0.0339 | [-0.0870, +0.0182] | — |
+| **`pos + neg` (volume)** | **-0.0889** | **[-0.1402, -0.0343]** | **excludes 0, strongest** |
+| **`pos - neg` (directional)** | **-0.0280** | **[-0.0766, +0.0233]** | **null** |
+
+The purely directional form is null and the pure volume form is the strongest.
+This is not "positive angles are bad"; it is "horses with more angle lines
+printed at all run below expectation." A handicapping signal would live in
+`net`. It does not.
+
+**2. Threshold perturbation is unstable.** Null at the natural cuts, appearing
+only at the extreme ones:
+
+| cut | n1 | n0 | diff | 95% CI |
+|---|---|---|---|---|
+| >= 1 | 1,415 | 164 | -2.46pp | [-9.27, +3.94] |
+| >= 2 | 1,076 | 503 | -3.58pp | [-8.03, +0.79] |
+| >= 3 | 701 | 878 | -5.49pp | [-9.64, -1.46] |
+| >= 4 | 379 | 1,200 | -5.62pp | [-10.31, -0.65] |
+
+Per Gap #4: an effect that appears at one resolution and vanishes at another is
+not an effect.
+
+**3. It does not replicate across tracks.** GP rho -0.0819 [-0.1426, -0.0146];
+CT rho -0.0335 [-0.1070, +0.0413]. One track of two.
+
+**4. It is inside the multiple-comparison budget.** 27 angles tested, 1 CI
+excluding zero, 1.4 expected by chance. Getting exactly one hit is what noise
+predicts. (`pp_jockey_change` is a fifth data point on this: its CI excluded
+zero at B=400 [+0.32, +8.99] and included it at B=2,000 [-0.05, +9.57]. An
+effect that flips on bootstrap draws is noise.)
+
+### Redundancy: distinct information, but still not signal
+
+Worth recording because it cuts against the obvious dismissal. Angle volume is
+**not** already captured by the existing features:
+
+| | |
+|---|---|
+| raw rho(volume, residual) | -0.0855 |
+| partial rho, controlling `pp_career_starts`, `pp_days_off`, `pp_races_in_60d`, `pp_best_speed` | **-0.0867** |
+| variance of angle volume explained by those four | **4.3%** |
+
+The controls change nothing, so this is genuinely information the base model and
+`pp-reranker-1.0` do not hold. It is simply information that does not predict
+anything. *Not redundant* and *not useful* are independent properties, and this
+quantity is the first and not the second.
+
+### The oracle bound, against its placebo
+
+In-sample cell-offset oracle on angle volume, 215 fully-covered races, baseline
+top-pick ITM 68.84%. Placebo = same grid on shuffled angle values, 40 draws:
+
+| grid | real gain | placebo mean | placebo sd | z |
+|---|---|---|---|---|
+| 3x3 (9 cells) | +1.395pp | +1.209pp | 0.941 | **+0.20** |
+| 5x5 (25 cells) | +5.581pp | +2.395pp | 1.969 | **+1.62** |
+| 10x10 (100 cells) | +7.442pp | +7.477pp | 2.150 | **-0.02** |
+
+No resolution separates from its own placebo. Note the placebo magnitudes: on
+220 races a 100-cell in-sample oracle gains **+7.48pp from pure noise**, against
+the ~+0.10pp Gap #4 measured on the full corpus. Gap #4's warning is not a
+technicality at this sample size — read against zero, this table would have
+looked like a +7.4pp discovery.
+
+### Side finding: Brisnet's own rating ranks level with the model
+
+The most direct form of the question. On the 212 races where every runner has a
+Prime Power figure:
+
+| ranker | top-pick ITM |
+|---|---|
+| Brisnet morning-line favourite | 69.34% +/- 3.17 |
+| **DPv1 `y_pred`** | **68.87% +/- 3.18** |
+| **Brisnet Prime Power** | **68.87% +/- 3.18** |
+| `p_fund` only | 67.92% +/- 3.21 |
+| Brisnet best speed figure | 56.13% +/- 3.41 |
+
+Prime Power and the model land on exactly the same number while disagreeing on
+the top pick in **37.3% of races**. Two rankers of equal measured strength that
+disagree a third of the time would normally be a blending opportunity — but the
+residual correlation above (+0.0167, CI spanning zero) says the disagreements
+do not resolve in Prime Power's favour. At 212 races the +/-3.2pp error bar
+cannot separate any of the top four rankers, so this is "no evidence of a gap",
+not a proven equivalence.
+
+### Running style
+
+`pp_running_style` (E/EP/P/S, 1,375 rows after dropping 201 `na`) spreads
+6.24pp across the four categories against a typical SE of 2.44pp, with `p`
+(presser) highest at +5.04pp. That is ~2 SE on one of four categories chosen
+post hoc, and Gap #2 already closed pace/running-style as negative on a sample
+two orders of magnitude larger. Not pursued.
+
+### Verdict
+
+**No Brisnet angle in the current PP corpus carries ranking signal the model is
+missing.** The single statistical hit is a non-directional volume artifact that
+fails threshold perturbation, fails to replicate across tracks, and sits inside
+the multiple-comparison budget. The oracle bound is indistinguishable from
+placebo at every grid resolution.
+
+**Do not build features on this.** The honest reason is not that the angles were
+shown to be worthless — it is that 220 races across two tracks and seven weeks
+cannot distinguish a small real effect from noise, and every candidate here is
+small. The binding constraint is the same one Gap #1 hit on 2026-09-01: **45 PP
+files, full stop.** This gap should be re-opened only if PP coverage grows
+materially, and the two parser defects above should be fixed before it is.
+
+### Side finding: 101 dangling `entry_id` references
+
+`pp_entries_raw` has 101 ELP rows with `match_status = 'matched'` whose
+`entry_id` values (256573-256673) no longer exist in `entries`. They are the
+2026-08-22/23 ELP cards, loaded as upcoming cards for prediction and since
+removed. `entry_pp_features` correctly excludes them, so nothing downstream is
+affected today, but any future join that trusts `match_status` alone rather than
+joining through `entry_pp_features` will silently pick up 101 rows pointing at
+deleted entries. Worth a cleanup pass when PP ingest is next touched.
+
+### Reproducing this
+
+Scripts are in the session scratchpad, not committed (read-only diagnostic):
+`g5_build.py` (population), `g5_enum.py` (27-angle enumeration),
+`g5_resid.py` (residual + level controls), `g5_sig2.py` (signal tests),
+`g5_follow.py` (directionality, thresholds, per-track),
+`g5_final.py` (redundancy, oracle vs placebo), `g5_pp.py` (Prime Power, style).
 
 ---
 
