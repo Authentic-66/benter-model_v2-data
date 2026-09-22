@@ -64,7 +64,7 @@ SPEC: dict[str, tuple[str, int | None, str]] = {
     "pp_speed_fig_slope": ("numeric", 2, "OLS slope of speed figures over recent starts — form trajectory."),
     "pp_beaten_lengths_slope": ("numeric", 2, "OLS slope of beaten lengths over recent starts."),
     "pp_class_drop_count": ("numeric", 1, "Count of class drops across the horse's PP lines."),
-    "pp_figure_high_recent": ("binary", 2, "Most recent speed figure is the horse's career high."),
+    "pp_figure_high_recent": ("numeric", 2, "Best of the last three Brisnet speed figures divided by the lifetime best. Ratio in (0, 1]; 1.0 = recent form at lifetime peak."),
     "pp_races_in_60d": ("numeric", 2, "Starts in the 60 days before today."),
     "pp_workout_count_60d": ("numeric", 3, "Workouts in the last 60 days."),
     "pp_bullet_count_60d": ("numeric", 2, "Bullet (fastest-of-day) workouts in the last 60 days."),

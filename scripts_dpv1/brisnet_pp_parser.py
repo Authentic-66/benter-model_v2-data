@@ -1194,7 +1194,14 @@ def extract_form_trajectory(block_lines, race_date, page_lines=None):
             (consecutive races where today's class < previous race's class).
             Reads from oldest to newest in the trailing window.
       * figure_high_recent: max(last 3 speed figs) / max(all stored figs).
-            Ratio in (0, 1]; 1.0 means recent form is at lifetime peak.
+            A CONTINUOUS ratio in (0, 1], never a flag. 1.0 means the horse's
+            best recent figure equals its lifetime best, i.e. recent form is
+            at the lifetime peak; 0.83 means recent form is running 17% below
+            it. Roughly 60% of horses sit at exactly 1.0 and the rest spread
+            down to ~0.75, so a binary "is it at peak" reading is recoverable
+            as (ratio == 1.0) but throws away the depth of the decline.
+            Store it with _num(). Storing it with _bool() makes the column
+            constant, which is what it was until 2026-09-22 (Gap #5).
       * races_in_60d: count of PP race lines dated within 60 days of
             today's race_date. Fitness/freshness indicator.
     """
@@ -1923,7 +1930,10 @@ def horse_to_pp_features(h: dict) -> dict:
         "pp_speed_fig_slope": _num(h.get("speed_fig_slope")),
         "pp_beaten_lengths_slope": _num(h.get("beaten_lengths_slope")),
         "pp_class_drop_count": _num(h.get("class_drop_count")),
-        "pp_figure_high_recent": _bool(h.get("figure_high_recent")),
+        # CONTINUOUS ratio in (0, 1], not a flag. Until 2026-09-22 this was
+        # stored via _bool(), which mapped every non-zero ratio to 1 and made
+        # the column constant across all 1,456 non-null rows (Gap #5).
+        "pp_figure_high_recent": _num(h.get("figure_high_recent")),
         "pp_races_in_60d": _num(h.get("races_in_60d")),
         "pp_workout_count_60d": _num(h.get("workout_count_60d")),
         "pp_bullet_count_60d": _num(h.get("bullet_count_60d")),
