@@ -2153,6 +2153,14 @@ than Gap #1's headline number suggests.
 | `entry_pp_features` (de-duplicated) | 1,579 | — |
 | **joins to `dpv1_fold_predictions.csv`** | **1,579** | **220** |
 
+> **Population changed after this gap was closed (2026-09-22).** Re-matching the
+> ELP 2026-08-22 and 2026-08-23 cards (see the dangling-`entry_id` side finding
+> below, and the commit that fixed it) added 169 rows / 18 ELP races, taking the
+> joinable population to **1,748 rows / 238 races across three tracks**. Every
+> number in this section was computed on the 1,579 / 220 two-track population
+> and was **not** re-run. Gap #5 remains closed; a re-run would not reproduce
+> these figures exactly.
+
 **Two tracks, seven weeks.** The joinable population is CT (569 rows, 77 races)
 and GP (1,010 rows, 143 races), 2026-05-08 to 2026-06-26. ELP, MNR, and the
 August CT cards are **not** in it. 220 races is 0.74% of the 29,910-race corpus.
@@ -2330,12 +2338,41 @@ materially, and the two parser defects above should be fixed before it is.
 ### Side finding: 101 dangling `entry_id` references
 
 `pp_entries_raw` has 101 ELP rows with `match_status = 'matched'` whose
-`entry_id` values (256573-256673) no longer exist in `entries`. They are the
-2026-08-22/23 ELP cards, loaded as upcoming cards for prediction and since
-removed. `entry_pp_features` correctly excludes them, so nothing downstream is
-affected today, but any future join that trusts `match_status` alone rather than
-joining through `entry_pp_features` will silently pick up 101 rows pointing at
-deleted entries. Worth a cleanup pass when PP ingest is next touched.
+`entry_id` values (256573-256673) no longer exist in `entries`.
+`entry_pp_features` correctly excludes them, so nothing downstream is affected
+today, but any future join that trusts `match_status` alone rather than joining
+through `entry_pp_features` will silently pick up 101 rows pointing at deleted
+entries. Worth a cleanup pass when PP ingest is next touched.
+
+**RESOLVED 2026-09-22, and two statements above were wrong when written.** This
+paragraph originally said the rows were "the 2026-08-22/23 ELP cards ... since
+removed." Both halves were incorrect. The dangling rows are **all 2026-08-23**
+(the 08-22 file's 105 rows were never matched at all — `match_status` NULL — a
+separate defect). And the cards were **not** removed: both `race_days` rows
+survive and both cards were reloaded *with results* under new entry ids
+257174-257342. The 101 rows pointed at the pre-results ids for horses that
+still exist.
+
+Fixed by re-matching on `(race_date, race_num, program_num)` with a horse-name
+agreement check — 169 of 206 rows resolved, all 169 agreeing on name, tagged
+`match_method = 'rematched_progno'`. The 37 unresolved rows are scratches (31
+named explicitly in `races.scratched_horses`), left unmatched rather than
+forced. Dangling references went 101 → 0.
+
+**The deeper defect is not fixed.** `cmd_match` resets every row to NULL and
+re-classifies, so `match_status IS NULL` means "inserted since the last match
+run". **437 rows across five files** are in that state — `ctx0828y` (112),
+`ctx0829y` (71), `elp0822y` (105), `gpx0509y` (85), `gpx0904y` (64) — and four
+of those five have no `pp_parsed_files` record at all, so a later backfill path
+stages rows without registering them. The ELP re-match above was deliberately
+scoped to two cards and did **not** run `cmd_match`, because a global re-match
+would reclassify all 4,330 rows and rebuild `entry_pp_features` wholesale. The
+matcher itself is untouched and this remains open.
+
+Both failure modes share one proximate cause — the match pass not being re-run
+— but they differ in danger. A NULL status is visibly incomplete. A stale
+`matched` id is silently wrong, and that is the one that sat unnoticed for a
+month until Gap #5 happened to join through it.
 
 ### Reproducing this
 
