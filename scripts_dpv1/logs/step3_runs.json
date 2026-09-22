@@ -1,0 +1,23 @@
+{
+  "base": {
+    "pkl": "scripts_dpv1\\dpv1_20260913_step3_base.pkl",
+    "csv": "scripts_dpv1\\dpv1_fold_predictions_20260913_step3_base.csv",
+    "version": "dpv1.3.3-4track-ctrl-step3",
+    "active": 113,
+    "secs": 140.1
+  },
+  "patha": {
+    "pkl": "scripts_dpv1\\dpv1_20260913_step3_patha.pkl",
+    "csv": "scripts_dpv1\\dpv1_fold_predictions_20260913_step3_patha.csv",
+    "version": "dpv1.4.1-4track-classctx-step3",
+    "active": 121,
+    "secs": 143.5
+  },
+  "cand": {
+    "pkl": "scripts_dpv1\\dpv1_20260913_step3_cand.pkl",
+    "csv": "scripts_dpv1\\dpv1_fold_predictions_20260913_step3_cand.csv",
+    "version": "dpv1.5.0-4track-lastdir",
+    "active": 125,
+    "secs": 142.9
+  }
+}
