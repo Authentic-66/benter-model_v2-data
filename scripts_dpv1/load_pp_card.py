@@ -345,6 +345,26 @@ PP_STAGE_COLS = (["source_pdf", "track", "race_date", "race_num",
                   "pp_jockey", "pp_sire", "pp_ml_text", "pp_surface",
                   "pp_conditions"] + list(PP_FEATURE_COLUMNS))
 
+# This module and parse_pp_files.py share pp_entries_raw, but they are
+# different workflows: parse_pp_files ingests *result* cards for the corpus
+# and owns pp_parsed_files; this module stages an *unraced* card so DPv1 can
+# score it. Rows written here have never been through parse_pp_files' match
+# pass, and before 2026-09-22 they landed with match_status NULL — which is
+# also what "cmd_match has not run since these rows were inserted" looks like,
+# so the two states were indistinguishable. 437 rows across five files sat in
+# that ambiguity. Stamping a distinct status keeps prediction-card staging
+# visible, and lets any join filter it explicitly.
+#
+# cmd_match resets every row to NULL and reclassifies, so this status does NOT
+# survive a match pass — by design. It marks "staged for prediction, not yet
+# matched", not a permanent category. Rows whose card later runs and loads
+# results are matched normally by the next cmd_match.
+#
+# Deliberately NOT registered in pp_parsed_files: that table's columns
+# (parser_version, races_found, success, ...) describe the corpus parse path
+# these rows never took, and cmd_match does not read it anyway.
+PREDICTION_CARD_STATUS = "pending_prediction_card"
+
 
 def ensure_pp_raw_table(conn: sqlite3.Connection) -> None:
     """Create ``pp_entries_raw`` if absent, matching parse_pp_files' schema."""
@@ -412,9 +432,12 @@ def stage_pp_entries(conn: sqlite3.Connection, card: dict) -> int:
                 + [h.get(c) for c in PP_FEATURE_COLUMNS]
             )
     if rows:
+        # Stamp match_status so these rows are visibly a prediction-card
+        # staging load rather than NULL-in-limbo. See PREDICTION_CARD_STATUS.
         conn.executemany(
-            f"INSERT INTO {PP_RAW_TABLE} ({','.join(PP_STAGE_COLS)}) "
-            f"VALUES ({','.join('?' * len(PP_STAGE_COLS))})", rows)
+            f"INSERT INTO {PP_RAW_TABLE} ({','.join(PP_STAGE_COLS)}, match_status) "
+            f"VALUES ({','.join('?' * len(PP_STAGE_COLS))}, ?)",
+            [r + [PREDICTION_CARD_STATUS] for r in rows])
     return len(rows)
 
 

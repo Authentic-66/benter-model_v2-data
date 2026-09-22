@@ -478,6 +478,25 @@ per card, zero duplicated keys**, and is safe to join.
 
 Row count fell 4,606 -> 4,266 as a result. That is a correction, not a loss.
 
+**Follow-up, 2026-09-22 — the collapse had a side effect not recorded here.**
+The account above is accurate about the mechanism: the fan-out was collapsed by
+re-staging through `load_pp_card.stage_pp_entries`, which deletes by
+`(track, race_date)` and re-inserts. What went unrecorded is that the re-staged
+rows came back with `match_status` NULL and were never re-matched, so
+`gpx0509y.pdf`'s 85 rows sat unclassified from the 2026-09-01 collapse until
+2026-09-22, and 75 rows in `entry_pp_features` kept pointing at the
+pre-collapse `entry_id` values. Those
+75 still carried the old constant `pp_figure_high_recent` until the 2026-09-22
+parser fix, and were only caught because that fix's first pass missed them.
+
+Commit `3dfb133` described these as "fan-out de-dup residue", attributing the
+collapse to a dedup pass in `parse_pp_files`. **That attribution was wrong** —
+there is no such pass; the mechanism is the `load_pp_card` delete-and-reinsert
+described above, exactly as this section originally said. Both the NULL status
+and the stale rows are fixed as of 2026-09-22, and `load_pp_card` now stamps
+`match_status = 'pending_prediction_card'` so a re-stage is visible rather than
+silently NULL.
+
 ##### The shipper/first-timer split replicates
 
 Across all 28 cards where PP and entries both exist, of horses the corpus shows
@@ -2153,13 +2172,23 @@ than Gap #1's headline number suggests.
 | `entry_pp_features` (de-duplicated) | 1,579 | — |
 | **joins to `dpv1_fold_predictions.csv`** | **1,579** | **220** |
 
-> **Population changed after this gap was closed (2026-09-22).** Re-matching the
-> ELP 2026-08-22 and 2026-08-23 cards (see the dangling-`entry_id` side finding
-> below, and the commit that fixed it) added 169 rows / 18 ELP races, taking the
-> joinable population to **1,748 rows / 238 races across three tracks**. Every
-> number in this section was computed on the 1,579 / 220 two-track population
-> and was **not** re-run. Gap #5 remains closed; a re-run would not reproduce
-> these figures exactly.
+> **Population changed twice after this gap was closed, both on 2026-09-22.**
+> First, re-matching the ELP 2026-08-22/23 cards added 169 rows / 18 ELP races
+> (1,579 → 1,748 rows, 220 → 238 races). Then a full `cmd_match` pass cleared a
+> 332-row backlog that had been sitting with `match_status` NULL, adding a
+> further 292 matches — CT 2026-08 (158), GP 2026-05 (75), GP 2026-09 (59).
+>
+> | | rows | races | tracks |
+> |---|---|---|---|
+> | as measured in this section | 1,579 | 220 | 2 (CT, GP) |
+> | after the ELP re-match | 1,748 | 238 | 3 |
+> | **current** | **1,965** | **268** | **3 (CT, ELP, GP)** |
+>
+> Every number in this section was computed on the 1,579 / 220 two-track
+> population and was **not** re-run. Gap #5 remains closed — nothing here turned
+> on sample size in a way a 24% row increase would reverse — but a re-run would
+> not reproduce these figures exactly. The coverage caveat that drove the
+> verdict still holds: 268 races is 0.90% of the corpus, against 0.74% before.
 
 **Two tracks, seven weeks.** The joinable population is CT (569 rows, 77 races)
 and GP (1,010 rows, 143 races), 2026-05-08 to 2026-06-26. ELP, MNR, and the
