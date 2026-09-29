@@ -6145,3 +6145,268 @@ Scripts are session scratch, not committed: `k2_pre.py`, `k2_build.py`,
 No features built, no model retrained, neither reranker touched,
 `card_picks.py` and Piece 4 untouched, nothing shipped. The database was
 opened read-only.
+
+### Test 3 — high-consistency threshold effect (2026-09-29)
+
+#### Status: TESTED, CLOSED — NO THRESHOLD; THE ITM HALF IS NULL, THE WIN HALF IS A SMOOTH TAIL THE MODEL UNDER-WEIGHTS
+
+Kelsey Rule 3c: *"If the horse has a win consistency of 50%, or an
+in-the-money consistency of 75%, increase his rating by 10%. This must be
+based on at least 5 starts."* The claim is a **step** at those thresholds that
+a linear treatment of career rates would miss.
+
+**Short version:**
+- **ITM ≥ 75%: null.** Every control set, every threshold from 70% to 85%,
+  and the oracle (z +0.4 / +0.7 / +1.2).
+- **Kelsey's OR rule:** null (+0.05pp given the model's rates), because the
+  ITM half makes up most of it.
+- **Win ≥ 50%: real.** +5.07pp (z 3.1) given flexible controls on the
+  model's own career features. The oracle beats placebo at every resolution
+  (z +5.6 / +7.1 / +5.2).
+- **But it is not a threshold.** There is no discontinuity at 50%, the
+  effect keeps growing past it, and a smooth function of raw win% absorbs the
+  whole "step" (+5.07 → −0.80pp).
+- **What is real is a smooth tail.** The model under-weights horses with high
+  raw win rates, a representation finding, not Kelsey's rule.
+
+#### Premise notes
+
+- **Live consistency features** (`dpv1.pkl`): `career_win_pct_shrunk`
+  (coef −0.168, rank 15), `career_itm_pct_shrunk` (+0.115, rank 26),
+  `career_starts` (−0.091, rank 35), `career_wins` (+0.055, rank 65).
+  There is no raw win% or ITM% feature.
+
+  The brief listed "rank 15, 26" against win% and its shrunk version. Rank 15
+  is shrunk **win%** and rank 26 is shrunk **ITM%**.
+- **Shrinkage:** `(count + 15 × prior) / (starts + 15)`, with a win prior of
+  0.12 and an ITM prior of 0.35 (`horse_career` k = 15). Verified exactly
+  against `entry_features_dpv1` (max |diff| 0).
+- **The model's win% response is negative in isolation.** Shrunk win% carries
+  a **negative** coefficient, net of shrunk ITM% and wins. That is
+  collinearity among the career terms. Any statement about "the model's
+  response to win%" is only meaningful jointly, which is why every test below
+  controls for all four career features together.
+- **"Career" is corpus history, not lifetime.** It covers starts since
+  2019-01-01 at any track in the database. `career_starts` counts every prior
+  entry, scratches included. Kelsey's "at least 5 starts" is lifetime, so for
+  older horses the corpus count is a lower bound.
+- **What the model sees at Kelsey's thresholds:**
+  - win ≥ 50%: raw median 0.57 → shrunk median **0.276** (population 0.127)
+  - ITM ≥ 75%: raw median 0.80 → shrunk median **0.528** (population 0.395)
+
+  As the brief anticipated, shrinkage pulls these horses well back toward the
+  mean.
+
+#### Sample sizes (out-of-fold predictions, 5-track basis; ≥5 corpus starts = 76,112 rows, 15,877 races)
+
+| cell | rows | races | by starts 5-9 / 10-19 / 20+ |
+|---|---|---|---|
+| win ≥ 50% | 1,701 | 1,398 | 1,106 / 459 / 136 |
+| ITM ≥ 75% | 5,912 | 4,348 | 3,517 / 1,889 / 506 |
+| either (Kelsey's OR) | 6,451 | 4,622 | — |
+
+**Power:** the minimum detectable step is ~4.6pp for win ≥ 50% and ~2.4pp for
+the OR rule. Kelsey's +10%, read on `p_fund` at the threshold (55.7%), is
+~5.6pp. So the test can detect an effect of Kelsey's size, marginally for the
+win cell.
+
+Win% cells are lumpy at low start counts (3/6 = 50%, 2/5 = 40%), so the 45%
+and 50% cells are nearly the same horses (1,983 vs 1,701).
+
+#### Residual curve — level-stripped, by raw rate, ≥5 starts
+
+| raw win% | n | residual | | raw ITM% | n | residual |
+|---|---|---|---|---|---|---|
+| 0-10% | 27,574 | +0.79 | | 0-20% | 7,403 | −0.45 |
+| 10-20% | 24,437 | −0.79 | | 20-35% | 15,236 | +0.05 |
+| 20-30% | 15,292 | −0.91 | | 35-50% | 19,229 | +0.38 |
+| 30-40% | 4,728 | −0.80 | | 50-60% | 15,576 | +0.17 |
+| 40-50% | 2,380 | +1.42 | | 60-70% | 10,325 | −1.07 |
+| **50-60%** | 991 | **+4.46** (se 1.48) | | 70-75% | 2,431 | +0.15 |
+| **60%+** | 710 | **+10.59** (se 1.63) | | 75-80% | 1,779 | +0.62 |
+| | | | | 80-90% | 3,154 | +0.03 |
+| | | | | 90%+ | 979 | +2.17 (se 1.47) |
+
+- **ITM%:** flat within noise from 20% to 90%. Shrinkage plus the linear
+  terms are doing the job.
+- **Win%:** flat to 40%, then **rising steeply**. It is a convex tail, not a
+  step.
+
+#### Threshold indicators, level-stripped (≥5 starts, race-clustered)
+
+"Flex" means linear shrunk win%, shrunk ITM%, wins and starts, **plus decile
+dummies of both shrunk rates**.
+
+| indicator | no controls | linear career controls | flex | flex + 5-start ITM rate |
+|---|---|---|---|---|
+| win ≥ 50% | +7.18 (z 6.7) | +8.62 (z 6.7) | **+5.07 (z 3.1)** | +5.03 (z 3.1) |
+| ITM ≥ 75% | +0.61 (z 1.0) | +0.39 | −0.20 | −0.29 |
+| either | +1.01 (z 1.7) | +0.94 | +0.05 | −0.03 |
+
+The results are the same with a 50-bin level strip.
+
+#### Is 50 / 75 a bright line? No.
+
+- **Local contrast just above vs just below** (flex controls):
+  - win% in [40%, 60%): above 50% is **−3.20pp (z −1.1)**. No jump.
+  - ITM% in [65%, 85%): +0.13pp (z 0.1).
+- **Threshold perturbation** (indicator given flex):
+
+| win% ≥ | 35% | 40% | 45% | **50%** | 55% | 60% |
+|---|---|---|---|---|---|---|
+| step | +2.90 | +2.48 | +4.14 | **+5.07** | +7.52 | +7.38 |
+
+| ITM% ≥ | 60% | 65% | 70% | **75%** | 80% | 85% |
+|---|---|---|---|---|---|---|
+| step | −2.33 | −2.01 | −0.28 | **−0.20** | −0.43 | +1.47 |
+
+  The win effect grows smoothly with the cut. That is the signature of a
+  tail, not a threshold.
+- **Minimum starts** (OR rule, flex): ≥3 +0.07, ≥5 +0.05, ≥8 +1.62,
+  ≥10 +3.01 (z 2.0). This drifts up only as the cell shrinks toward the
+  high-win horses.
+- **The decisive check:** add a smooth cubic in **raw** win% to the flex
+  controls, and the win ≥ 50% "step" goes from +5.07 to **−0.80pp (z −0.4)**
+  (−0.72 with every confound control added). The whole effect is the smooth
+  shape of raw win%, which the model sees only through a shrunk, linear,
+  negatively-weighted term.
+
+#### Oracle vs placebo
+
+Within-race shuffle of the indicator, 40 draws. Horses with <5 starts get no
+offset.
+
+| indicator | 3×3 | 5×5 | 10×10 |
+|---|---|---|---|
+| **win ≥ 50%** | +0.164 vs +0.004, **z +5.64** | +0.189 vs −0.007, **z +7.09** | +0.214 vs +0.013, **z +5.15** |
+| ITM ≥ 75% | z +0.36 | z +0.65 | z +1.22 |
+| either | z +0.08 | z +0.60 | z +1.38 |
+| raw ITM%, continuous (reference) | z −0.15 | z −0.92 | z −1.01 |
+
+The win cell separates from its placebo at every resolution, but the absolute
+bound is small: **+0.16 to +0.21pp top-pick ITM**, because only 1,701 horses
+are in it.
+
+#### Redundancy
+
+| win ≥ 50% controlling for | step |
+|---|---|
+| flex career controls | +5.07 (z 3.1) |
+| + `last_race_won`, `last_3_avg_finish`, `last_race_finish_pos`, 5-start ITM rate | +5.03 (z 3.1) |
+| + Gap #11 / Test 1 window directions and last-race class/purse moves | **+4.74 (z 2.9)** |
+| + smooth cubic in raw win% | **−0.72 (z −0.4)** |
+
+- **Not recent form.**
+- **Not Gap #11** — the one Kel-Co result that is not a Gap #11 restatement.
+- **Not captured by the shrunk features as the model uses them.** Entirely
+  captured by a smooth function of raw win%.
+- **Distinct from Gap #9's "consistent good form" cell.** That cell is
+  recent finish-position variance; the 5-start ITM rate control does not
+  touch this effect.
+
+**Where the problem is not.** The shrunk value is a good win-probability
+estimate:
+
+| raw win% | 0-10 | 10-20 | 20-30 | 30-40 | 40-50 | 50-60 | 60+ |
+|---|---|---|---|---|---|---|---|
+| actual win rate today | .103 | .119 | .146 | .169 | .203 | .268 | .338 |
+| shrunk value the model sees | .083 | .130 | .172 | .214 | .233 | .278 | .303 |
+
+So **shrinkage is roughly right**, only slightly too strong at the top. The
+miss is in how the fitted model **uses** it: a linear term with a negative net
+coefficient, alongside a correlated ITM term. The HW residual is not largest
+at the fewest starts (5-7 starts +5.6, 8-11 +6.2, 12-19 **+12.5**, 20+ +6.5),
+which also argues against over-shrinkage as the cause.
+
+#### Magnitude vs Kelsey's +10%
+
+| cell | mean `p_fund` | actual ITM | level-stripped | step given flex |
+|---|---|---|---|---|
+| win ≥ 50% | 56.4% | 62.6% | +7.02pp | **+5.07pp = +9.0% relative** |
+| ITM ≥ 75% | 56.1% | 56.0% | +0.56pp | −0.20pp = −0.4% |
+| either | 55.7% | 55.9% | +0.92pp | +0.05pp = +0.1% |
+
+The win cell's +9% relative uplift is numerically close to Kelsey's +10%, but
+the units differ: Kelsey's is on his rating, a purse value, and this is on
+P(ITM). It is not a replication. And the shape is wrong for his rule: it
+keeps rising past 50%, with no step there.
+
+#### Per track and year (win ≥ 50%, given flex)
+
+| | CT | DED | ELP | GP | MNR |
+|---|---|---|---|---|---|
+| step | +4.83 (z 1.9) | +6.42 (z 1.4) | +8.48 (n 29) | +3.94 (z 1.4) | **+8.80 (z 2.6)** |
+
+| | 2023 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|
+| step | +2.74 | **+10.10 (z 3.2)** | +3.76 | +3.12 |
+
+The sign is positive at every track and in every year. Individually only MNR
+and 2024 clear z 2. There is no track concentration of the kind the brief
+anticipated (CT vs GP): both are about +4 to +5pp.
+
+The OR rule is null at every track (−1.08 to +1.38pp, all |z| < 0.5).
+
+#### Verdict
+
+| question | answer |
+|---|---|
+| Threshold at 50% win / 75% ITM? | **No.** No discontinuity at either line. Perturbation is smooth, and a cubic in raw win% absorbs the whole step. |
+| ITM ≥ 75% premium? | **Null.** Shrinkage plus the linear treatment already capture it. On the ITM side, modern shrinkage solved the problem Kelsey noticed. |
+| Win ≥ 50% premium? | **Real as a residual (z 3.1 given flexible controls), oracle beats placebo at 3×3 / 5×5 / 10×10, but it is a smooth tail, not a step.** |
+| Kelsey's +10% | Numerically similar (+9% relative on P(ITM)), but on a different quantity and with the wrong shape. |
+| Already captured? | Not by the shrunk features as the model uses them, not by recent form, not by Gap #11. |
+
+**Recommendation:** Kelsey's Rule 3c doesn't hold up as a threshold rule. Do
+not build threshold indicators.
+
+**Open lead — a representation finding, not a build.** The model
+under-weights the top of the raw career win-rate distribution. That comes from
+how the fitted model combines three correlated career terms (a negative net
+win% coefficient), not from the shrinkage itself. It sits in the same family
+as Gap #11 Step 3's deadband and Test 1's `purse_change_from_last` lead:
+the information is present but at a scale or form the model can't use.
+
+It is worth a pre-registered look, but the bound is small: +0.2pp top-pick
+ITM in-sample, n 1,701, and only one year and one track individually
+significant. **Post-hoc disclosure.** The ≥50% win indicator (and the ≥75% ITM one)
+was pre-registered by Kelsey's rule, so its z 3.1 stands as a test of the
+claim. The *smooth-tail* reading was reached only after seeing the
+threshold-shift table and the cubic-absorption check. It is post hoc, and a
+test of it should be pre-registered.
+
+### Kel-Co diagnostics — closing summary (2026-09-29)
+
+| test | Kelsey's claim | result |
+|---|---|---|
+| **1** (`38be4bb`) | purse beats claiming price as the class measure | **No clean winner; the answer depends on the cell.** The tier ladder wins at home across race families. Purse wins only for horses whose window was run at other tracks in other race types (13%). The pooled "purse wins" (z −12) was a Simpson-style artifact of one global fit. |
+| **2** (`f2e841e`) | the Established Class Rating's dropdown magnitude predicts | **The signal is real (+3.01pp/sd, z +20.3) but not Kelsey's.** It decomposes exactly into form × window purse, and the product adds nothing (z 1.9). After Gap #11 window directions and window ITM rate, the oracle is null. Kelsey's top-rated horse is a worse pick than the model's (58.9% vs 66.2% board hit). |
+| **3** (this commit) | a +10% premium at 50% win / 75% ITM consistency | **The threshold rule fails.** The ITM side is fully handled by shrinkage. The win side is a real under-rating shaped as a smooth tail, not a step, and it is **independent of Gap #11**. |
+
+**What the three tests leave behind:**
+- **No Kel-Co feature should be built.** None of the three constructions
+  adds anything beyond what is already known.
+- **Tests 1 and 2 independently confirm** that the live base model is
+  missing Gap #11's look-back class signal. That strengthens the case for the
+  Gap #11 build, and it does not open a new one.
+- **Two open leads, neither urgent.** Both are representation questions
+  about features already in the model — the information is present, at a
+  scale or form the model can't use. That is the same class of problem as
+  Gap #11 Step 3's ±3.0 deadband finding.
+  1. **`purse_change_from_last` (Test 1).** On same-track claiming →
+     claiming starts, the last-race purse move the tag does not explain still
+     leaves −2.06pp/sd (z −10.6), although the feature is live at rank 11. It
+     is a raw, heavy-tailed percentage change. Not controlled for, not
+     oracle-tested.
+  2. **The career win-rate tail (Test 3).** Horses above ~45% raw career
+     win rate are under-rated, rising steeply. This comes from how three
+     correlated career terms combine (shrunk win% has a negative net
+     coefficient), not from the shrinkage itself. In-sample bound about
+     +0.2pp top-pick ITM.
+
+Scripts are session scratch, not committed: `k3_pre.py`, `k3_test.py`,
+`k3_follow.py`; they reuse `kc_lib.py`, `kc_oof2.pkl` and `k2_ecr.pkl`.
+
+No features built, no model retrained, neither reranker touched,
+`card_picks.py` and Piece 4 untouched, nothing shipped. The database was
+opened read-only.
