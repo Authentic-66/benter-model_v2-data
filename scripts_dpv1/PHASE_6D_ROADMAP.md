@@ -5889,3 +5889,259 @@ it is a recommendation, not a decision.
 No features built, no model retrained, neither reranker touched,
 `card_picks.py` and Piece 4 untouched, nothing shipped. The database was
 opened read-only.
+
+### Test 2 — Established Class Rating vs today's purse (2026-09-29)
+
+#### Status: TESTED, CLOSED — THE SIGNAL IS REAL BUT NOT KELSEY'S; IT DECOMPOSES INTO GAP #11'S WINDOW PLUS RECENT FORM
+
+Kelsey's whole method rests on one number, the **Established Class Rating
+(ECR)**: recent earnings per start, expressed as a purse value. Compared with
+today's purse, it labels a **dropdown** (rating > purse × 1.05) or a
+**move-up** (rating < purse × 0.95). The size of the dropdown is his central
+prediction signal, and the top-rated horses are his playability filter.
+
+**Short version:**
+- **The raw rating is a strong residual signal.** Dropdown magnitude:
+  +3.01pp/sd, z +20.3. Oracle beats placebo: z +7.4 / +4.6 / +4.0.
+- **Kelsey's top-rated horse is under-rated by the model.** +6.16pp
+  level-stripped over all races (se 0.66). In races where it is not the
+  model's pick, the figure is +5.06pp (se 0.84).
+- **None of it is specific to Kelsey's construction.** The rating is
+  algebraically (share of purse earned) × (window purse ÷ today's purse).
+  The product adds nothing beyond those two parts: +0.27pp/sd, z +1.9. The
+  window-purse part is Gap #11's look-back effect.
+- **Once Gap #11's window directions and a window ITM rate are controlled,**
+  the oracle is null at every resolution.
+- **Kelsey's ±5% buckets carry nothing.** Only 4.6% of horses land in the
+  middle band.
+- **As a pick,** Kelsey's top-rated horse hits the board **11pp less often**
+  than the model's top pick.
+
+#### Premise notes
+
+- **Commit reference.** The Test 2 brief cites Test 1 as closed at `cd7931f`.
+  That commit is the PP match-backlog fix. Test 1 is `38be4bb`.
+- **Lookback features.** The brief asked whether any lookback-window class
+  features were being missed. The **live base model has none.** Its class
+  terms are:
+  - `class_change_from_last`: last race vs today, UP/SAME/DOWN with a ±3.0
+    deadband
+  - `class_score_change_from_last`: the continuous version
+  - `purse_change_from_last`: percentage change from the last race
+  - the two trainer class-move rates
+  - the race-level `class_score` / `claiming_price` / `race_type`
+
+  Gap #11's window features — `avg_class_recent`, `class_drop_signed`, the
+  direction and fine last-race terms — exist only in the shadow
+  `classctx-reranker-0.1`, trained on the 4-track `dpv1.2.0` basis. They are
+  switched on in `dpv1_feature_config.json`, but not in `dpv1.pkl`.
+- **Earnings are real here, so this is Kelsey's construction, not a proxy.**
+  The brief allowed for a purse-weighted proxy "since your corpus may not have
+  consistent earnings data." It does have them: `races.value_breakdown` holds
+  the payout for every finishing position. Parsed, winners take a median
+  59.8% of the purse, then 20% / 10% / 5% / 2.9%, and breakdowns sum to the
+  purse (median 1.000).
+
+  **A parser bug, caught before any result:** the first regex (`[\d,]+`)
+  swallowed the comma and the next position's digit, giving winners a
+  "share" of 5.98× purse. Fixed to `\d{1,3}(?:,\d{3})*`, then re-verified with
+  the shares above.
+
+#### Construction
+
+- **Window:** the horse's last **5 finished starts** strictly before the race
+  date, minimum 3. This is Kelsey's "current year, or both years if fewer than
+  4," made date-independent.
+- **ECR:** total earnings ÷ starts in the window ÷ k, where k = 0.1263. k is
+  the mean earnings share for horses whose window purses average within ±5% of
+  today's purse, so a horse that is level on class *and* ordinary on form rates
+  at today's purse.
+  - k only sets Kelsey's ±5% thresholds. It cancels in every within-race
+    comparison.
+  - Kelsey's track-category weights (Tc1-Tc4) were not reproduced. Purse
+    already carries cross-track class, which Test 1 showed is where purse
+    wins.
+- **Dropdown magnitude:** `kd = log(ECR / today's purse + 0.05)`
+  (+ = dropdown). Zero-earnings windows are only 0.4% of rated horses, so the
+  +0.05 floor rarely binds.
+
+**Sanity check:**
+
+| check | value |
+|---|---|
+| rated (≥3 prior finished starts) | 93,774 of 137,908 OOF rows (68.0%); full 5-start window 75,974 |
+| unrated (0 / 1 / 2 prior finished starts) | 18,551 / 14,159 / 11,424 |
+| ECR ÷ purse quantiles, 5/25/50/75/95 | 0.12 / 0.45 / 0.94 / 1.55 / 2.80 |
+| Kelsey buckets | UP 50.4%, **SAME 4.6%**, DROP 45.1% |
+| races where every runner is rated | 5,083 of 18,220 (28%) |
+
+**The concern that shapes the reading:**
+- **The rating is mostly a form measure.** Within rated horses, `kd`
+  correlates **0.91** with its earnings-share part and only **0.16** with its
+  window-purse part.
+- **Exact decomposition:** ECR ÷ today's purse = (earnings ÷ purses contested)
+  × (mean window purse ÷ today's purse). So `kd` ≈ `form` + `pwin`, and every
+  Kelsey result has to be split into those two parts before it can be
+  attributed.
+
+#### Signal, level-stripped
+
+Level-stripped residual, within-race demeaned; + = rating above today.
+
+| quantity | slope | z |
+|---|---|---|
+| `kd`, Kelsey's dropdown magnitude | **+3.01pp/sd** | +20.3 |
+| `form`, earnings share | +1.63 | +10.7 |
+| `pwin`, window purse vs today (Gap #11 / Test 1 `lp_dir`, sign flipped) | **+3.64** | +22.5 |
+| `class_score_change_from_last` | −1.00 | −6.3 |
+| `purse_change_from_last` | −0.94 | −4.1 |
+
+The `kd` quintiles are monotone: −3.64 / −2.14 / −0.84 / +1.64 / **+4.99pp**.
+**The ±5% thresholds are not:** DROP − SAME is +0.70pp (z 0.9) and
+UP − SAME is +0.54pp (z 0.7). All the information is in the magnitude.
+
+**Within the model's own `class_change_from_last` buckets** (Gap #3,
+re-stripped inside each): `kd` is +2.47 (DOWN), +2.84 (SAME), +2.29 (UP),
+all z ≥ 5.7. That is not what the last-race feature sees.
+
+**Per cell** (Test 1 cells, fitted inside each), after C2 below:
+
+| cell | `kd` given C2 |
+|---|---|
+| same track, same family | +2.48 (z 10.4) |
+| same track, cross family | +1.29 (z 5.3) |
+| shipper, same family | +1.76 (z 3.5) |
+| shipper, cross family | +1.63 (z 3.8) |
+
+Present in every cell. Unlike Test 1's window comparison, this is not a
+single-cell effect.
+
+#### Redundancy
+
+Controls are within-race demeaned. Career wins and win% are computed from
+corpus history, not the model's shrunk features.
+
+| `kd` controlling for | R² | slope | z |
+|---|---|---|---|
+| C1: `class_change_from_last`, `class_score_change_from_last`, `purse_change_from_last` | 0.03 | +2.87 | +19.2 |
+| C2: C1 + career wins, career win% | 0.26 | +2.33 | +15.5 |
+| C3: C2 + Gap #11 / Test 1 window directions | 0.29 | +1.72 | +11.4 |
+| C4: C3 + window ITM rate | 0.67 | **+0.79** | +5.2 |
+| its own parts, `form` + `pwin` | 0.997 | **+0.27** | **+1.9** |
+
+The live last-race features barely touch the rating (R² 0.03). Nearly all of
+it is window purse plus window form:
+
+| part | slope | z |
+|---|---|---|
+| `pwin` beyond `form` + C2 | +3.86 | +24.3 |
+| `form` beyond `pwin` + C2 | +1.71 | +11.4 |
+
+**Kelsey's multiplicative combination adds nothing beyond its parts.**
+
+#### Oracle vs placebo (within-race shuffle, 40 draws, 17,153 races)
+
+| feature | 3×3 | 5×5 | 10×10 |
+|---|---|---|---|
+| `kd` raw | +0.472 vs +0.007, **z +7.41** | +0.536 vs +0.077, **z +4.60** | +0.600 vs +0.154, **z +3.95** |
+| `kd` beyond C2 | z +1.31 | z +1.58 | z +0.16 |
+| `kd` beyond C4 | z −1.52 | z +1.03 | z −0.20 |
+
+The raw oracle is the same size as Test 1's purse window alone (+0.536 /
++0.478pp at 3×3 / 5×5). Once career form is removed, nothing distinguishable
+from placebo is left at any resolution. The C4 residual slope (+0.79, z 5.2)
+is calibration-level only.
+
+#### Sample size and stability (`kd` given C2)
+
+- **By minimum prior starts:** min 3 +2.33, min 4 +2.26, min 5 +2.13; all
+  z ≥ 12.9.
+- **By year:** 2023 +2.10, 2024 +2.44, 2025 +2.58, 2026 +2.04; all z ≥ 5.3.
+- **By track:** CT +2.56, DED +2.37, GP +2.02, MNR +2.78 (all z ≥ 6.4).
+  ELP −1.10 (z −0.9, n 1,736), too small to read.
+
+#### Kelsey's top-rated horse vs the model's top pick
+
+Measured on the 5,083 races where every runner is rated. These skew to older,
+more-raced fields.
+
+| ranker | top-pick ITM | win |
+|---|---|---|
+| **model `p_fund`** | **66.16%** | 31.58% |
+| Kelsey highest ECR | 58.90% | 26.38% |
+
+- **Agreement:** the two agree in 33.8% of races.
+- **Disagreements** (3,363): Kelsey 51.62% vs model 62.59%, a paired
+  difference of **−10.97pp (se 1.29)**.
+- **Where Kelsey's pick sits in the model's order:** 1st 33.8%, 2nd 22.9%,
+  3rd 14.7%, 4th+ 28.6%.
+
+**As a picker, Kelsey's rating is clearly worse than the model.** As
+information the model under-uses, it is real:
+
+| subgroup | ITM | mean `p_fund` | level-stripped residual |
+|---|---|---|---|
+| Kelsey's top-rated horse | 58.9% | 53.1% | **+6.16pp** (se 0.66) |
+| within model top 2, Kelsey #1 | 68.9% | 61.9% | **+7.6pp** (n 2,885) |
+| within model top 2, Kelsey #2-3 | 62.5% | 60.1% | +3.0pp |
+| within model top 2, Kelsey #4+ | 55.4% | 55.9% | −0.2pp |
+
+So among the model's top two, Kelsey's rating separates the stronger
+contender.
+
+**Split by whether the two top picks agree** (added at commit time). The
++6.16pp above is over **all** 5,083 races, including the 1,720 where Kelsey's
+#1 *is* the model's #1. Restricted to disagreements:
+
+| horse | n | ITM | mean `p_fund` | level-stripped |
+|---|---|---|---|---|
+| Kelsey #1, agree races | 1,720 | 73.14% | 65.62% | +8.32pp (se 1.05) |
+| **Kelsey #1, disagree races** | 3,363 | 51.62% | 46.69% | **+5.06pp (se 0.84)** |
+| model #1, disagree races | 3,363 | 62.59% | 62.40% | +0.82pp (se 0.83) |
+
+When they disagree, Kelsey's pick is the worse bet (51.6% vs 62.6% ITM).
+But the model under-prices it by about 5pp, while its own pick is roughly
+calibrated. That makes it a calibration error on Kelsey's horse, not evidence
+that the model is ordering the pair wrongly.
+
+None of these subgroup residuals was re-run under the C3/C4 controls. The
+pooled decomposition says they are the same window-purse-plus-form signal,
+but for these subgroups specifically that is inferred, not measured.
+
+#### Verdict
+
+| question | answer |
+|---|---|
+| Does dropdown magnitude add ranking information beyond `class_change_from_last`? | **Beyond the last-race feature, yes** (z 19 after C1, present in every bucket and cell). |
+| Is it Kelsey-specific? | **No.** Beyond its own two parts it is +0.27pp/sd (z 1.9). Beyond window directions + window ITM rate, the oracle is null at 3×3 / 5×5 / 10×10. |
+| Kelsey's ±5% dropdown / move-up labels | **Null.** The information is in the magnitude, not the bands. |
+| Kelsey's top-rated horse as a pick | **−11pp ITM vs the model on disagreements.** As a filter/tiebreak it points at under-rated horses, but that is the same decomposed signal. |
+
+**Recommendation.** Kelsey's construction doesn't add beyond what is known.
+Most of what it sees is **Gap #11's look-back effect**, measured in purse.
+That is the strongest component here (+3.86pp/sd beyond form and career
+controls), and it is **still not in the live base model**. The rest is
+recent form (window earnings share / ITM rate), which the live model sees
+only through career rates and `last_3_avg_finish`.
+
+Both belong to Gap #11 and its "unifying hypothesis" (class-contextualised
+recent form), not to a new Kelsey feature. Test 2 strengthens the case for
+the Gap #11 build. It does not open a new one.
+
+**Carry forward:**
+- **The window's substrate:** Test 1 found purse beats `class_score` for
+  horses whose window was at other tracks and in other race types.
+- **A recent-form term:** window ITM rate or earnings share was +1.71pp/sd
+  beyond window purse and career controls.
+- **Judge any build on held-out folds,** as with every prior gap.
+
+Basis: 5-track out-of-fold predictions (`dpv1_fold_predictions.csv`), the
+same as Test 1. Gap #11's own figures were on the 4-track basis.
+
+Scripts are session scratch, not committed: `k2_pre.py`, `k2_build.py`,
+`k2_test.py`, `k2_tie.py`, `k2_disagree.py`; they reuse Test 1's `kc_lib.py` and
+`kc_oof2.pkl`.
+
+No features built, no model retrained, neither reranker touched,
+`card_picks.py` and Piece 4 untouched, nothing shipped. The database was
+opened read-only.
