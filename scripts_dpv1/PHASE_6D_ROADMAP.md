@@ -5562,3 +5562,330 @@ resets the live record, so that measurement starts clean.
 **What is explicitly not included:** none of the 24 held `dpv1.5.2` features,
 no reranker change (`pp-reranker-1.0` applied, `classctx-reranker-0.1`
 shadow-only, both artifacts untouched), and no change under `scripts/`.
+
+---
+
+## Kel-Co diagnostics
+
+The Kel-Co Class Computer (A. Stuart Kelsey, 1979; sold into the mid-1990s)
+argued that **purse is a better class measure than claiming price**, for three
+reasons:
+1. Claiming price doesn't work for allowance races and above.
+2. Claiming prices don't compare cleanly across tracks.
+3. Claiming-price ranges within a race can hide class shifts.
+
+These diagnostics test that claim on modern data, with the live model's other
+features controlling for confounds. Read-only, same discipline as Gaps #2-#5.
+
+### Test 1 — purse vs claiming price as the class measure (2026-09-29)
+
+#### Status: TESTED, CLOSED — KELSEY'S CLAIM DOES NOT HOLD AS A GENERAL RULE; ONE NARROW CELL WHERE PURSE WINS
+
+**Short version.** In most of the corpus, purse and claiming price are
+close substitutes. Where they differ, they each win in different places:
+- **Claiming price wins inside claiming races.** The entry-level tag carries
+  within-race information that purse cannot see (Subset 3).
+- **Claiming price wins for class moves across race families at the horse's
+  home track.**
+- **Purse wins in one cell: horses whose recent window was run at another
+  track *and* in another race family** (13% of windowed starts). This is
+  Kelsey's reason #2 in spirit.
+
+Reason #1 is null on its narrow test. Reason #2, tested directly on the last
+race, is directional but underpowered. Reason #3 points the **opposite** way to
+Kelsey.
+
+#### Premise corrections — why the test was scoped this way
+
+The brief as first written would not have measured anything. Checked before
+any test was run, against `dpv1.pkl` itself (94 base features):
+
+1. **`class_score` is already purse-based for ~70% of races**
+   (`dpv1_common.class_score_vec`). It is tier × 10 plus a 0-9 offset. The
+   offset is:
+   - the **claiming price**, only for race types containing "CLAIM":
+     claiming, maiden claiming, AOC, SOC, MOC;
+   - **log10 purse** for everything else.
+
+   So Kelsey's reason #1 is already how the model works, except for
+   **allowance optional claiming** (9.0% of races), which is placed by its
+   claiming tag.
+2. **Race-level class features cannot reorder a race** (Feature Design
+   Principle). `class_score` and `claiming_price` are both read from `races`,
+   so they are constant within a race. Replacing `class_score` with a
+   purse-based score, as the original step 5 proposed, is ranking-inert by
+   construction. Only horse-level quantities can reorder:
+   - `class_score_change_from_last` (coef rank 83 of 226)
+   - `class_change_from_last` (UP is rank 30)
+   - **`purse_change_from_last`, already purse-based, rank 11 (−0.197)**
+   - the trainer class-move rates
+3. **"Average purse of the last 3 races" would have changed two things at
+   once** — the measure (purse vs tag) and the look-back (window vs last
+   race). The look-back alone is Gap #11's effect (+1.60pp raw, z 7.6), and
+   the live base model has no window class feature. Compared against the live
+   model, a purse window would mostly rediscover Gap #11. The fair comparison
+   is a purse window against a `class_score` window of the same length.
+
+#### Method
+
+- **Predictions:** out-of-fold `dpv1_fold_predictions.csv`. This is the
+  **5-track** fold basis, 137,908 rows, 18,220 races. It is not the 4-track
+  basis Gap #11 was measured on.
+- **Ranking and baseline:** ranked on `p_fund`, baseline top-pick ITM
+  64.19%.
+- **History:** all tracks, including the history-only EVD/FG/LAD.
+- **Window:** the last **3 finished starts** strictly before the race date,
+  matching Gap #11's fallback rule; 68.0% of rows have one.
+- **The two window directions** (+ = today is above the window):
+  - `cs_dir` = today's `class_score` − the window mean `class_score`
+  - `lp_dir` = today's log10 purse − the window mean log10 purse
+- **Every table below** uses the same five steps:
+  1. Level-strip the residual (y − p_fund): 20 `p_fund` bins, re-stripped
+     inside each restriction.
+  2. Demean the quantity within the race.
+  3. Report the slope in pp of ITM per sd.
+  4. Use race-clustered z.
+  5. Run the Gap #4 cell-offset oracle (feature quantile × `p_fund` quantile)
+     against 40 placebo draws.
+
+Scripts are session scratch, not committed: `kc_lib.py`, `kc_sizes.py`,
+`kc_test.py`, `kc_robust.py`, `kc_decomp.py`, `kc_local.py`.
+
+#### Subset sizes (on out-of-fold predictions)
+
+All three subsets came in at or above the pre-test estimates, so no
+checkpoint was triggered.
+
+| subset | rows | races |
+|---|---|---|
+| main: horses with a 3-start window | 93,756 | 17,151 |
+| 1: AOC today or in the window | 19,641 | — (1,627 AOC races today) |
+| 2: claiming → claiming, last race at a different track | 4,642 | 2,583 |
+| 3: claiming race with more than one entry-level tag | 19,319 | 2,486 |
+
+Subset 2 is larger than the ~2,800 estimated earlier because the history-only
+tracks count as the previous track: EVD→DED 1,047, LAD→DED 1,038, CT→MNR 574.
+
+#### Main comparison — purse window vs `class_score` window
+
+**Measured globally, the purse window looks much better.** Within the race the
+two directions correlate at 0.77. Each alone:
+
+| measure | slope | z |
+|---|---|---|
+| `cs_dir` | −2.78pp/sd | −17.1 |
+| `lp_dir` | −3.39pp/sd | −21.2 |
+
+Each after removing the other:
+
+| measure | slope | z |
+|---|---|---|
+| purse beyond `cs` | **−1.97pp/sd** | −12.2 |
+| `cs` beyond purse | −0.28pp/sd | −1.7 |
+
+This one is flat across level controls: −1.97 / −1.98 / −1.98 at 20 / 50 / 200
+bins, and −1.74 on a rank × field-size grid. It is stable by year. It survives
+controlling for `purse_change_from_last`, `class_score_change_from_last` and
+log purse change from the last race (−1.40, z −8.6). Its oracle beats placebo
+at every resolution:
+
+| grid | real | placebo mean (sd) | z |
+|---|---|---|---|
+| 3×3 | +0.490pp | +0.037 (0.069) | +6.55 |
+| 5×5 | +0.571pp | +0.083 (0.096) | +5.08 |
+| 10×10 | +0.636pp | +0.176 (0.115) | +4.00 |
+
+The positive control, the Gap #11 `cs_dir` window, also beats placebo:
+z +3.17 at 3×3, +4.49 at 5×5, +2.25 at 10×10. So the harness can detect a
+known effect.
+
+**That headline does not survive decomposition, and it should not be quoted
+alone.** Both the "purse beyond `cs`" regression and the within-race
+demeaning were fitted **once across all rows**. Fitted **inside** each cell,
+per Gap #3, the picture splits:
+
+| cell (window vs today) | share | purse beyond `cs` | `cs` beyond purse |
+|---|---|---|---|
+| same track, same race family | 37% | −1.04pp/sd (z −4.0) | −0.40 (z −1.5) |
+| same track, **cross family** | 42% | −0.19 (z −0.8) | **−1.37 (z −5.3)** |
+| shipper window, same family | 8% | −0.65 (z −1.1) | −1.58 (z −2.8) |
+| **shipper window, cross family** | 13% | **−2.55 (z −5.7)** | +0.72 (z +1.6) |
+
+The single global slope relating purse to `class_score` is wrong in every
+cell. That is where the global "purse wins" figure comes from: it is
+Simpson-style pooling, not a property of either measure.
+- At the home track, across race families, the **tier ladder is the better
+  measure.**
+- Purse clearly wins only for horses whose window was run at other tracks in
+  other race types.
+
+The oracle confirms this. On same-track cross-family rows, "purse beyond `cs`"
+is null against placebo: z −0.26 / −1.73 / +0.37. On no-shipper, no-maiden
+rows it weakens to z +3.13 / +1.55 / +1.90, which is not stable across
+resolution.
+
+Two further checks bear on this:
+- **Where both measures are purse-based by construction** (a single
+  non-claiming family), neither is incremental (−0.31 / −0.49, z < 1). That
+  is the expected null, so the harness is not inventing differences.
+- **The ladder's tier jumps are not the cause.** Clipping `cs_dir` to ±10,
+  rank-normalising it, or using the within-tier offset only all leave purse
+  incremental globally (−1.72 to −1.94). The decomposition above is what
+  locates it.
+
+**Standalone, the purse window is at least as good a substrate as the
+`class_score` window.** On its own, `lp_dir` gives an oracle z of +6.45 /
++5.65 / +4.51 (10×10: +0.729pp vs placebo +0.191). The `class_score` window
+gives +0.472pp vs +0.187 at 10×10. The ranking value in both is mostly
+**Gap #11's look-back effect**, which the live base model still does not
+have. The choice of measure matters in cells, not overall.
+
+#### Subset 1 — allowance optional claiming re-scored by purse (Kelsey #1, narrow)
+
+For AOC races, the purse offset averages **1.29 ladder points below** the
+claim-tag offset (sd 1.02, range −4 to +1).
+
+Because today's score is shared by the whole field, the change can only
+reorder horses through history. In 15,642 rows, a prior AOC race moves the
+window mean by 0.98 points on average. It also flips 508 last-race UP/SAME/DOWN
+categories.
+
+| quantity | result |
+|---|---|
+| window shift, within race | +0.75pp/sd (z +2.18); partial on last-race controls +0.70 (z +2.02) |
+| last-race shift | +0.54pp/sd (z +1.48) |
+| UP→SAME flips (219) vs staying UP | +3.41pp (z +1.1) |
+| DOWN→SAME flips (279) vs staying DOWN | −0.97pp (z −0.4) |
+| oracle z (3×3 / 5×5 / 10×10) | +0.90 / +1.01 / −0.48 |
+
+**Null on ranking, and the weak slope has the wrong sign for Kelsey.** If
+purse were the truer measure, horses that purse scores as rising more should
+be over-rated. That would give a negative slope; it is positive.
+
+#### Subset 2 — claiming → claiming across tracks (Kelsey #2)
+
+`d2` is the part of the last-race log purse move that the claim-tag move does
+not explain. The fit is on all 64,853 claiming → claiming starts, where
+R²(purse | tag) is only 0.17.
+
+Cross-track `d2` is three times as dispersed as same-track (sd 0.214 vs 0.073
+log10 units), so the tag and the purse really do diverge across tracks. That
+part is Kelsey's premise, and it is right.
+
+| | slope | z |
+|---|---|---|
+| cross-track | −1.61pp/sd | −2.39 |
+| cross-track, partial on `purse_change_from_last` + `class_score_change_from_last` (R² 0.79) | −1.36 | −1.88 |
+| same-track (contrast) | −2.06 | −10.6 |
+| interaction d2 × cross-track | **+1.73** | +4.64 |
+
+By today's track, every sign is negative and none is individually
+significant beyond MNR (−3.15, z −2.2).
+
+**Power:** SE 0.67pp/sd, so the minimum detectable effect at 80% power is
+~1.9pp/sd. **Oracle** z +1.28 / +0.45 / +1.14: none beats placebo.
+
+**Directional but not established.** Most of the cross-track divergence is
+already carried by `purse_change_from_last` (R² 0.79). The interaction says
+the per-sd effect is **smaller** across tracks than within a track — the
+opposite of what Kelsey #2 predicts.
+
+**Open lead, not a finding.** Same-track purse-beyond-tag is −2.06pp/sd
+(z −10.6) even though `purse_change_from_last` is live. That feature is a raw
+percentage change: heavy-tailed, and linear after standardisation. It may be
+a representation failure (Gap #11 Step 3 pattern) rather than missing
+information. It was not partialled or oracle-tested here.
+
+#### Subset 3 — entry-level claiming price within the race (Kelsey #3)
+
+The model reads the race-level tag. In 20% of claiming-type races, horses are
+entered at different prices. Entry-level tags are 0.3% null there, and the
+race tag equals the maximum entered price in 86.2% of races. This is the only
+subset where the quantity varies within the race by itself.
+
+| quantity | result |
+|---|---|
+| log(entered price / top tag), within race | **+1.24pp/sd (z +3.47)** |
+| entered below the tag vs at it | **−3.63pp (z −5.07)**, n 5,329 vs 13,990 |
+| ...at ~90% of the tag | −3.02pp (z −3.2) |
+| ...at ~80% of the tag | −6.25pp (z −6.4) |
+| ...at ≤75% of the tag | +0.66pp (z +0.5) — not monotone |
+| partial on last-race class/purse moves + `weight_lbs` (R² 0.06) | +0.81pp/sd (z +2.26) |
+| by year | 2023 +1.97 (z 3.0), 2024 +1.13, 2025 +0.73, 2026 +1.07 |
+| by track | CT +2.08 (z 5.3), GP +2.29 (z 2.3), **DED −1.08** |
+| oracle z (3×3 / 5×5 / 10×10) | **+2.74 / +0.99 / +0.33** |
+
+**The direction is the opposite of Kelsey.** A horse entered for less than
+the race's top tag is **over-rated** by the model, and purse — identical for
+every horse in the race — cannot see it. Here the claiming price carries class
+information that purse lacks.
+
+It is not a ranking signal:
+- The oracle beats placebo at 3×3 only. Per Gap #4, an effect that appears at
+  one resolution and vanishes at another is not an effect.
+- The gradient is not monotone.
+- It reverses at DED and fades after 2023.
+
+This is a calibration-level oddity, concentrated at CT. It is not a build
+candidate.
+
+#### Redundancy
+
+- **Main (global):**
+  - Purse-beyond-`cs` shares 11% of its variance with
+    `purse_change_from_last` and `class_score_change_from_last`.
+  - Its partial slope barely moves (−1.97 → −1.91). Adding log last-race purse
+    change takes it to −1.40.
+  - Not captured by the live last-race features. The live model has no window
+    feature at all, so the more relevant comparison is the `class_score`
+    window, covered above.
+- **Subset 2:** 79% captured by the live last-race features.
+- **Subsets 1 and 3:** little shared variance (R² 0.05-0.06), but neither
+  carries ranking signal to be redundant with.
+
+#### Verdict
+
+| Kelsey's reason | test | result |
+|---|---|---|
+| #1: claim price fails for allowance and above | AOC re-scored by purse | **Null.** The model already scores allowance by purse; the one exception (AOC) doesn't matter, and its weak slope has the wrong sign. |
+| #2: tags don't compare across tracks | cross-track claiming → claiming | **Premise true, effect not established.** Tag and purse diverge 3× more across tracks, but the residual is z −1.9 after controls, the oracle is null, and the per-sd effect is smaller than within-track. Underpowered at 4,642 starts. |
+| #2, generalised | window-level decomposition | **The one real cell.** Shipper window × cross family (13% of windowed starts): purse beyond `cs` −2.55pp/sd, z −5.7. |
+| #3: tag ranges hide class | entry-level tag within race | **Reversed.** The tag carries within-race information purse cannot, and it is not stable enough to rank on. |
+| "purse is the better class measure" in general | window head-to-head | **No.** Globally it looks decisive, but that is a pooling artifact. In cell, the tier ladder wins at home across families. |
+
+**Recommendation:** Kelsey's claim doesn't hold up as a general rule on
+modern data. Do not replace `class_score` with a purse construction. Most of
+what a purse window "finds" is Gap #11's look-back effect, which remains
+unbuilt in the live base model.
+
+**If Gap #11 is revisited,** carry one input from this test: the choice of
+window substrate matters **for shippers**. A window measured in `class_score`
+under-reads horses coming from other tracks across race types, where purse
+does better. A build could reasonably carry both, or put a purse term on the
+shipper rows. That would be judged on held-out folds like any other build, and
+it is a recommendation, not a decision.
+
+#### What carries forward
+
+1. **Gap #11 is still the thing.** Most of the ranking value in a purse
+   window is the window effect itself, and the live base model has no window
+   class feature.
+2. **The window substrate matters for shippers.** For horses whose window
+   was run at other tracks in other race types, purse beats `class_score`
+   (−2.55pp/sd, z −5.7). Everywhere else, it ties or loses.
+3. **Open lead: is `purse_change_from_last` a representation problem?** On
+   same-track claiming → claiming starts, the last-race purse move that the
+   tag does not explain still leaves −2.06pp/sd (z −10.6), even though
+   `purse_change_from_last` is live at coefficient rank 11. That feature is a
+   raw percentage change: heavy-tailed, and linear after standardisation. This
+   is the Gap #11 Step 3 pattern — the information is in the model, but at a
+   scale it can't use. **Not partialled, not oracle-tested.** It is worth its
+   own investigation before anyone treats it as missing information.
+4. **Method note for future diagnostics.** Fitting a "beyond" regression
+   once across heterogeneous cells produced a z −12 result that the per-cell
+   fit mostly dissolved. When comparing two correlated measures, fit the
+   residualisation inside each cell (Gap #3), not globally.
+
+No features built, no model retrained, neither reranker touched,
+`card_picks.py` and Piece 4 untouched, nothing shipped. The database was
+opened read-only.
