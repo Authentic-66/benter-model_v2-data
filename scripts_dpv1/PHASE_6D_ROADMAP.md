@@ -6410,3 +6410,143 @@ Scripts are session scratch, not committed: `k3_pre.py`, `k3_test.py`,
 No features built, no model retrained, neither reranker touched,
 `card_picks.py` and Piece 4 untouched, nothing shipped. The database was
 opened read-only.
+
+## Sung & Johnson 2007 diagnostics (2026-09-30)
+
+Two read-only checks prompted by Sung & Johnson, *J. Prediction Markets* 1(1)
+43-59 (one-step vs two-step conditional logit). Production model
+`dpv1.3.0-5track`, 5 training tracks, 2022+. Nothing retrained, no model or
+reranker touched, database opened read-only. Scripts are session scratch
+(`sj_diag.py`, `sj_conv.py`).
+
+### Investigation 1 — how y_pred is produced
+
+**It is two-step, but not Sung & Johnson's two-step.** Three differences:
+
+| | Sung & Johnson | DPv1 (`train_dpv1.run_fold`) |
+|---|---|---|
+| fundamental | conditional logit on the winner (within-race softmax) | **binary per-entry logistic on ITM** (`FundamentalModelITM`), no within-race normalisation |
+| market input | log P(win) from the tote | logit of **Harville P(ITM)** built from tote win odds |
+| blend | `exp(α·log Pm + γ·log Pf)/Z`, within race | `sigmoid(α·logit Pf + β·logit Pm + γ)`, per entry, plus intercept |
+| blend fit on | separate holdout | CV: blend fit on the **validation year itself** (3 params, mildly in-sample). Shipped artifact: blend fit on the **same rows as the fundamental** (in-sample p_f) |
+
+The market is **not** one of the 94 features, so S&J's one-step
+multicollinearity (market flipping fundamental signs) cannot occur here.
+
+**Blend coefficients** (DPv1 naming: α = fundamental, β = market):
+
+| fit | α fund | β mkt | β/α raw | β/α in SD units |
+|---|---|---|---|---|
+| fold 2023 | 0.079 | 0.801 | 10.1× | 20.3× |
+| fold 2024 | 0.132 | 0.763 | 5.8× | 11.8× |
+| fold 2025 | 0.070 | 0.781 | 11.2× | 22.0× |
+| fold 2026 | 0.077 | 0.753 | 9.7× | 20.6× |
+| **shipped** | **0.102** | **0.771** | **7.6×** | — |
+| S&J UK | 0.139 | 0.780 | 5.6× | — |
+
+The raw ratio looks close to S&J's, but it isn't comparable: sd(logit Pm)
+≈ 1.6 against sd(logit Pf) ≈ 0.8. In SD units the market carries **12-22×**
+the fundamental's weight. The shipped α (0.102, fit in-sample) sits inside
+the fold range, so the in-sample blend fit has no practical effect. It is
+still a methodology wart.
+
+**S&J's exact form, refit on out-of-fold predictions** (within-race
+conditional logit, 17,678 races, regressors log p_mkt_win and logit p_fund):
+
+| stage | market coef (t) | fundamental coef (t) |
+|---|---|---|
+| winner | 1.108 (84.3) | **−0.028 (−1.5)** |
+| 2nd given 1st | 0.793 (63.0) | 0.045 (2.5) |
+| 3rd given 1st, 2nd | 0.631 (50.1) | 0.076 (4.1) |
+
+**Given the tote, the fundamental carries no win information.** Its whole
+contribution is at 2nd and 3rd, which is where Harville's win→place mapping
+is known to be miscalibrated. This independently confirms Phase 4D (91% of
+the edge was Harville recalibration). S&J's UK fundamental reached t=3.1 on
+the *win*. Ours does not.
+
+**Sign check, fundamental coefficients.** Each numeric coefficient was
+compared with its within-race marginal correlation with ITM (level effects
+stripped) and with a within-race conditional-logit refit.
+- **Expected collinearity flips, no action needed:** `career_win_pct_shrunk`
+  (−0.168, offset by `career_itm_pct_shrunk` and `career_wins`; same sign in
+  the conditional logit), `last_race_won` (−0.072, conditional on finish pos
+  and class change, consistent with Doug's note), `trainer_starts_30d`,
+  `trainer_at_other_tracks_winrate`, `blinkers_change_flag` /
+  `is_first_time_blinkers` (an offsetting pair). All small, or explained by a
+  correlated partner.
+- **`last_race_beaten_lengths` (+0.085): the sign is correct, the feature is
+  mislabelled.** `entries.beaten_lengths` is the chart's per-horse margin
+  **ahead of the next finisher**, with the winner forced to 0 and the last
+  horse NULL. Mean by finish position: 0, 2.19, 2.22, 2.69 … 4.74 at 8th.
+  NULLs per position match the count of races where that position is last.
+  It is **not** lengths behind the winner. `card_picks` labels it "closeness
+  to winner". The real closeness-to-winner signal (the cumulative sum) is
+  not in the model. Some values are ≥50 (274 rows, probably eased or DNF
+  sentinels). **Open lead #3:** a representation question, same class as the
+  two Kel-Co leads.
+- **68 of 226 preprocessed columns are race-constant** (field_size,
+  class_score, claiming_price, distance, track bias, track/race-type
+  one-hots). In a per-entry binary logit they only shift the race's base ITM
+  rate and never reorder horses. That is not wrong for the ITM objective, but
+  their large coefficients (`track_code__GP` −0.47, `field_size` −0.34) say
+  nothing about ranking. Another 35 columns are exact or linear duplicates
+  (`distance_yards`=`distance_furlongs`, `days_since_last_race`=
+  `last_race_days_ago`, `lasix_first_time`=`is_first_time_lasix`, shared
+  missing indicators). At l2=0.001 the split between them is arbitrary.
+  That is harmless for prediction and meaningless for interpretation.
+
+### Investigation 2 — explosion depth
+
+**Production uses neither a winner-only nor an exploded logit.** It is a
+binary logistic on ITM. That pools 1st/2nd/3rd as identical successes, which
+is a *stronger* restriction than a depth-3 explosion (it also forces equal
+scale across stages). The Watson-Westin test was never run, and depth "3"
+follows from the ITM target choice. It was not validated.
+
+The test was run anyway, on the production design matrix (shipped
+preprocessor, 22,760 races with clean 1-2-3, ≥5 finishers, scratches out),
+using a rank-ordered conditional logit. **Identifiable K = 123, not 94:** 94
+features → 226 columns, minus 68 race-constant and 35 collinear. All fits
+converged (rerun to 20k iterations; LL unchanged to 0.02).
+
+| test | χ² | df | crit 95% | pool? |
+|---|---|---|---|---|
+| E=2: P12 vs S1+S2 | 535.4 | 123 | 149.9 | **no** |
+| E=3: P123 vs P12+S3 | 701.0 | 123 | 149.9 | **no** |
+| E=3: P123 vs S1+S2+S3 | 1236.4 | 246 | 283.6 | **no** |
+| E=2, Benter scale factor λ₂ | 341.0 | 122 | 148.8 | **no** |
+| E=3, scale factors λ₂, λ₃ | 784.9 | 244 | 281.4 | **no** |
+
+At df=94 (crit 117.6) the answer is the same. Fitted scales are λ₂=0.79 and
+λ₃=0.65, the usual "lower places are noisier" pattern. Correlations of the
+stage coefficient vectors: S1-S2 0.71, S1-S3 0.89. **The coefficient
+*shape* differs by stage, not just its scale.** Pooling is rejected at every
+depth. With 22.7k races the test is very powerful, so this answers "are the
+β equal?" and not "would pooling predict better?".
+
+**Practical check** (train <2025, test win LL on 7,749 races in 2025-26,
+paired per race against depth 1):
+
+| depth | Δ win LL/race | z |
+|---|---|---|
+| 2 | +0.0031 | +1.96 |
+| 2 + λ | +0.0032 | +2.68 |
+| 3 | −0.0029 | −1.28 |
+| 3 + λ | +0.0010 | +0.61 |
+
+Depth 2 with a scale factor is a small out-of-sample win, even though the
+test rejects pooling (a bias-variance trade). Depth 3 is no better than
+winner-only. For scale: depth-1 vs uniform is +0.180/race, so depth-2 adds
+about 1.7% of that. **This bears on a conditional-logit *win* model, not on
+the shipped ITM model.** It is not a retrain recommendation as it stands.
+
+### What this leaves
+- Blend: nothing to change. The market dominates more than in S&J's UK
+  data, and the fundamental adds place/show calibration, not win
+  information.
+- New open lead: `last_race_beaten_lengths` semantics (see above).
+- Methodology warts, low priority: the shipped blend is fit in-sample, and
+  the fold blends are scored on the slice they were fit on.
+- If a win-target conditional logit is ever built, depth 2 with λ₂ ≈ 0.78
+  is the efficiency gain on offer. Depth 3 is not.
