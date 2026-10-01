@@ -6743,3 +6743,210 @@ construction. The exacta improvement is real but secondary.
 **A Lo-based production change is not recommended.** The valuable result of
 this diagnostic is open lead 1, the fundamental's under-confidence. A
 temperature-calibration investigation is recommended as a post-DED follow-up.
+
+## ticket_ev calibration (2026-09-30)
+
+This section follows up the open lead flagged in the Lo & Bacon-Shone
+section (`3cf84e8`). It extends **Phase 6A**
+(`PHASE_6A_PREDICTION_RUNNER.md`, `phase6a_validation.json`), which had
+already backtested `ticket_ev`'s default menu over 14,517 out-of-sample races.
+On that menu, the fundamental model returned **−28.6%** on all tickets and
+**−34.0%** on +EV tickets only, and Phase 6A concluded the +EV filter has
+negative information content.
+
+**There was no conflict to resolve.** The −28.6% is ROI on *every* ticket in
+the default menu. The ~50% +EV share is the *fraction* of tickets the tool
+labels positive. The two numbers measure different things, and Phase 6A had
+already reported the +EV subset doing worse.
+
+What was new here: Doug's own ticket structures, DED (loaded 2026-09-18,
+after Phase 6A), deciles of predicted EV, and a breakdown of where the error
+comes from.
+
+Read-only. `ticket_ev`, the payout curve, `card_picks`, the model and the
+rerankers are all untouched. Scripts are scratch: `tev_backtest.py` and
+`tev_report.py`.
+
+### How ticket_ev works
+
+- **EV formula.** EV = Σ_c p(c)·v(c) − cost.
+- **Probability p(c).** P(ITM) goes through `normalise_itm`, then
+  `invert_harville`, then a Plackett-Luce simulation.
+  - The P(ITM) source is set by `--use`, which defaults to `auto`: **the blend
+    when the card has odds, otherwise the fundamental model**.
+  - Doug enters TwinSpires morning-line odds, so he most likely gets the
+    blend, with the **morning line standing in for the tote** in the market
+    input.
+- **Payout v(c).** This is an empirical curve,
+  `log(payoff/base) = a + b·(−log q) + c·log(n_combos)`, fitted per (wager,
+  track) on 99k real payoffs, with smearing, bias and field-size corrections.
+  - q is the public's Plackett-Luce probability, computed from the card's
+    odds. On Doug's cards those odds are the morning line, again in place of
+    the tote.
+  - The curve has no explicit pool, takeout or breakage model. All of that is
+    implicit in the fit.
+- **Without odds, exotic tickets are not priced at all.**
+
+### Method
+
+- **Corpus.** The 17,651 fold races used in the Lo & Bacon-Shone section
+  (2023+, field size 4-11, a clean 1-2-3), with out-of-fold `p_fund` and the
+  blend `y_pred`. The probability chain is replicated exactly; the
+  Plackett-Luce probabilities are computed in closed form rather than
+  simulated.
+- **Doug's structures.** "Subset" is an assumption: model ranks 4-7 or 4-9.
+  - S_ALL: 1,2,3/1,2,3/1,2,3/ALL, fields of 7 or fewer.
+  - S_SUB4: 1,2,3/…/ranks 4-7 ($2.40), fields of 8-11.
+  - S_SUB6: 1,2,3/…/ranks 4-9 ($3.60), fields of 10-11.
+  - E_BOX2 and E_BOX3: exacta boxes of the top 2 and top 3, $1 base.
+- **Realised returns.** Taken from `exotic_payouts`, rescaled to the ticket
+  base. A ticket hits when it covers a winning combination; dead heats pay on
+  each combination covered. Hits detected from finishing positions match
+  hits detected from payoff rows in 198 of 198 smoke-test cases.
+- **Limitation: final tote odds.** The backtest uses final tote odds on both
+  the blend and the payout side. Morning-line history exists for only 268
+  races, so **Doug's actual morning-line setup cannot be backtested**.
+  Morning-line odds are noisier than the tote, so model-market disagreement
+  would be larger and +EV labels more frequent, not more reliable.
+
+### Data issue: exclude MNR from realised ROI
+
+- On MNR hits, realised superfecta payoffs run at a **median 1.65× the fitted
+  curve** (mean 1.95×). At every other track the median ratio is 0.74-0.96.
+- MNR is also the only track where indiscriminate betting shows a profit
+  (+28% to +45%).
+- MNR is one of two tracks (with CT) whose superfecta rows are all
+  `$1.00 Superfecta`. This is probably a payout-curve fit or base-amount
+  labelling problem specific to MNR. It is **not investigated (open lead)**.
+- The headline numbers below exclude MNR, and they are also shown without the
+  three largest payoffs, because superfecta returns are tail-dominated.
+
+### Results: all tracks except MNR
+
+| Source | Ticket | All tickets | +EV only | −EV only | All, ex top 3 | +EV, ex top 3 | −EV, ex top 3 |
+|---|---|---|---|---|---|---|---|
+| fund | S_ALL (n≤7) | −22.5% | −27.7% | −18.3% | −28.4% | **−41.2%** | −22.5% |
+| fund | S_SUB4 | −33.6% | −40.4% | −24.9% | −38.8% | **−49.5%** | −32.6% |
+| fund | S_SUB6 | +2.2% | +11.5% | −13.5% | −32.6% | −38.2% | −51.0% |
+| fund | Exacta box, 2 | −23.5% | −31.9% | −19.8% | −25.0% | −36.4% | −20.9% |
+| fund | Exacta box, 3 | −23.2% | −29.2% | −18.8% | −23.8% | −30.7% | −19.4% |
+| blend | S_ALL (n≤7) | −18.4% | −3.0% (n=242) | −19.0% | −21.0% | −31.4% | −21.7% |
+| blend | S_SUB4 | −20.6% | −20.7% | −20.6% | −23.0% | −25.4% | −24.4% |
+| blend | S_SUB6 | −17.5% | −22.3% | −12.8% | −25.5% | −31.6% | −28.8% |
+| blend | Exacta boxes | −14.5% / −17.5% | 2 / 6 tickets | — | — | — | — |
+
+The "ex top 3" columns drop the three largest payoffs in each set before
+computing ROI.
+
+**A. Phase 6A's finding generalises to Doug's structures.**
+- With the fundamental model, +EV tickets do worse than −EV tickets on every
+  structure, both raw and without the three largest payoffs. The one
+  exception is S_SUB6 raw, which is carried by a single tail payoff.
+- With the blend, the filter carries no information: S_SUB4 is −20.7% for +EV
+  against −20.6% for −EV.
+- The blend almost never labels an exacta +EV.
+
+### Deciles of predicted ROI (fundamental, all tracks)
+
+| Decile | S_ALL (n≤7) predicted → realised | S_SUB4 predicted → realised | Exacta box 2 predicted → realised |
+|---|---|---|---|
+| 1 | −63% → +16% | −61% → +10% | −69% → +5% |
+| 5 | −17% → −3% | +2% → +24% | −32% → −13% |
+| 8 | +52% → −11% | +98% → −32% | +17% → −6% |
+| 10 | +501% → +1% | +738% → **−84%** | +268% → **−27%** |
+
+**D. The filter does not just fail; at the top it inverts quality.**
+- S_ALL is flat: realised ROI shows no trend while predicted ROI rises from
+  −63% to +501%.
+- S_SUB4 and the exacta box get *worse* as predicted EV rises.
+- No EV threshold isolates a profitable subset.
+
+### Mechanism
+
+The decomposition is for superfectas pooled across Doug's structures, all
+tracks.
+
+| | Predicted ROI | Realised ROI | Hit rate, observed / predicted | Payout per hit, realised / model-expected | Payout curve on actual hits, realised / curve |
+|---|---|---|---|---|---|
+| fund +EV | +184% | −18% | **0.68** | **0.42** | 0.92 |
+| fund −EV | −35% | −11% | 1.64 | 0.83 | 1.09 |
+| blend +EV | +13% | −15% | 0.97 | 0.77 | 0.81 |
+
+**C. Both factors contribute, and both are probability errors, not payout
+errors.**
+- **The payout curve is accurate where it matters.** On the combinations that
+  actually hit, it is within about 8% for the fundamental's +EV set.
+- **The fundamental's +EV tickets fail in two ways.**
+  - (i) They hit 32% less often than predicted.
+  - (ii) When they do hit, they pay 58% less than the model expected. The
+    model puts its probability on long-priced combinations, but the hits come
+    from the short-priced ones the crowd preferred.
+- **Why this is not a contradiction.** The Lo & Bacon-Shone section found hit
+  rates *under*-predicted in aggregate (the fundamental is under-confident on
+  its top picks). +EV selects precisely the tickets where the model is *more
+  bullish than the tote*. Across quintiles of model/tote hit-probability
+  ratio, predicted ROI climbs from −48% to +397% while realised ROI stays flat
+  at −7% to −21%. **Realised outcomes track the tote, not the model's
+  disagreement with it.** The +EV filter is a "model disagrees with the
+  crowd" filter, and the crowd is right. Phase 6A reached the same conclusion
+  on the default menu.
+- **The blend** has calibrated hit rates (0.97), but its expected payout per
+  hit runs about 23% too high on its +EV tickets. Its +EV labels come from
+  small disagreements that the takeout swamps.
+
+### DED
+
+| Source | Superfecta (Doug structures) +EV | Without largest payoff | Without top 3 | −EV |
+|---|---|---|---|---|
+| fund | +21.4% (52 hits, CI −46% to +133%) | **−21.6%** | **−38.7%** | −17.7% |
+| blend | −20.0% | −24.6% | −31.9% | −9.7% |
+
+**B. DED looks the same as the other tracks.**
+- The fundamental's raw +21% is **a single $1,536 payoff**. Without it, +EV is
+  −22%, worse than −EV.
+- At DED, S_SUB4 (Doug's $2.40 ticket) returns −43% on +EV tickets
+  (CI −72% to −5%) against −23% on −EV.
+- Indiscriminate betting at DED returns about −10% to −34%, depending on
+  structure and source.
+- Nothing at DED supports trusting the +EV flag.
+
+### Recommendation for DED (Oct 9)
+
+1. **Doug should stop using ticket_ev's +EV label as a bet-or-pass filter.**
+   Across every structure he plays, with both probability sources, on all
+   tracks and at DED specifically, the +EV subset returns the same as or less
+   than betting without a filter. With the fundamental, it is reliably worse:
+   −41% against −23% on S_ALL, and −50% against −33% on S_SUB4, both without
+   the top three payoffs.
+2. **No EV threshold or decile is usable.** The highest predicted-EV tickets
+   are the worst (S_SUB4 top decile: −84%).
+3. **Operational rule: use ticket_ev for probability display only, not for
+   bet filtering.** Its P(hit) column is informative. Its EV and +EV label are not.
+4. **The EV numbers can be read as a disagreement gauge**, which is what Phase
+   6A designed them to be. A large positive EV means "the model likes
+   long-priced combinations the crowd does not", and historically the crowd
+   has been right.
+5. **Picks remain the product.** Model top-3 selection plus Doug's own review.
+   Note that S_ALL in small fields is the cheapest structure to play (−18% to
+   −23% ex-MNR).
+6. **No bug was found in the EV formula.** It computes what it says it
+   computes. The problem is that p(c) on long-priced combinations is not
+   reliable enough to price against the tote. Nothing was changed before DED.
+
+### Pre-specified vs exploratory
+
+- **Pre-specified:** Doug's structures (with the subset taken as model ranks
+  4-7 or 4-9), both sources, all-vs-+EV ROI, deciles, the DED slice, and the
+  decomposition into hit rate and payout per hit.
+- **Added after seeing the data:** excluding MNR, the "without top 3 payoffs"
+  robustness check, and the model/tote-ratio quintiles.
+
+### Open leads
+
+1. **The MNR payoff scale.** Realised payoffs run 1.65× the fitted curve on
+   MNR hits, and indiscriminate ROI there is positive. This affects
+   `ticket_ev` pricing at MNR and any realised-ROI study that includes MNR,
+   possibly including Phase 6A's numbers.
+2. **The morning-line setup is unmeasured.** Doug's live EV uses the morning
+   line on both the blend and the payout side. That could be logged
+   prospectively at DED, alongside the final tote, to measure it.
