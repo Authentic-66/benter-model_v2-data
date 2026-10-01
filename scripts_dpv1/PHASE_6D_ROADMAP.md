@@ -6550,3 +6550,196 @@ the shipped ITM model.** It is not a retrain recommendation as it stands.
   the fold blends are scored on the slice they were fit on.
 - If a win-target conditional logit is ever built, depth 2 with λ₂ ≈ 0.78
   is the efficiency gain on offer. Depth 3 is not.
+
+## Lo & Bacon-Shone / Ali 1998 diagnostics (2026-09-30)
+
+Ali (1998) and Lo & Bacon-Shone (2008) show that Harville placement
+probabilities are biased: they over-predict favourites for 2nd and 3rd and
+under-predict long shots. L&BS correct this with exponents on the win
+probabilities, `π^τ / Σπ^τ` for 2nd and `π^λ / Σπ^λ` for 3rd. This section
+measures that bias on our corpus and asks whether the correction would help
+Doug's tickets.
+
+Read-only. Nothing was retrained, and no model, reranker or Piece 1-4 code
+changed. The scripts are session scratch: `lo_lib.py`, `lo_tables.py`,
+`lo_steps89.py`, `lo_super.py`, `lo_super_report.py`.
+
+**A correction to the reconstructed brief.** The 0.79 and 0.65 in the
+Sung & Johnson section are scale factors on the *fundamental* score (λ·Xβ),
+not tote exponents. Fitting the real L&BS exponents to the tote gives
+τ = 0.816 and λ = 0.659 on 2022+ (0.812 and 0.665 on 2023+). The published
+values are 0.81 and 0.65. So the conclusion survives, but the stated reason
+did not. The published values were used throughout, which makes the
+parameters pre-specified.
+
+### Two Harville roles, plus one on the price side
+
+| | Where | What it does | Live effect |
+|---|---|---|---|
+| **Role 1** | `train_dpv1.market_p_itm` → `MarketModelITM.predict_p_itm`; live: `dpv1_runtime.harville_itm` | tote odds → Harville P(ITM) → blend input | **Fold evaluation only.** Live picks are fundamental-only (`card_picks` → `predict_card(use="fundamental")`, Phase 6C §4.2) |
+| **Role 2** | `normalise_itm` → `invert_harville` → `simulate_race` (Plackett-Luce = Harville ordering) | P(ITM) → win strengths → finishing-order probabilities | Every exacta, trifecta and superfecta probability in `card_picks` and `ticket_ev` |
+| Role 3 (note) | `ticket_ev` → `payout_model.pl_combo_prob(w_pub)` | the tote's Harville combination probability → payout curve | The price side. The curve was fitted empirically against about 99k real payoffs on Harville q, so the fit absorbs the bias. **Do not Lo-correct this input without refitting the curve.** |
+
+Path (a) in this diagnostic corrects Role 1, path (b) corrects Role 2, and
+"combined" corrects both. **If Lo were ever put into production, it would be a
+change in two places (three, counting the payout curve), not a single
+substitution.** Path (a) was dropped by agreement, because it cannot affect
+live picks.
+
+### Confirmed findings (pre-specified: published τ = 0.81, λ = 0.65)
+
+Tote only, on 22,760 races (2022+, five training tracks, a clean 1-2-3, at
+least five finishers). Horses are bucketed by favourite rank, in the shape of
+Ali's Tables 2 and 3. z = (observed − predicted) / SE.
+
+| | Σz² 2nd | Σz² 3rd | 1-2-3 order LL/race |
+|---|---|---|---|
+| Harville | **535** | **1035** | −4.783 |
+| Lo | **71** | **83** | −4.741 |
+
+The χ² 95% critical value is 18.3 at df = 10.
+
+- **Harville matches Ali's pattern.**
+  - For 2nd, the favourite is predicted at .262 against .216 observed
+    (z −15.9).
+  - For 3rd, ranks 1 and 2 have z of −13.6 and −13.7.
+  - Ranks 4 to 9 are under-predicted by 4 to 13 SE.
+- **Lo improves the fit 8 to 12 times, but it still fails χ².** The leftover
+  pattern:
+  - The favourite is still over-predicted for 2nd and 3rd (z −5 and −4).
+  - Ranks 4 and 5 are slightly under-predicted.
+  - Lo *introduces* a new bias at the long end. Ranks 9 and 10+ are now
+    over-predicted for 2nd (z −3.5 and −3.0), where Harville was nearly
+    right.
+- **The result holds out of sample.** Fitting on 2022-24 (15,011 races) and
+  scoring 2025-26 (7,749 races):
+
+  | | Σz² 2nd | Σz² 3rd |
+  |---|---|---|
+  | Harville | 227 | 363 |
+  | Lo, published values | 41 | 28 |
+  | Lo, refit (τ .825, λ .660) | 46 | 28 |
+
+  The order LL gain is +0.044 per race, and the parameter choice is
+  immaterial.
+- **Playable subset (field ≤ 11).** This is 98.3% of races, and the results
+  are the same: 527 → 67 at 2nd, 1039 → 84 at 3rd.
+- **Per track** (ranks capped at 8+; the critical value is about 15.5). Lo
+  improves every track at both positions.
+  - DED (110 → 17 at 2nd, 177 → 6 at 3rd) and ELP end up roughly calibrated.
+  - GP falls from 162 to 14 at 2nd but is still 45 at 3rd.
+  - CT (32) and MNR (31) still misfit at 3rd.
+
+### Structural findings (from the pipeline trace)
+
+- **Lo cannot change selection.**
+  - Live picks are ranked by P(ITM), and the `ticket_ev` menu by simulated
+    P(win).
+  - Both inversions reproduce P(ITM) exactly and keep the horses in the same
+    order.
+  - So the top 3 is the same under Harville and Lo by construction. Hit rates,
+    and where the actual top 3 land, cannot move.
+- **Lo only redistributes probability among orders *within* a set.** Once
+  each horse's P(ITM) is pinned, the probability that a given set of three
+  fills the top three barely depends on the ordering model.
+
+### Operational findings
+
+Out-of-fold `p_fund` from 17,651 fold races (2023+, field 4 to 11) was run
+through the live pipeline: `normalise_itm`, then either production
+`invert_harville` or the Lo inversion (both solve to about 1e-11), then exact
+ordering probabilities. These results are **pre-reranker**, because the fold
+predictions do not include the PP reranker.
+
+**A: baseline.**
+- The 1,2,3/1,2,3/1,2,3/ALL ticket hits in **11.3%** of races (SE 0.24%).
+- By track: MNR 13.1%, CT 11.8%, GP 11.4%, DED 9.5%, ELP 6.7%.
+- By field size, the hit rate falls from 44.6% with four runners to 4.2%
+  with eleven.
+- Where the actual top-3 horses land: 56.5% at model ranks 1-3, 14.1% at
+  rank 4, 11.3% at rank 5, and 18.0% at rank 6 or worse.
+- A rank-4 horse only rescues the ticket by finishing *4th*. The ALL leg
+  covers 4th place; it does not cover a top-3 horse the model missed.
+
+**B: path (b) calibration** (binned by Harville decile)
+
+| ticket | observed | Harville | Lo | Σ\|pred−obs\| H → Lo | log-loss H → Lo |
+|---|---|---|---|---|---|
+| Superfecta 1,2,3/…/ALL (= trifecta box top-3, same event) | .113 | .096 | .095 | .175 → .183 | .3320 → .3322 |
+| Exacta box, top 2 | .145 | .117 | .127 | .285 → **.190** | .4025 → .4000 |
+| Exacta box, top 3 | .337 | .283 | .302 | .536 → **.351** | .6148 → .6102 |
+
+- **Superfecta box: no operational value.** The Lo probability is 0.99×
+  Harville in every decile, as the structure predicts.
+- **Exacta boxes: a real improvement.** Lo cuts calibration error by about
+  35%, improves log-loss, and raises probabilities by 5-9%. It still falls
+  10-13% short of observed.
+- **Harville *under*-predicts every ticket,** at every decile and on every
+  track except ELP. That is the opposite of what the favourite-bias story
+  predicts. Open lead 1 below explains why.
+- **Bet-or-pass decisions are unaffected.**
+  - Under the payout curve, the superfecta EV changes by a median of $0.03
+    on a median $2.40 ticket.
+  - The sign flips in 153 of 17,382 races (0.9%), spread evenly across
+    deciles, so the effect is immaterial.
+  - The 4th-place stage used λ, because L&BS publish no 4th-place parameter.
+    That is an assumption, but it does not affect the hit probability.
+
+### Exploratory findings
+
+- **Three-parameter Lo with a win exponent.** Fit on 2022-24, it gives
+  a = 1.095, τ = .825, λ = .660.
+  - It fixes the favourite-longshot bias at the win stage: the win-stage Σz²
+    on 2025-26 drops from 39.8 to 11.3.
+  - It also removes most of the favourite's leftover misfit at 3rd.
+  - It adds only +0.002 per race of order LL on top of Lo's +0.044, so it is
+    marginal.
+- **Bullring tracks (CT, MNR) still misfit at 3rd under Lo.** This may be the
+  track-level effect that L&BS describe. It has not been tested.
+
+### Post-hoc
+
+- **Candidate win-stage mechanism.** Both constructions use the tote's own
+  win probability. That probability under-predicts the favourite (.395
+  observed against .374 predicted) and over-predicts long shots, which the
+  two-parameter Lo cannot absorb. The three-parameter fit supports this, but
+  it is a *candidate* mechanism, not a finding.
+
+### Open leads (new, not investigated)
+
+1. **Fundamental temperature calibration** (recommended post-DED
+   follow-up). After normalisation, the fundamental P(ITM) is too flat:
+
+   | model rank | 1 | 2 | 3 | 4 | 5 | 6+ |
+   |---|---|---|---|---|---|---|
+   | observed | .647 | .556 | .493 | .424 | .343 | .219 |
+   | predicted | .625 | .537 | .473 | .417 | .358 | .241 |
+   | z | +6.2 | +5.1 | +5.3 | +2.0 | −4.0 | −11.2 |
+
+   - Every ticket built on the top picks inherits this flatness. It is the
+     probable driver of the 15% superfecta under-pricing.
+   - Lo cannot touch it, because the inversion pins P(ITM).
+   - A sharpening correction applied before `normalise_itm` would address it.
+   - Caveats: this is post-hoc and pre-reranker, and the PP reranker may
+     already correct part of it.
+2. **`ticket_ev` calibration conflict.** `ticket_ev` prices about 50% of these
+   superfecta tickets as +EV on the fundamental. That conflicts with the
+   −28.6% realised from indiscriminate betting quoted in `card_picks`. This is
+   flagged only. It is a payoff question, separate from Lo.
+
+Carried forward from earlier sections:
+- `purse_change_from_last` representation (Kel-Co Test 1)
+- the career win-rate top tail (Kel-Co Test 3)
+- `last_race_beaten_lengths` semantics (Sung & Johnson)
+
+### For future readers
+
+The Lo correction is theoretically correct. It dramatically reduces
+Harville's placement-calibration bias, in and out of sample, on every track.
+**It does not, however, translate into an operational improvement on Doug's
+primary bet.** The superfecta box is invariant to the ordering model by
+construction. The exacta improvement is real but secondary.
+
+**A Lo-based production change is not recommended.** The valuable result of
+this diagnostic is open lead 1, the fundamental's under-confidence. A
+temperature-calibration investigation is recommended as a post-DED follow-up.
