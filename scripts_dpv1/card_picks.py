@@ -1,7 +1,18 @@
 """Phase 6B: top-4 ITM rankings for a whole card, in a form usable at a track.
 
+A new card takes four steps. ``--pp-file`` does not load the card -- the race
+list comes from the database -- so steps 1-3 must run first:
+
+    python scripts_dpv1/load_pp_card.py load Ellis/elp-pps-files/elp0823y.pdf
+    python scripts_dpv1/speed_figures_dpv1.py compute
+    python scripts_dpv1/feature_builder_dpv1.py build
     python scripts_dpv1/card_picks.py --track ELP --date 2026-08-23 \
         --pp-file Ellis/elp-pps-files/elp0823y.pdf --save
+
+Always pass ``--pp-file``. Without it the PP reranker still runs (it reads the
+staged ``pp_entries_raw`` rows) and ML/PrimePwr are read from the DB, but the
+PP feature bridge is skipped, which changes P(ITM). The page header warns when
+that happens.
 
 This is the Phase 6B deliverable and it is deliberately the plainest thing in
 the toolkit: a ranked list per race, the model's P(ITM), and the morning line
@@ -848,6 +859,31 @@ def ml_lookup(pdf, track: str | None) -> dict:
     return out
 
 
+def ml_lookup_db(db, track: str, date: str) -> dict:
+    """Same shape as :func:`ml_lookup`, read from ``pp_entries_raw``.
+
+    ``load_pp_card.py load`` stages the morning line and Prime Power alongside
+    the rest of the PP block, so a run without ``--pp-file`` need not show them
+    blank. Display only, like the PDF path: nothing here reaches a prediction.
+    """
+    from equibase_pdf_parser import normalize_name
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    try:
+        rows = conn.execute(
+            """
+            SELECT race_num, horse_name, pp_ml_text, pp_ml_decimal,
+                   pp_prime_power
+            FROM pp_entries_raw WHERE track = ? AND race_date = ?
+            """, (track.upper(), date)).fetchall()
+    except sqlite3.OperationalError as exc:
+        log.warning("pp_entries_raw not readable (%s)", exc)
+        return {}
+    finally:
+        conn.close()
+    return {(int(rn), normalize_name(nm)): (ml, mld, prime)
+            for rn, nm, ml, mld, prime in rows if nm}
+
+
 def one_race(track: str, date: str, race_num: int, model, db, pp_file,
              ml_map: dict, iters: int, seed: int,
              use_classctx: bool = False) -> dict | None:
@@ -1195,11 +1231,27 @@ def _cli() -> int:
                         format="%(asctime)s [%(levelname)s] %(message)s")
 
     model = load_model(args.model)
-    ml_map = ml_lookup(args.pp_file, args.track) if args.pp_file else {}
     nums = [args.race] if args.race else race_numbers(args.db, args.track,
                                                       args.date)
     if not nums:
-        raise SystemExit(f"no races for {args.track.upper()} {args.date}")
+        raise SystemExit(
+            f"no races for {args.track.upper()} {args.date} in the database. "
+            f"--pp-file does not load a card; run load_pp_card.py load, "
+            f"speed_figures_dpv1.py compute and feature_builder_dpv1.py build "
+            f"first (see this script's docstring).")
+    if args.pp_file:
+        ml_map = ml_lookup(args.pp_file, args.track)
+        no_bridge = False
+    else:
+        ml_map = ml_lookup_db(args.db, args.track, args.date)
+        # Staged PP rows but no PDF: the reranker still reads the DB, but the
+        # PP feature bridge (apply_to_card) needs the PDF and is skipped, which
+        # changes P(ITM). GP 9/4, CT 10/1 and GP 10/2 were run this way.
+        no_bridge = bool(ml_map)
+        if no_bridge:
+            log.warning("%s %s has staged PP rows but no --pp-file: PP "
+                        "feature bridge NOT applied", args.track.upper(),
+                        args.date)
 
     import io
     buf = io.StringIO()
@@ -1224,6 +1276,11 @@ def _cli() -> int:
         print(f" cov is how much of the {len(model.fund_cols)}-feature set "
               "was available; low cov means a")
         print(" near-prior guess, not a real assessment.")
+        if no_bridge:
+            print(" WARNING: PP bridge NOT applied (no --pp-file). ML and "
+                  "PrimePwr are read from the DB,")
+            print("          but the PP feature fill is skipped, so P(ITM) is "
+                  "not the standard bridged run.")
         trained = tuple(model.hyperparameters.get("tracks", ("GP", "CT", "MNR")))
         if args.track.upper() not in trained:
             print(f" NOTE: this model was trained on {'/'.join(trained)}. "
