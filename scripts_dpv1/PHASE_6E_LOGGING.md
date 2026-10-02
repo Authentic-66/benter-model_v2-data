@@ -479,6 +479,33 @@ traceable to its source.
 `By Model` groups by **version**, not by pickle filename — an attributed
 back-fill has a version but no filename, and version is the model's identity.
 
+### No-bridge runs in the live log (recorded 2026-10-02)
+
+Three logged runs were made **without `--pp-file`**, so the PP feature bridge
+(`apply_to_card`) was skipped. The PP reranker still fired, because it reads
+`pp_entries_raw` from the DB, but the fundamental P(ITM) is not the standard
+bridged run:
+
+| card | run (`generated_at`) | status |
+|---|---|---|
+| GP 2026-09-04 | logged run | **no-bridge, scored, is the record** |
+| CT 2026-10-01 | `2026-10-01T18:31:58` | **no-bridge, scored, is the record** (kept deliberately; not re-logged) |
+| GP 2026-10-02 | `2026-10-02T08:49:44` (morning) | no-bridge, **superseded** pre-race by the bridged `2026-10-02T09:15:31` run |
+
+How to spot one in the log: `coverage == corpus_coverage` for every horse on
+the card (the bridge lifts coverage on most horses, e.g. 55/68 on GP 10/2).
+
+Measured effect on CT 10/1, re-scored read-only both ways at the same seed:
+131/134 P(ITM) values move (max ±0.10), and the top pick differs in R4
+(Celtic Diva → Collective Bargain) and R7 (Hammer → Re Markably). GP 10/2: no
+top pick changed. When reading `model_health`, treat GP 9/4 and CT 10/1 as a
+slightly different scoring path from the bridged cards. `model_health.py`
+(Piece 3) was not modified to flag them.
+
+`card_picks.py` now warns in the page header and on stderr when a card has
+staged PP rows but no `--pp-file` (commit `2359201`). Standing procedure:
+**always pass `--pp-file`.**
+
 ---
 
 ## Carry-forward notes for Piece 4
@@ -1040,6 +1067,11 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
    that `prune_models` only recognises artifacts whose stem after `dpv1_` is
    all digits, so whatever suffix is chosen should keep that property or the
    pruner will stop seeing them.
+5. **Minor open lead (2026-10-02): morning-line parse is not stable.** CT
+   2026-10-01 R1 #4 Hellenic Spirit is stored as `pp_ml_text = '2/1'` in
+   `pp_entries_raw` (loaded from `ctx1001y.pdf`), but re-parsing the same PDF
+   with `brisnet_pp_parser.parse_pp_file` today returns `ml = '?'`. All other
+   CT 10/1 horses agree. Display-only (ML is not a model input). Not chased.
 
 Related, already documented elsewhere and still open:
 
