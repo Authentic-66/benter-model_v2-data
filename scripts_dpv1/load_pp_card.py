@@ -167,8 +167,10 @@ def parse_race_type(conditions: str) -> str | None:
     head = head.lstrip(_HEAD_ARTIFACTS)
     up = head.upper()
     # ASCII "TM" prefix artifact (page rendering, "TMMC" -> "MC")
+    # The Unicode artifacts can also sit *behind* the TM ("TM`Alw" -> "Alw"),
+    # so strip them again once it is gone.
     if up.startswith("TM") and len(up) > 2:
-        up = up[2:]
+        up = up[2:].lstrip(_HEAD_ARTIFACTS)
     for token, race_type in RACE_TYPE_TOKENS:
         if up.startswith(token):
             return race_type
