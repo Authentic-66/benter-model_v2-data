@@ -1072,6 +1072,25 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
    `pp_entries_raw` (loaded from `ctx1001y.pdf`), but re-parsing the same PDF
    with `brisnet_pp_parser.parse_pp_file` today returns `ml = '?'`. All other
    CT 10/1 horses agree. Display-only (ML is not a model input). Not chased.
+   DED 2026-10-10 (`ded1010y.pdf`) has four more `ml = '?'`: R5 #2, #4, #5
+   and R7 #10.
+6. **Open lead (2026-10-10): Prime Power bleeds onto first-time starters.**
+   A horse whose PP block has no `Prime Power:` line can pick up the *next*
+   horse's value. Confirmed against the text of `ded1010y.pdf` on two horses:
+   R1 #5 Whisper Park is stored as 117.0, which is #6 Respected Mind's
+   (`117.0 (1st)`); R3 #3 Brooke Town is stored as 88.1, which is #4 Special
+   Rey's (`88.1 (4th)`, genuine for Special Rey). Other first-timers on the
+   card correctly parse as NULL, so it is not every such horse; the two
+   confirmed cases are each the block immediately before a horse that has a
+   figure. Not display-only: the value lands in `pp_entries_raw`, which the
+   PP reranker reads. Parser behaviour, not DED-specific; other cards not
+   audited. Not fixed — the DED 10/10 record was logged with it.
+7. **Note (2026-10-10): CT 2026-10-01 R1 and R5 were scored with NULL
+   `race_type`.** Same `` TM` `` header artifact fixed in `e81de79` for DED
+   10/10 R6. Re-parsing `ctx1001y.pdf` with the fix gives CLAIMING (5000 and
+   15000) for both; before it, `class_score` and the class features were NULL
+   for those two races in the logged pre-race run. The CT 10/1 record was not
+   re-logged. Other cards loaded before the fix were not audited.
 
 Related, already documented elsewhere and still open:
 
