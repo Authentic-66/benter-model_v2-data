@@ -80,6 +80,7 @@ FILENAME_PREFIX_TO_TRACK = {
     "EVD": "EVD",
     "MNR": "MNR",
     "ELP": "ELP",
+    "DED": "DED",
     "MVR": "MVR", "DD": "DD",
 }
 
