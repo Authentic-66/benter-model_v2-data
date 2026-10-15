@@ -1595,9 +1595,12 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
 
         # ── Prime Power map: keyed by PP# from full-page horse-name lines ─────
         # Full-page format: "{PP}  {Name} ... Prime Power: {val} ({rank})"
+        # The name may start with any character: the old [A-Z][A-Za-z] missed
+        # "C C Rider", "E Z ...", "I'm ..." and left their Prime Power blank
+        # (pdfplumber's left-crop copy of the line is cut before the figure).
         pp_power_map = {}
         for line in lines:
-            pm = re.match(r'^\s*(\d{1,2})\s+[A-Z][A-Za-z].*?Prime Power:\s*([\d.]+)\s*\((\d+)', line)
+            pm = re.match(r'^\s*(\d{1,2})\s+\S.*?Prime Power:\s*([\d.]+)\s*\((\d+)', line)
             if pm:
                 pp_power_map[int(pm.group(1))] = (pm.group(2), pm.group(3))
         # CT-style fallback: Prime Power in page header without PP# prefix
