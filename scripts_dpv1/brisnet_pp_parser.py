@@ -170,6 +170,52 @@ def extract_text(filepath, reader=None):
             pages.append(full + '\n' + left)
     return '\f'.join(pages)
 
+# ---------------------------------------------------------------------------
+# Header box (pdfplumber reader only)
+#
+# The career-record box (Life / Fst / Off / Dis / Trf / AW rows) sits on the
+# right half of each horse's header. pdfplumber's horse blocks come from the
+# left-half crop, so the box was never in the block and the surface and
+# distance records came back blank on 745 of 754 logged horses
+# (PP_READER_AUDIT.md). In the full-width layout text the Off and Dis rows are
+# interleaved with the silks text and unreadable. (The audit put this down to
+# "Fst(105)" spacing; the record regex already accepts that.)
+#
+# So the box is read by position: each "Life:" word anchors one horse header,
+# the program number is the first word on the same row at the left margin,
+# and the box is the strip from just left of "Life:" to the page edge, five
+# rows deep. Keyed (page index, program number), matching parse_brisnet's
+# page loop over the same pages.
+#
+# pdftotext's layout text already carries the box inside each block, so this
+# is not used for that reader.
+# ---------------------------------------------------------------------------
+_BOX_DEPTH_PT = 34      # five rows at ~7.3pt; the Sire Stats row is ~37pt down
+_BOX_LEFT_PAD_PT = 40   # the strip starts left of "Life:" (today's weight sits there)
+
+
+def extract_header_boxes(filepath) -> dict:
+    """``{page index: {program number: [box lines]}}``, read by position."""
+    import pdfplumber
+    out = {}
+    with pdfplumber.open(Path(filepath)) as pdf:
+        for i, page in enumerate(pdf.pages):
+            words = page.extract_words()
+            for life in (w for w in words if w['text'] == 'Life:'):
+                top = life['top']
+                row = sorted((w for w in words if abs(w['top'] - top) < 3
+                              and w['x1'] < life['x0'] - 200),
+                             key=lambda w: w['x0'])
+                if not row or not row[0]['text'].isdigit():
+                    continue
+                box = page.crop((max(0, life['x0'] - _BOX_LEFT_PAD_PT),
+                                 max(0, top - 2), page.width,
+                                 min(page.height, top + _BOX_DEPTH_PT)))
+                lines = (box.extract_text() or '').split('\n')
+                out.setdefault(i, {}).setdefault(int(row[0]['text']), lines)
+    return out
+
+
 # PP race lines start "DDMonYYTRK" (e.g. '18Apr26CT'); Brisnet spells July 'Jly'
 _PP_LINE_DATE_RE = re.compile(r'^\s*(\d{1,2})([A-Za-z]{3})(\d{2})[A-Za-z]')
 _PP_MONTHS = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5,
@@ -1464,7 +1510,9 @@ def _block_bounds(lines, own_indices):
     return list(zip(starts, ends))
 
 
-def parse_brisnet(text, track_code='GP', race_date=None):
+def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
+    """Parse PP text into races. ``header_boxes`` is
+    :func:`extract_header_boxes` output (pdfplumber reader only)."""
     pages = text.split('\f')
     races = defaultdict(lambda: {'conditions': '', 'purse': '', 'surface': '', 'horses': []})
     current_race = 1
@@ -1760,7 +1808,10 @@ def parse_brisnet(text, track_code='GP', race_date=None):
             today_furlongs = _header_furlongs(
                 races[current_race].get('conditions', '')
             )
-            career_recs = extract_career_records(block)
+            # Header box first (pdfplumber): its records win over anything
+            # the left-crop block happens to hold.
+            box = (header_boxes or {}).get(i, {}).get(pp_num, [])
+            career_recs = extract_career_records(box + block)
             ds_feats = distance_surface_record_features(career_recs, today_surface_str)
             combo_s, combo_w = distance_surface_combo_record(
                 block, today_furlongs, today_surface_str
@@ -2123,7 +2174,8 @@ def parse_pp_file(filepath, track_code: str | None = None) -> dict:
         return out
 
     try:
-        races = parse_brisnet(text, track, race_date)
+        boxes = extract_header_boxes(path) if reader == "pdfplumber" else None
+        races = parse_brisnet(text, track, race_date, header_boxes=boxes)
     except Exception as exc:                       # noqa: BLE001
         out["error"] = f"parse failed: {exc}"
         return out
