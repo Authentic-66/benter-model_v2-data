@@ -1360,8 +1360,8 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
         36.9 → 45.6; R5 #7 Uthinkshecanrun 66.6 → 73.0; R4 #7 Fiji's Deal
         37.2 → 31.3.
 
-11. **Open (2026-10-15, not applied): today's weight and
-    `equipment_change_flag`.** The header-box fix (`c1143dd`) can also read
+11. **APPLIED 2026-10-15 (Doug's decision; see the end of this item):
+    today's weight and `equipment_change_flag`.** The header-box fix (`c1143dd`) can also read
     today's weight, and a full-width race-line read gives last race's weight.
     Both were built and checked against charts:
     * today's weight right on 184 of 205 starters; the rest are PP vs chart
@@ -1386,6 +1386,64 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
     the Dis record (`L 122 2025 ...`), plus the most recent race line matched
     whole in the full-layout text, with whitespace ignored, for the jockey's
     weight superscript. It is about 60 lines to re-add.
+
+    **Applied.**
+    * **How training derives the flag**
+      (`new_features/equipment_features.py`, `feature_builder_dpv1.PREV_COLS`):
+      * `equipment_change_flag = (entries.equipment != previous corpus
+        entry's equipment)`. `equipment` is the chart's combined M/Eqp
+        string, e.g. `Lb`, `Lbf`, `Lf`, `b`.
+      * It is NULL when the horse has no prior corpus entry with an
+        equipment string.
+      * There is no weight term.
+    * **Can a PP give it? No, not reliably.**
+      * For today, a PP shows Lasix (`L` before the weight) and a
+        `Blnkr On`/`Blnkr Off` marker, but no front bandages (`f`) or the
+        rarer letters.
+      * Since 2022, 14,637 of 32,242 corpus equipment changes (45%) are in
+        letters a PP cannot see for today.
+      * So the bridge no longer fills `equipment_change_flag`. A horse with no
+        corpus prior keeps it missing.
+    * **Parser.** `pp_equipment_change` is now the blinkers/Lasix markers
+      only; the 2-lb weight-swing rule is gone. Today's weight is its own
+      field, `pp_today_weight`: bridge-only, not staged.
+    * **Bridge.** It fills `weight_lbs` (a model input that is NULL on every
+      pre-race card) from `pp_today_weight`, and fills
+      `weight_change_from_last_race` from today's weight minus last race's.
+    * **Chart check on 4 cards.** Today's weight is filled on 302 of 302 and
+      matches the chart on 243 of 264; the rest are PP-vs-chart differences.
+      Last race's weight is right on 109 of 119, with 0 wrong and 10 blank.
+    * **DED 10/14** (backup DB, seed 6001) vs the #10/#9 state: all 80
+      P(ITM) values move, 10 by more than 1pp, none by more than 3pp, and no
+      top pick changes. The largest moves are ±1.8.
+
+12. **Open (2026-10-15, found while doing #11, NOT fixed): equipment flags
+    on pre-race cards.**
+    * **The cause.** A pre-race card loads with `entries.equipment`,
+      `has_lasix` and `has_blinkers` NULL. The feature builder treats NULL
+      today as "no equipment" and compares it with the horse's previous
+      corpus race.
+    * **The result.** On DED 10/14 (backup DB), every horse with a corpus
+      prior has:
+      * `equipment_change_flag = 1` (64 of 64);
+      * `lasix_off = 1` (64 of 64; about 1.3% of historical rows);
+      * `blinkers_change_flag = 1` where it wore blinkers last time (39).
+
+      These are real DB values, so the bridge never touches them.
+    * **The size.** Against 0, the three flags shift a horse's logit by
+      −0.09 to +0.18. The within-race spread averages 0.24 and reaches 0.27,
+      mostly from `blinkers_change_flag`.
+    * **Scope.** It applies to every live card since the flags were added,
+      not just bridged horses.
+    * **Fix options for Doug** (a loader or feature-builder change, no model
+      change):
+      * (a) on resultless entries, set the three flags NULL instead of
+        comparing with nothing;
+      * (b) have `load_pp_card` write today's `has_lasix` from the PP's
+        `L`, and today's `has_blinkers` from last race's `b` plus the
+        On/Off marker. That gives `lasix_off`, `blinkers_change_flag` and the
+        first-time flags exactly, but still not `equipment_change_flag`, for
+        the reason in #11.
 
 Related, already documented elsewhere and still open:
 

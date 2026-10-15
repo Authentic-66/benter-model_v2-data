@@ -216,6 +216,23 @@ def extract_header_boxes(filepath) -> dict:
     return out
 
 
+# Today's weight in the box: the 3-digit weight on the row that also holds
+# the previous year's record and the Dis record, after the Lasix code if any
+# and before the year ("L 122 2025 ...", "120 2025 ..."). A superscript right
+# after it is an apprentice allowance already taken off, and is skipped.
+_BOX_WEIGHT_RE = re.compile(r'(?<!\d)(1[0-3]\d)[^\d\s]{0,3}\s*(?:19|20)\d\d\s+\d')
+
+
+def box_today_weight(box_lines) -> int | None:
+    for line in box_lines:
+        if 'Dis' not in line:
+            continue
+        m = _BOX_WEIGHT_RE.search(line)
+        if m:
+            return int(m.group(1))
+    return None
+
+
 # PP race lines start "DDMonYYTRK" (e.g. '18Apr26CT'); Brisnet spells July 'Jly'
 _PP_LINE_DATE_RE = re.compile(r'^\s*(\d{1,2})([A-Za-z]{3})(\d{2})[A-Za-z]')
 _PP_MONTHS = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5,
@@ -475,6 +492,15 @@ _PP_JK_WEIGHT_RE = re.compile(
 )
 
 
+# The jockey + weight token on a whole pdfplumber race line also allows an
+# apprentice "*" after the weight, a favourite "*" before the odds, and odds
+# glued to the medication letters ("Lb102.10"). Used only on that path, so
+# pdftotext output is unchanged.
+_PP_JK_WEIGHT_LOOSE_RE = re.compile(
+    r"[A-Z][A-Za-z'.]{2,}([§¨©ª«¬\xad®¯°]{3})\*?\s+[A-Za-z]{0,5}\s*\*?\d+\.\d+"
+)
+
+
 def _decode_sup_weight(sup: str) -> int | None:
     try:
         return int(''.join(str(_SUP_DIGITS[c]) for c in sup))
@@ -482,7 +508,9 @@ def _decode_sup_weight(sup: str) -> int | None:
         return None
 
 
-def extract_equipment_features(block_lines, block_text: str | None = None) -> dict:
+def extract_equipment_features(block_lines, block_text: str | None = None,
+                               today_weight: int | None = None,
+                               race_lines=None) -> dict:
     """Return blinkers_added_today, blinkers_removed_today, first_time_lasix,
     weight_change, equipment_change. Sources: angle text + trainer stat rows
     in the block, today's weight from the Brdr area, last race's weight from
@@ -490,6 +518,11 @@ def extract_equipment_features(block_lines, block_text: str | None = None) -> di
 
     block_text is the joined block — caller can pass a pre-joined string to
     avoid recomputing it. Falls back to joining block_lines.
+
+    today_weight, when given, comes from the header box (pdfplumber) and is
+    used instead of the text search. race_lines, when given, are whole race
+    lines; only the first (most recent) is read for last race's weight, so an
+    unreadable latest line gives None rather than an older race's weight.
     """
     if block_text is None:
         block_text = "\n".join(block_lines)
@@ -499,6 +532,7 @@ def extract_equipment_features(block_lines, block_text: str | None = None) -> di
         'first_time_lasix': 0,
         'weight_change': None,
         'equipment_change': 0,
+        'today_weight': None,
     }
     if _BLINKERS_ADD_RE.search(block_text) or _FIRST_BLINKERS_RE.search(block_text):
         feats['blinkers_added_today'] = 1
@@ -508,8 +542,7 @@ def extract_equipment_features(block_lines, block_text: str | None = None) -> di
         feats['first_time_lasix'] = 1
 
     # Today's weight from "Brdr: ... L 120"
-    today_weight = None
-    m = _TODAY_EQ_RE.search(block_text)
+    m = None if today_weight is not None else _TODAY_EQ_RE.search(block_text)
     if m:
         try:
             w = int(m.group(2))
@@ -519,11 +552,13 @@ def extract_equipment_features(block_lines, block_text: str | None = None) -> di
             pass
 
     # Last race weight: scan PP race lines, take first match (most recent)
+    feats['today_weight'] = today_weight
     last_weight = None
-    for line in block_lines:
+    jk_re = _PP_JK_WEIGHT_LOOSE_RE if race_lines is not None else _PP_JK_WEIGHT_RE
+    for line in (race_lines if race_lines is not None else block_lines):
         if _pp_line_date(line) is None:
             continue
-        jm = _PP_JK_WEIGHT_RE.search(line)
+        jm = jk_re.search(line)
         if jm:
             last_weight = _decode_sup_weight(jm.group(1))
             if last_weight is not None:
@@ -532,12 +567,13 @@ def extract_equipment_features(block_lines, block_text: str | None = None) -> di
     if today_weight is not None and last_weight is not None:
         feats['weight_change'] = today_weight - last_weight
 
-    # equipment_change is the OR of any binary change indicator + a meaningful
-    # weight swing (≥2 lb is usually trainer intent, not a jockey re-pairing).
+    # equipment_change is the OR of the equipment/medication change markers
+    # only. It used to include a weight swing of 2 lb or more; the corpus
+    # equipment_change_flag has no weight term (it is "the chart's equipment
+    # string changed"), so weight lives in weight_change alone
+    # (PHASE_6E follow-up #11).
     if (feats['blinkers_added_today'] or feats['blinkers_removed_today']
-            or feats['first_time_lasix']
-            or (feats['weight_change'] is not None
-                and abs(feats['weight_change']) >= 2)):
+            or feats['first_time_lasix']):
         feats['equipment_change'] = 1
     return feats
 
@@ -1867,7 +1903,19 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
             wfeats = workout_features(works)
 
             # ── Equipment-change features (Phase B) ─────────────────────────
-            eq_feats = extract_equipment_features(block)
+            # pdfplumber: today's weight from the header box, last race's
+            # from the whole copy of the most recent race line.
+            if header_boxes is not None:
+                latest = [l for l in block if _pp_line_date(l)]
+                latest = ([_full_width_line(max(latest, key=_pp_line_date), lines)]
+                          if latest else [])
+                eq_feats = extract_equipment_features(
+                    block,
+                    today_weight=box_today_weight(
+                        (header_boxes or {}).get(i, {}).get(pp_num, [])),
+                    race_lines=latest)
+            else:
+                eq_feats = extract_equipment_features(block)
 
             # ── Distance/surface records (Phase D) ──────────────────────────
             today_surface_str = races[current_race].get('surface')
@@ -1946,6 +1994,7 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
                 'blinkers_removed_today': eq_feats['blinkers_removed_today'],
                 'first_time_lasix': eq_feats['first_time_lasix'],
                 'weight_change': eq_feats['weight_change'],
+                'today_weight': eq_feats['today_weight'],
                 'equipment_change': eq_feats['equipment_change'],
                 'dist_wins': ds_feats['dist_wins'],
                 'dist_starts': ds_feats['dist_starts'],
@@ -2255,9 +2304,11 @@ def parse_pp_file(filepath, track_code: str | None = None) -> dict:
                    "sire": h.get("sire"), "ml": h.get("ml")}
             rec.update(horse_to_pp_features(h))
             # Bridge-only fields, outside PP_FEATURE_COLUMNS (not staged):
-            # last finish position and the corpus-definition margin (#10).
+            # last finish position and the corpus-definition margin (#10), and
+            # today's weight (#11).
             rec["pp_last_fin_pos"] = _num(h.get("last_fin_pos"))
             rec["pp_margin_next_last"] = _num(h.get("margin_next_last"))
+            rec["pp_today_weight"] = _num(h.get("today_weight"))
             horses.append(rec)
         out["races"].append({
             "race_num": rn,

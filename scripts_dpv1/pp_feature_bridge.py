@@ -177,9 +177,15 @@ def bridge_row(pp: dict, race: dict) -> dict:
     if np.isfinite(ftl):
         out["is_first_time_lasix"] = float(ftl > 0)
         out["lasix_first_time"] = float(ftl > 0)
-    eq = _f(pp.get("pp_equipment_change"))
-    if np.isfinite(eq):
-        out["equipment_change_flag"] = float(eq > 0)
+    # equipment_change_flag is NOT bridged. In the corpus it means "the
+    # chart's equipment string changed" (L, b, f, h, v, ...), and a PP shows
+    # today only Lasix and a blinkers on/off marker, not front bandages and
+    # the rest -- 45% of corpus equipment changes since 2022 are in letters a
+    # PP cannot see for today. A horse with no corpus prior keeps it missing
+    # (PHASE_6E follow-up #11).
+    tw = _f(pp.get("pp_today_weight"))
+    if np.isfinite(tw):
+        out["weight_lbs"] = tw
     wc = _f(pp.get("pp_weight_change"))
     if np.isfinite(wc):
         out["weight_change_from_last_race"] = wc
@@ -245,7 +251,7 @@ BRIDGEABLE: tuple[str, ...] = (
     "surface_specialist_flag", "distance_specialist_flag",
     "blinkers_change_flag", "is_first_time_blinkers", "is_first_time_lasix",
     "lasix_first_time", "equipment_change_flag",
-    "weight_change_from_last_race", "class_change_from_last",
+    "weight_change_from_last_race", "weight_lbs", "class_change_from_last",
     "distance_change_from_last_race", "distance_change_bucket",
     "surface_change_from_last_race",
 )
