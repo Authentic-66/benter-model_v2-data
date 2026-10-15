@@ -1430,6 +1430,39 @@ def last_race_date_from_block(block):
 
 _OWN_ANCHOR_RE = re.compile(r'^\s*(?:(\d{1,2}(?:/\d{1,2})?)\s+)?Own:')
 
+# Horse-name line: "4 Olympiad's Choice (NA 0) ..." -- name, optional country
+# suffix, then the running-style parens. Same pattern as the name search in
+# parse_brisnet, which reads the name from it.
+_HORSE_NAME_LINE_RE = re.compile(
+    r'([A-Z][A-Za-z\'"\-\. ]+?)(?:\s*\([A-Z][A-Za-z]{0,3}\))?\s+\([A-Z/EP]+\s+\d+\)')
+
+
+def _block_bounds(lines, own_indices):
+    """``[(start, end), ...]`` line ranges of each horse block on a page.
+
+    A block runs from the horse's own name line (searched up to 5 lines above
+    its Own: line) to the next horse's name line. It used to run from 4 lines
+    above Own: to the next Own:. In pdfplumber's left-crop text the name line
+    is only 2 lines above Own:, so the block began on the previous horse's
+    oldest race line and workout line: one phantom start, and on a first
+    timer a phantom last race (days off, beaten lengths). It also ended after
+    the next horse's name line, which is how a first timer with no Prime Power
+    took the next horse's (pdftotext). When no name line is found the old
+    4-line start is kept, never reaching back past the previous Own: line.
+    """
+    starts = []
+    for oi, own_idx in enumerate(own_indices):
+        floor = own_indices[oi - 1] + 1 if oi else 0
+        start = max(floor, own_idx - 4)
+        for k in range(own_idx - 1, max(floor - 1, own_idx - 6), -1):
+            if _HORSE_NAME_LINE_RE.search(lines[k]):
+                start = k
+                break
+        starts.append(start)
+    ends = [max(starts[oi + 1], own_indices[oi] + 1) if oi + 1 < len(starts)
+            else len(lines) for oi in range(len(own_indices))]
+    return list(zip(starts, ends))
+
 
 def parse_brisnet(text, track_code='GP', race_date=None):
     pages = text.split('\f')
@@ -1534,6 +1567,7 @@ def parse_brisnet(text, track_code='GP', race_date=None):
         # numeric token (a program number OR a fractional ML price) is allowed.
         own_indices = [j for j, line in enumerate(lines)
                        if _OWN_ANCHOR_RE.match(line)]
+        bounds = _block_bounds(lines, own_indices)
 
         for oi, own_idx in enumerate(own_indices):
             # ── Per-horse state ───────────────────────────────────────────────
@@ -1587,9 +1621,8 @@ def parse_brisnet(text, track_code='GP', race_date=None):
             elif -1 in pp_power_map:
                 prime_power, pp_rank = pp_power_map[-1]
 
-            # ── Block: own_idx-4 to next Own: (exclusive) ────────────────────
-            block_start = max(0, own_idx - 4)
-            block_end = own_indices[oi + 1] if oi + 1 < len(own_indices) else len(lines)
+            # ── Block: own name line to the next horse's name line ─────────
+            block_start, block_end = bounds[oi]
             block = lines[block_start:block_end]
 
             # ── Scan block for remaining fields ───────────────────────────────
