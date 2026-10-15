@@ -1,0 +1,69 @@
+NEW CARD COMMANDS  (written 2026-10-11, example = DED Wed 2026-10-14)
+======================================================================
+
+Run everything from the main folder:
+    D:\Benter Model_v2 Data\benter-model_v2-data
+
+For a different card, change three things: the PP file path, --track, --date.
+The PP file name below (ded1014y.pdf) is assumed from the 10/10 file's
+pattern (ded1010y.pdf) -- use whatever the downloaded file is actually called.
+
+
+BEFORE THE RACES
+----------------
+
+1. Load the card from the Brisnet PP file
+
+    python scripts_dpv1/load_pp_card.py load "Delta Downs/ded-pps-files/ded1014y.pdf"
+
+   Then check the card for watch-list horses (scripts_dpv1/tracking/watch_list.csv):
+
+    python scripts_dpv1/tracking/check_watch_list.py --track DED --date 2026-10-14
+
+2. Rebuild speed figures (whole corpus)
+
+    python scripts_dpv1/speed_figures_dpv1.py compute
+
+3. Rebuild features (whole corpus, about a minute)
+
+    python scripts_dpv1/feature_builder_dpv1.py build
+
+4. Score the card and log the picks
+
+    python scripts_dpv1/card_picks.py --track DED --date 2026-10-14 --pp-file "Delta Downs/ded-pps-files/ded1014y.pdf" --save
+
+   ALWAYS include --pp-file. Without it the PP feature bridge is skipped and
+   the P(ITM) values change. Picks land in scripts_dpv1/picks/ and the
+   prediction log is scripts_dpv1/logs/predictions.jsonl.
+
+Do not skip steps 2 and 3 on 10/14: the DED 10/9 and 10/10 results were
+loaded on 10/11 without a rebuild, so the feature table is behind until
+these run.
+
+
+OPTIONAL
+--------
+
+Look at the PP file before loading it (writes nothing):
+
+    python scripts_dpv1/load_pp_card.py inspect "Delta Downs/ded-pps-files/ded1014y.pdf"
+
+Re-run a single race (for example after a late change):
+
+    python scripts_dpv1/card_picks.py --track DED --date 2026-10-14 --race 6 --pp-file "Delta Downs/ded-pps-files/ded1014y.pdf" --save
+
+
+AFTER THE RACES
+---------------
+
+5. Load the results chart. There is no one-line command for a single chart;
+   ask Claude to load it (it backs up the DB, purges the pre-race card, then
+   loads the chart). Do NOT use retrain_pipeline.py --all-tracks.
+
+6. Score the logged predictions against the results
+
+    python scripts_dpv1/score_predictions.py --track DED --date 2026-10-14
+
+7. Rolling record for the live model
+
+    python scripts_dpv1/model_health.py --model dpv1.3.0-5track

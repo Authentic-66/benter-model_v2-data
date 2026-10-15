@@ -506,6 +506,20 @@ slightly different scoring path from the bridged cards. `model_health.py`
 staged PP rows but no `--pp-file` (commit `2359201`). Standing procedure:
 **always pass `--pp-file`.**
 
+### Post-time logs in the live log (recorded 2026-10-15)
+
+Some races were logged after they had gone off. Their results were not loaded,
+so the model could not see them and the Piece 1 guard correctly let them log.
+Even so, they are not strictly pre-race predictions. Keep them in the record,
+but read them as flagged.
+
+| card | run (`generated_at`) | post-time races | pre-race races |
+|---|---|---|---|
+| DED 2026-10-14 | `2026-10-14T18:22:02` (page header 18:19) | R1–R4 | R5–R8 |
+
+`model_health.py` does not flag these. Card review:
+`tracking/DED_2026-10-14_review.md`.
+
 ---
 
 ## Carry-forward notes for Piece 4
@@ -1074,6 +1088,10 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
    CT 10/1 horses agree. Display-only (ML is not a model input). Not chased.
    DED 2026-10-10 (`ded1010y.pdf`) has four more `ml = '?'`: R5 #2, #4, #5
    and R7 #10.
+   **Explained 2026-10-15 (see #8):** the result depends on the text path.
+   pdftotext gives `ml = '?'` for Hellenic Spirit; pdfplumber gives `'2/1'`.
+   Prime Power is 96.9 on both. The DB row was staged from a pdfplumber run,
+   and the 10/02 re-parse ran under Git Bash, where pdftotext is on PATH.
 6. **Open lead (2026-10-10): Prime Power bleeds onto first-time starters.**
    A horse whose PP block has no `Prime Power:` line can pick up the *next*
    horse's value. Confirmed against the text of `ded1010y.pdf` on two horses:
@@ -1085,12 +1103,125 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
    figure. Not display-only: the value lands in `pp_entries_raw`, which the
    PP reranker reads. Parser behaviour, not DED-specific; other cards not
    audited. Not fixed — the DED 10/10 record was logged with it.
+   **Corrected 2026-10-15:** it IS display-only for scoring.
+   `pp-reranker-1.0` reads `pp_entries_raw`, but its 12 inputs do not include
+   `pp_prime_power`, and Prime Power is not in the bridge's `BRIDGEABLE` set.
+   It is one of two failure modes of the same lookup, and it occurs under the
+   pdftotext path; see #8 for the mechanism and the all-card count.
 7. **Note (2026-10-10): CT 2026-10-01 R1 and R5 were scored with NULL
    `race_type`.** Same `` TM` `` header artifact fixed in `e81de79` for DED
    10/10 R6. Re-parsing `ctx1001y.pdf` with the fix gives CLAIMING (5000 and
    15000) for both; before it, `class_score` and the class features were NULL
    for those two races in the logged pre-race run. The CT 10/1 record was not
    re-logged. Other cards loaded before the fix were not audited.
+8. **Open (2026-10-15, read-only, not fixed): PP parse output depends on the
+   shell.** `brisnet_pp_parser.extract_text` uses `pdftotext -layout` when it
+   is on PATH, and otherwise falls back to pdfplumber. It is on PATH in Git
+   Bash (`/mingw64/bin`) but not in Doug's PowerShell.
+   * **The two paths disagree a lot.** Across the 9 logged PP cards, they
+     disagree on Prime Power, career starts, days off, last beaten lengths,
+     last speed or ML for **519 of 754 horses**.
+   * **Staging is mixed.** `pp_entries_raw` matches pdftotext on CT 8/28,
+     CT 8/29, ELP 8/22, ELP 8/23 and DED 10/10. It matches pdfplumber on
+     CT 10/1, GP 9/4, GP 10/2 and DED 10/14.
+   * **DED 10/14 bridged through pdfplumber.** Re-running R5 with pdfplumber
+     forced reproduces the logged reasons exactly (+0.383, +0.163). Through
+     pdftotext they differ.
+   * **Why pdfplumber differs.** Its text holds every page twice: the full
+     layout, then a crop of the left 52%. Horse blocks anchor on the
+     `Own:` line, and in the full layout that line is often garbled
+     (vertical silks text). So the block is often taken from the cropped
+     copy, where the header is cut off (`… B.f.4 Pr`).
+
+   **Prime Power ground truth** is the value on each horse's own header line
+   (`… Prime Power: 117.7 (3rd) Life: …`), checked against every logged card.
+
+   | path | PDF has PP, parse blank | PDF has none, parse has one (bleed) | wrong value |
+   |---|---|---|---|
+   | pdftotext | 3 (ELP) | 29 | 2 |
+   | pdfplumber | 13 | 0 | 0 |
+   | as staged in the DB | 8 horses | 18 horses | 1 horse |
+
+   **How the lookup fails.** Prime Power is found in two steps:
+   * **The per-page map.** Its regex is
+     `^\s*(\d{1,2})\s+[A-Z][A-Za-z].*?Prime Power:`. It needs a letter as the
+     name's second character, so it skips "C C Short Drive", "E Z Shopping",
+     "R Firebird", "D Orbie's Girl" and "I'm Chill". It also needs a single
+     space, but pdftotext sometimes writes `Prime     Power:`; that is the ELP
+     blanks and Added Touch.
+   * **The block-scan fallback.** It searches from `own_idx-4` to the next
+     `Own:` line. Under pdfplumber the block holds only the cropped header,
+     so it finds nothing (**blank**). Under pdftotext the block reaches the
+     next horse's header, so a horse with no figure takes the next horse's
+     (**bleed**, #6).
+
+   **The cases asked about:**
+   * DED 10/14 R6 #8 C C Short Drive (PDF 117.7, 3rd) is the map regex plus
+     the pdfplumber crop. The cause is related to Hellenic Spirit (#5) but not
+     the same one: both depend on the text path, but Hellenic Spirit is the
+     ML field and its Prime Power parses on both paths.
+   * DED 10/14 R2 #10 Rocketeightyeight parsed correctly (111.3). It only
+     looked like a bleed because pdftotext wrote `Prime  Power:` with two
+     spaces.
+
+   **Logged horses with a Prime Power in the PDF but blank in the DB:**
+   8 horses (9 record-run rows):
+   * ELP 8/22 R1 #13 Hyperlink
+   * ELP 8/23 R2 #10 Problem Solved
+   * ELP 8/23 R4 #8 Mo Biscuit
+   * GP 9/4 R2 #2 E Z Shopping (both models)
+   * GP 10/2 R2 #6 R Firebird, R4 #2 D Orbie's Girl, R4 #5 I'm Chill
+   * DED 10/14 R6 #8 C C Short Drive
+
+   The three GP 10/2 horses showed the right value on the logged page. Their
+   DB rows were re-staged later by a pdfplumber run, so the logged page is
+   right and the DB is blank. The other 5 were blank on the picks page.
+   Display-only (see #6).
+
+   **Not display-only: a phantom last race on first-time starters.**
+   pdfplumber can attach the previous horse's oldest past-performance line to
+   a horse with no starts. That gives it career starts, days off, beaten
+   lengths and last speed it does not have. Of 96 true first-timers
+   (`Life: 0`) on the 9 cards:
+   * pdftotext gives 0 such cases. pdfplumber gives 4: CT 8/29 R3 #4,
+     ELP 8/23 R9 #13, DED 10/10 R3 #7 and DED 10/14 R5 #4.
+   * Only DED 10/14 R5 #4 Olympiad's Choice landed in a staged or logged run.
+     It got 1 start, 102 days off and beaten 32 lengths, which is #3 Here
+     Comes Hellcat's 04Jly26 LS line.
+   * The other three cards were staged through pdftotext. Their bridge path
+     at run time is inferred, not reproduced.
+
+   This feeds the model, not just the display. `last_race_beaten_lengths` is
+   bridged, and the reranker reads `pp_career_starts`, `pp_days_off` and
+   `is_first_timer`. See #9.
+9. **Open (2026-10-15, read-only, not fixed): "closeness to winner (last
+   race)" on horses with no prior start.**
+   * **The fill path for a first-time starter.** The DB value is NULL (no
+     prior start). The bridge fills it only when the PP shows a run
+     (`pp_career_starts > 0` or `pp_days_off > 0`), so it stays NULL. The
+     preprocessor then median-imputes 1.25 lengths and sets
+     `last_race_beaten_lengths__missing` (coefficient −0.079). Correctly
+     parsed, a first-timer gets a *negative* push: Olympiad's Choice
+     through pdftotext reads −0.22 on the value and −0.07 on the flag. Nothing
+     in the fill path produces a large positive.
+   * **The +0.38 on 10/14 R5 #4 is the phantom 32 lengths from #8.**
+   * **The model's coefficient on `last_race_beaten_lengths` is positive.**
+     It is +0.085 per SD, about +0.022 log-odds per length, with the other
+     features held fixed. So the display label reads backwards: a "↑ closeness
+     to winner" line means the horse was beaten by *more* lengths than the
+     field average. R5 #1 Brilliant Deal's +0.16 is real data: the PP shows 2
+     starts, beaten 22 lengths last out. He is not a first-timer; this is the
+     sign of the coefficient, not a fill bug.
+   * **Affected logged predictions:** 1 (DED 10/14 R5 #4, P(ITM) 0.407
+     reranked, 0.457 base; finished 2nd).
+   * **First-timers overall look calibrated** (true `Life: 0` horses, scored
+     record runs):
+
+     | model | n | expected ITM | actual ITM |
+     |---|---|---|---|
+     | `dpv1.3.0-5track` | 12 | 3.6 | 3 |
+     | `dpv1.2.0-4track` | 56 | 13.9 | 15 |
+     | `dpv1.1.0` | 17 | 6.2 | 6 |
 
 Related, already documented elsewhere and still open:
 
