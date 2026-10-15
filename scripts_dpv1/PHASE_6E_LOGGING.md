@@ -1212,6 +1212,10 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
      field average. R5 #1 Brilliant Deal's +0.16 is real data: the PP shows 2
      starts, beaten 22 lengths last out. He is not a first-timer; this is the
      sign of the coefficient, not a fill bug.
+   * **Correction (same day, `PP_READER_AUDIT.md`):** the Brilliant Deal
+     reading above is incomplete. His 22 is Brisnet *lengths behind the
+     winner*, but the feature is trained on a different quantity; see #10.
+     The +0.16 comes from that scale mismatch, not just from the sign.
    * **Affected logged predictions:** 1 (DED 10/14 R5 #4, P(ITM) 0.407
      reranked, 0.457 base; finished 2nd).
    * **First-timers overall look calibrated** (true `Life: 0` horses, scored
@@ -1222,6 +1226,29 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
      | `dpv1.3.0-5track` | 12 | 3.6 | 3 |
      | `dpv1.2.0-4track` | 56 | 13.9 | 15 |
      | `dpv1.1.0` | 17 | 6.2 | 6 |
+10. **Open (2026-10-15, read-only, not fixed): `last_race_beaten_lengths`
+    means two different things.**
+    * **In the corpus (training and DB features):** the chart parser stores the
+      Fin-call superscript as `entries.beaten_lengths`. On an Equibase chart
+      that is the horse's **margin over the next finisher**, and 0.0 for a
+      winner. Training values: median 1.25, 90th percentile 6.5, 99th 21.25.
+    * **In the PP bridge:** `pp_beaten_len_last` is Brisnet's **lengths behind
+      the winner**.
+    * **Example.** Finny, CT 08Aug26, finished 5th. The corpus has 1.0; the PP
+      line has 3¼. On 18Jly26 he was 2nd: the corpus has 2.5 (margin over
+      3rd), the PP has 1.
+    * **Who it affects.** The bridge fills only NULL cells, so this hits horses
+      with no corpus last race: shippers and new tracks. It puts large values
+      in the tail of a feature with a positive coefficient (+0.022 log-odds
+      per length). DED 10/14 R5 #1 Brilliant Deal (22) and #4 Olympiad's
+      Choice (phantom 32) are examples.
+    * **Scope.** It also means the corpus feature is not "beaten lengths" as
+      its label and config description say.
+    * **Fixing it is a choice for Doug,** because it changes P(ITM): map the
+      bridge value to the corpus definition, stop bridging the feature, or
+      recompute the corpus feature as lengths behind the winner and retrain.
+    * The reader audit is in `PP_READER_AUDIT.md`; follow-up #8's reader
+      question is answered there.
 
 Related, already documented elsewhere and still open:
 
