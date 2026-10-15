@@ -1336,6 +1336,21 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       as lengths behind the winner and retrain, which is a model change and
       was not measured.
 
+    **APPLIED 2026-10-15: option (c)** (Doug's decision). The parser now
+    returns `pp_last_fin_pos` and `pp_margin_next_last`. These are bridge-only
+    fields, not staged. The bridge fills `last_race_beaten_lengths` with the
+    margin over the next finisher for a 1st–3rd finish and leaves it missing
+    otherwise. `pp_beaten_len_last` (lengths behind the winner) is still
+    parsed and staged, but no longer bridged.
+    * Corpus check on 4 cards: margin exact on 52 of 57 top-three finishes
+      (2 wrong, both corpus noses; 3 blank).
+    * DED 10/14 against the three-parser-fix baseline (backup DB, seed 6001):
+      * 58 of 80 P(ITM) values move, 29 by more than 1pp, and no top pick
+        changes.
+      * R5 #3 Here Comes Hellcat 40.7 → 24.3; R5 #4 Olympiad's Choice
+        36.9 → 45.6; R5 #7 Uthinkshecanrun 66.6 → 73.0; R4 #7 Fiji's Deal
+        37.2 → 31.3.
+
 11. **Open (2026-10-15, not applied): today's weight and
     `equipment_change_flag`.** The header-box fix (`c1143dd`) can also read
     today's weight, and a full-width race-line read gives last race's weight.

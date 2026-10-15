@@ -130,9 +130,13 @@ def bridge_row(pp: dict, race: dict) -> dict:
 
     # -- last race --------------------------------------------------------
     if has_run:
-        bl = _f(pp.get("pp_beaten_len_last"))
-        if np.isfinite(bl):
-            out["last_race_beaten_lengths"] = bl
+        # The corpus feature is the Equibase margin over the NEXT finisher
+        # (0.0 for a winner), not Brisnet's lengths behind the winner
+        # (pp_beaten_len_last). The PP gives it exactly only for a 1st-3rd
+        # finish; otherwise it stays missing (PHASE_6E follow-up #10, option c).
+        mn = _f(pp.get("pp_margin_next_last"))
+        if np.isfinite(mn):
+            out["last_race_beaten_lengths"] = mn
         spd = _f(pp.get("pp_last_speed"))
         if np.isfinite(spd):
             out["last_race_speed_figure"] = SPEED_CAL_A + SPEED_CAL_B * spd

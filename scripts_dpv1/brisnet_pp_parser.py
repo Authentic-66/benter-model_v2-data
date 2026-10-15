@@ -1220,6 +1220,66 @@ def _sup_to_lengths(sup):
     return (int(digits) if digits else 0) + frac
 
 
+def _full_width_line(line, page_lines):
+    """The whole-page copy of a left-crop race line, or ``line`` itself.
+
+    pdfplumber's left-crop race lines stop before the FIN call and jockey.
+    The same line appears whole in the page's full-layout text; its left part
+    (date, fractions, figures, calls) finds it by prefix. Whitespace is
+    ignored because the two extractions space glyph runs differently. With
+    no unique match (or no page_lines, as under pdftotext, whose lines are
+    already whole) the line is returned unchanged.
+    """
+    if not page_lines:
+        return line
+    key = ''.join(line.split())
+    hits = {pl for pl in page_lines if _pp_line_date(pl)
+            and len(''.join(pl.split())) > len(key)
+            and ''.join(pl.split()).startswith(key)}
+    return hits.pop() if len(hits) == 1 else line
+
+
+# Odds token that ends the jockey/medication run on a race line ("*1.10",
+# "11.80", "Lb102.10" glued). The Top Finishers column follows it.
+_LINE_ODDS_RE = re.compile(r'\s?\*?\d+\.\d{2}')
+
+
+def last_finish_and_margin(block_lines, page_lines=None):
+    """``(finish position, margin over the next finisher)`` in the most
+    recent race, in the corpus's definition of ``beaten_lengths``.
+
+    The corpus stores the Equibase chart's Fin superscript, which is the
+    horse's margin over the NEXT finisher (0.0 for a winner) -- not lengths
+    behind the winner, which is what a Brisnet FIN call shows (follow-up
+    #10). A PP line can give the corpus value exactly only for the top three:
+    the Top Finishers column carries the 1st-2nd, 2nd-3rd and 3rd-4th
+    margins. A 4th-or-worse finish would need the next finisher's line, so
+    its margin is None. Brisnet's neck glyph (0.3 here) is mapped to the
+    corpus's 0.25; nose and head already agree (0.05, 0.1).
+    """
+    lines = [l for l in block_lines if _pp_line_date(l)]
+    if not lines:
+        return None, None
+    latest = max(lines, key=_pp_line_date)
+    line = _full_width_line(latest, page_lines)
+    m = _PP_FIN_RE.search(line)
+    if not m:
+        return None, None
+    pos = int(m.group(1))
+    if pos == 1:
+        return pos, 0.0
+    if pos > 3:
+        return pos, None
+    om = _LINE_ODDS_RE.search(line, m.end())
+    if not om:
+        return pos, None
+    groups = re.findall('[' + _SUP_CHARS + ']+', line[om.end():])
+    if len(groups) < pos:
+        return pos, None
+    g = groups[pos - 1]
+    return pos, _sup_to_lengths(g) - (0.05 if '\xb3' in g else 0.0)
+
+
 def extract_beaten_lengths(block_lines, page_lines=None):
     """Beaten lengths in the horse's most recent race (0.0 = won, positive
     = lengths behind the winner), or None when unparseable / first-time
@@ -1779,6 +1839,9 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
                 days_off = (race_date - last_race).days
 
             beaten_len = extract_beaten_lengths(block, lines)
+            # pdfplumber blocks are left-crop lines; pdftotext lines are whole.
+            last_fin, margin_next = last_finish_and_margin(
+                block, lines if header_boxes is not None else None)
             last_class = extract_last_class(block)
             last_dist  = extract_last_distance(block)
             horse_starts = extract_horse_starts(block)
@@ -1905,6 +1968,7 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
                 'improving': improving, 'jt_zero': jt_zero,
                 'running_style': today_horse_style,
                 'jt_winpct': jt_winpct, 'beaten_len': beaten_len,
+                'last_fin_pos': last_fin, 'margin_next_last': margin_next,
                 'last_class': last_class, 'last_dist': last_dist,
                 'horse_starts': horse_starts,
                 'speed_fig_slope':      traj_feats['speed_fig_slope'],
@@ -2190,6 +2254,10 @@ def parse_pp_file(filepath, track_code: str | None = None) -> dict:
                    "trainer": h.get("trainer"), "jockey": h.get("jockey"),
                    "sire": h.get("sire"), "ml": h.get("ml")}
             rec.update(horse_to_pp_features(h))
+            # Bridge-only fields, outside PP_FEATURE_COLUMNS (not staged):
+            # last finish position and the corpus-definition margin (#10).
+            rec["pp_last_fin_pos"] = _num(h.get("last_fin_pos"))
+            rec["pp_margin_next_last"] = _num(h.get("margin_next_last"))
             horses.append(rec)
         out["races"].append({
             "race_num": rn,
