@@ -83,6 +83,7 @@ from dpv1_runtime import (  # noqa: E402
     load_race_from_db, predict_card, resolve_race_id,
 )
 from pp_feature_bridge import apply_to_card, pp_index  # noqa: E402
+from brisnet_pp_parser import PPReaderError, pp_reader  # noqa: E402
 from simulate_race import simulate_prediction  # noqa: E402
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -884,6 +885,32 @@ def ml_lookup_db(db, track: str, date: str) -> dict:
             for rn, nm, ml, mld, prime in rows if nm}
 
 
+def staged_pp_readers(db, track: str, date: str) -> list[str | None]:
+    """Distinct ``pp_text_reader`` values staged for this card.
+
+    ``None`` in the list means rows staged before the reader was recorded.
+    An empty list means nothing is staged.
+    """
+    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
+    key = (track.upper(), date)
+    try:
+        try:
+            rows = conn.execute(
+                "SELECT DISTINCT pp_text_reader FROM pp_entries_raw "
+                "WHERE track = ? AND race_date = ?", key).fetchall()
+        except sqlite3.OperationalError:
+            # No pp_text_reader column yet: nothing was staged since it was
+            # added, so any rows here predate the reader being recorded.
+            rows = conn.execute(
+                "SELECT DISTINCT NULL FROM pp_entries_raw "
+                "WHERE track = ? AND race_date = ?", key).fetchall()
+    except sqlite3.OperationalError:
+        return []
+    finally:
+        conn.close()
+    return sorted((r[0] for r in rows), key=lambda v: (v is None, v or ""))
+
+
 def one_race(track: str, date: str, race_num: int, model, db, pp_file,
              ml_map: dict, iters: int, seed: int,
              use_classctx: bool = False) -> dict | None:
@@ -1253,6 +1280,12 @@ def _cli() -> int:
                         "feature bridge NOT applied", args.track.upper(),
                         args.date)
 
+    # Which PDF text reader fed this run. The bridge re-parses --pp-file with
+    # the configured reader; the PP reranker reads the rows staged at load
+    # time, which may have come from a different reader. Display only.
+    bridge_reader = pp_reader() if args.pp_file else None
+    staged_readers = staged_pp_readers(args.db, args.track, args.date)
+
     import io
     buf = io.StringIO()
 
@@ -1281,6 +1314,19 @@ def _cli() -> int:
                   "PrimePwr are read from the DB,")
             print("          but the PP feature fill is skipped, so P(ITM) is "
                   "not the standard bridged run.")
+        staged_txt = (", ".join(r or "not recorded" for r in staged_readers)
+                      or "none staged")
+        print(f" PP text reader: bridge {bridge_reader or 'not run'}; "
+              f"staged rows {staged_txt}")
+        known = [r for r in staged_readers if r]
+        if bridge_reader and (any(r != bridge_reader for r in known)
+                              or len(known) > 1):
+            print(" WARNING: the card was staged with a different PP text "
+                  "reader than this run's bridge.")
+            print("          The reranker and the bridge are reading different "
+                  "text. Re-stage the card")
+            print(f"          (load_pp_card.py stage <pdf>) under the "
+                  f"{bridge_reader} reader before relying on this run.")
         trained = tuple(model.hyperparameters.get("tracks", ("GP", "CT", "MNR")))
         if args.track.upper() not in trained:
             print(f" NOTE: this model was trained on {'/'.join(trained)}. "
@@ -1390,4 +1436,9 @@ def _cli() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(_cli())
+    try:
+        raise SystemExit(_cli())
+    except PPReaderError as exc:
+        # The configured PDF text reader is missing or failed. Nothing
+        # has been written; there is no fallback to the other reader.
+        raise SystemExit(f"PP text reader error: {exc}")

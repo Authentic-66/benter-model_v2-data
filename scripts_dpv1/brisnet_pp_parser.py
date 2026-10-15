@@ -47,6 +47,7 @@ Usage
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -84,18 +85,83 @@ FILENAME_PREFIX_TO_TRACK = {
     "MVR": "MVR", "DD": "DD",
 }
 
-def extract_text(filepath):
+# ---------------------------------------------------------------------------
+# Text reader. Exactly one reader is used per run, and it is never swapped
+# silently.
+#
+# extract_text used to try `pdftotext -layout` and quietly fall back to
+# pdfplumber when the binary was missing. The two readers produce different
+# text, so the parsed inputs depended on which shell ran the load: Git Bash
+# has Git for Windows' Xpdf 4.00 pdftotext on PATH, and PowerShell has none.
+# PP_READER_AUDIT.md compares them against the PDFs and result charts.
+# pdfplumber is the standard: its misses are parser-side, while Xpdf's layout
+# mode mixes cells from different race lines in the text itself.
+#
+#   BENTER_PP_READER   pdfplumber (default) | pdftotext
+#   BENTER_PDFTOTEXT   pdftotext executable to use when the reader is
+#                      pdftotext (default: whatever 'pdftotext' is on PATH)
+#
+# An unavailable or failing reader raises PPReaderError. parse_pp_file
+# re-raises it instead of folding it into its error field, so no caller can
+# carry on with a different reader's text.
+# ---------------------------------------------------------------------------
+PP_READERS = ("pdfplumber", "pdftotext")
+DEFAULT_PP_READER = "pdfplumber"
+
+
+class PPReaderError(RuntimeError):
+    """The configured PP text reader is unavailable or failed."""
+
+
+def pp_reader() -> str:
+    """The configured PP text reader (``BENTER_PP_READER``)."""
+    reader = (os.environ.get("BENTER_PP_READER") or DEFAULT_PP_READER)
+    reader = reader.strip().lower()
+    if reader not in PP_READERS:
+        raise PPReaderError(
+            f"BENTER_PP_READER={reader!r} is not a PP reader; use one of "
+            f"{', '.join(PP_READERS)}")
+    return reader
+
+
+def text_reader_for(filepath, reader=None) -> str:
+    """Name of the reader :func:`extract_text` uses for ``filepath``."""
+    if Path(filepath).suffix.lower() != '.pdf':
+        return "text"
+    return reader or pp_reader()
+
+
+def extract_text(filepath, reader=None):
     path = Path(filepath)
     if path.suffix.lower() != '.pdf':
         return path.read_text(errors='replace')
+    reader = reader or pp_reader()
+    if reader not in PP_READERS:
+        raise PPReaderError(f"unknown PP reader {reader!r}")
+    if reader == "pdftotext":
+        exe = os.environ.get("BENTER_PDFTOTEXT") or "pdftotext"
+        try:
+            result = subprocess.run([exe, '-layout', str(path), '-'],
+                                    capture_output=True, text=True,
+                                    errors='replace')
+        except OSError as exc:
+            raise PPReaderError(
+                f"PP reader is pdftotext but {exe!r} could not be run ({exc}). "
+                f"Set BENTER_PDFTOTEXT to the executable, or unset "
+                f"BENTER_PP_READER to use the standard reader (pdfplumber). "
+                f"There is no automatic fallback.") from exc
+        if result.returncode != 0 or not result.stdout.strip():
+            raise PPReaderError(
+                f"pdftotext ({exe}) failed on {path.name}: exit "
+                f"{result.returncode}, {len(result.stdout.strip())} chars of "
+                f"text. {result.stderr.strip()[:200]}")
+        return result.stdout
     try:
-        result = subprocess.run(['pdftotext', '-layout', str(path), '-'],
-                               capture_output=True, text=True, errors='replace')
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout
-    except FileNotFoundError:
-        pass
-    import pdfplumber
+        import pdfplumber
+    except ImportError as exc:
+        raise PPReaderError(
+            "PP reader is pdfplumber but it is not installed "
+            "(pip install pdfplumber). There is no automatic fallback.") from exc
     pages = []
     with pdfplumber.open(path) as pdf:
         for page in pdf.pages:
@@ -1991,18 +2057,25 @@ def track_from_filename(path) -> str | None:
 def parse_pp_file(filepath, track_code: str | None = None) -> dict:
     """Parse one PP file into a JSON-able dict.
 
-    Returns ``{"file", "track", "race_date", "races": [...], "error"}``.
-    Never raises on a bad file — the caller reports the failure rate.
+    Returns ``{"file", "track", "race_date", "races": [...], "error",
+    "text_reader"}``. Never raises on a bad file — the caller reports the
+    failure rate. It does raise :class:`PPReaderError` when the configured
+    text reader is unavailable or fails: that is a setup problem, not a bad
+    file, and reporting it as one would hide which reader produced the text.
     """
     path = Path(filepath)
     track = (track_code or track_from_filename(path) or "").upper() or None
+    reader = text_reader_for(path)
     out = {"file": path.name, "path": str(path), "track": track,
-           "race_date": None, "races": [], "n_horses": 0, "error": None}
+           "race_date": None, "races": [], "n_horses": 0, "error": None,
+           "text_reader": reader}
     if track is None:
         out["error"] = "unrecognised track prefix"
         return out
     try:
-        text = extract_text(path)
+        text = extract_text(path, reader if reader != "text" else None)
+    except PPReaderError:
+        raise
     except Exception as exc:                       # noqa: BLE001 - report, don't crash
         out["error"] = f"text extraction failed: {exc}"
         return out
@@ -2054,7 +2127,7 @@ if __name__ == "__main__":
         print(json.dumps(result, indent=2, default=str))
     else:
         print(f"{result['file']}  track={result['track']}  "
-              f"date={result['race_date']}")
+              f"date={result['race_date']}  reader={result['text_reader']}")
         if result["error"]:
             print(f"  ERROR: {result['error']}")
         print(f"  {len(result['races'])} races, {result['n_horses']} horses")

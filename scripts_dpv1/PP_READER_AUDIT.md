@@ -131,7 +131,13 @@ last distance on 176 of the 347 chart-checked horses.
   `[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";C:\Program Files\Git\mingw64\bin", "User")`,
   then open a new PowerShell and check with `Get-Command pdftotext`.
 
-## 3. Proposed change: never fall back silently (NOT applied)
+## 3. Never fall back silently (APPLIED 2026-10-15)
+
+> Applied as proposed, with two additions: both CLIs print
+> `PP text reader error: ...` instead of a traceback, and the header line reads
+> `PP text reader: bridge <reader>; staged rows <reader>`. Verification results
+> are in `PHASE_6E_LOGGING.md`, follow-up #8. The proposal text below is kept as
+> written.
 
 **`brisnet_pp_parser.py`**
 * `extract_text(filepath, reader=None)`. The reader comes from the argument,

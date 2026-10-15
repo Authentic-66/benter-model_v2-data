@@ -80,7 +80,8 @@ import db_loader  # noqa: E402
 from equibase_pdf_parser import normalize_name  # noqa: E402
 
 from brisnet_pp_parser import (  # noqa: E402
-    PP_FEATURE_COLUMNS, extract_text, parse_pp_file, track_from_filename,
+    PP_FEATURE_COLUMNS, PPReaderError, extract_text, parse_pp_file,
+    track_from_filename,
 )
 
 log = logging.getLogger("load_pp_card")
@@ -282,7 +283,9 @@ def build_card(pdf: str | Path, track_code: str | None = None) -> dict:
     if parsed["error"]:
         raise SystemExit(f"{path.name}: {parsed['error']}")
 
-    text = extract_text(path)
+    # Same reader as the parse above; extract_text never swaps it.
+    text = extract_text(path, parsed["text_reader"]
+                        if parsed["text_reader"] != "text" else None)
     headers = headers_from_text(text)
 
     races = []
@@ -307,6 +310,7 @@ def build_card(pdf: str | Path, track_code: str | None = None) -> dict:
         "track": parsed["track"],
         "race_date": parsed["race_date"],
         "source_pdf": str(path),
+        "text_reader": parsed["text_reader"],
         "races": races,
         "n_horses": sum(len(r["horses"]) for r in races),
     }
@@ -367,6 +371,13 @@ PP_STAGE_COLS = (["source_pdf", "track", "race_date", "race_num",
 # these rows never took, and cmd_match does not read it anyway.
 PREDICTION_CARD_STATUS = "pending_prediction_card"
 
+# Which PDF text reader produced a staged row (see brisnet_pp_parser.pp_reader).
+# Nullable and outside parse_pp_files' DDL: that module's DROP-and-replace
+# rebuild leaves it out, and ensure_pp_raw_table adds it back on the next
+# load. NULL means "staged before the reader was recorded" (or by
+# parse_pp_files), not a third reader.
+PP_READER_COL = "pp_text_reader"
+
 
 def ensure_pp_raw_table(conn: sqlite3.Connection) -> None:
     """Create ``pp_entries_raw`` if absent, matching parse_pp_files' schema."""
@@ -396,6 +407,9 @@ def ensure_pp_raw_table(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_{PP_RAW_TABLE}_entry
             ON {PP_RAW_TABLE}(entry_id);
     """)
+    cols = {r[1] for r in conn.execute(f"PRAGMA table_info({PP_RAW_TABLE})")}
+    if PP_READER_COL not in cols:
+        conn.execute(f"ALTER TABLE {PP_RAW_TABLE} ADD COLUMN {PP_READER_COL} TEXT")
 
 
 def stage_pp_entries(conn: sqlite3.Connection, card: dict) -> int:
@@ -437,9 +451,11 @@ def stage_pp_entries(conn: sqlite3.Connection, card: dict) -> int:
         # Stamp match_status so these rows are visibly a prediction-card
         # staging load rather than NULL-in-limbo. See PREDICTION_CARD_STATUS.
         conn.executemany(
-            f"INSERT INTO {PP_RAW_TABLE} ({','.join(PP_STAGE_COLS)}, match_status) "
-            f"VALUES ({','.join('?' * len(PP_STAGE_COLS))}, ?)",
-            [r + [PREDICTION_CARD_STATUS] for r in rows])
+            f"INSERT INTO {PP_RAW_TABLE} ({','.join(PP_STAGE_COLS)}, "
+            f"match_status, {PP_READER_COL}) "
+            f"VALUES ({','.join('?' * len(PP_STAGE_COLS))}, ?, ?)",
+            [r + [PREDICTION_CARD_STATUS, card.get("text_reader")]
+             for r in rows])
     return len(rows)
 
 
@@ -619,7 +635,8 @@ def known_horse_rate(db: str | Path, card: dict) -> dict:
 def _print_card(card: dict) -> None:
     print(f"\n{card['track']} {card['race_date']}   "
           f"{len(card['races'])} races, {card['n_horses']} horses")
-    print(f"source: {card['source_pdf']}\n")
+    print(f"source: {card['source_pdf']}")
+    print(f"text reader: {card.get('text_reader')}\n")
     rows = [{
         "R": r["race_num"], "horses": len(r["horses"]),
         "surface": r["surface"], "yards": r["distance_yards"],
@@ -679,7 +696,8 @@ def _cli() -> int:
         finally:
             conn.close()
         print(f"staged {n} PP starters for {card['track']} "
-              f"{card['race_date']} into {PP_RAW_TABLE}")
+              f"{card['race_date']} into {PP_RAW_TABLE} "
+              f"(text reader: {card.get('text_reader')})")
         return 0
 
     _print_card(card)
@@ -705,4 +723,9 @@ def _cli() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(_cli())
+    try:
+        raise SystemExit(_cli())
+    except PPReaderError as exc:
+        # The configured PDF text reader is missing or failed. Nothing
+        # has been written; there is no fallback to the other reader.
+        raise SystemExit(f"PP text reader error: {exc}")

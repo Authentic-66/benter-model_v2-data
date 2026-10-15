@@ -1194,6 +1194,19 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
    This feeds the model, not just the display. `last_race_beaten_lengths` is
    bridged, and the reranker reads `pp_career_starts`, `pp_days_off` and
    `is_first_timer`. See #9.
+
+   **Reader guard applied (2026-10-15).** The standard reader is now
+   pdfplumber, whatever the shell. `extract_text` reads exactly one reader
+   (`BENTER_PP_READER`, default `pdfplumber`; `BENTER_PDFTOTEXT` for an explicit
+   pdftotext binary), and a missing or failing reader stops the run with
+   `PP text reader error: ...`. There is no fallback. `load_pp_card.py` prints
+   the reader and stamps it in `pp_entries_raw.pp_text_reader` (NULL on rows
+   staged before this). The `card_picks` header shows the bridge and staged
+   readers and warns when they differ.
+   * Parse output is identical to the previous code on all 73 PP files under
+     both readers.
+   * P(ITM), base, rank and every other logged field are identical on
+     CT 10/1, GP 9/4, GP 10/2 and DED 10/14 (backup DB), 273 rows, seed 6001.
 9. **Open (2026-10-15, read-only, not fixed): "closeness to winner (last
    race)" on horses with no prior start.**
    * **The fill path for a first-time starter.** The DB value is NULL (no

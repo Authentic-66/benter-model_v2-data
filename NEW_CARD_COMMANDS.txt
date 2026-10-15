@@ -16,6 +16,11 @@ BEFORE THE RACES
 
     python scripts_dpv1/load_pp_card.py load "Delta Downs/ded-pps-files/ded1014y.pdf"
 
+   The output names the PDF text reader ("text reader: pdfplumber"). That is
+   the standard, from PowerShell or Bash alike. If it says anything else, or
+   the load stops with "PP text reader error", BENTER_PP_READER is set in
+   your environment; clear it and load again.
+
    Then check the card for watch-list horses (scripts_dpv1/tracking/watch_list.csv):
 
     python scripts_dpv1/tracking/check_watch_list.py --track DED --date 2026-10-14
@@ -33,7 +38,9 @@ BEFORE THE RACES
     python scripts_dpv1/card_picks.py --track DED --date 2026-10-14 --pp-file "Delta Downs/ded-pps-files/ded1014y.pdf" --save
 
    ALWAYS include --pp-file. Without it the PP feature bridge is skipped and
-   the P(ITM) values change. Picks land in scripts_dpv1/picks/ and the
+   the P(ITM) values change. The page header has a "PP text reader" line; if
+   it shows a WARNING that the staged and bridge readers differ, re-run step 1
+   before using the picks. Picks land in scripts_dpv1/picks/ and the
    prediction log is scripts_dpv1/logs/predictions.jsonl.
 
 Do not skip steps 2 and 3 on 10/14: the DED 10/9 and 10/10 results were
