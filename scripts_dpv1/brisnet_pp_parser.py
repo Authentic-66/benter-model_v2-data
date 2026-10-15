@@ -223,6 +223,41 @@ def extract_header_boxes(filepath) -> dict:
 _BOX_WEIGHT_RE = re.compile(r'(?<!\d)(1[0-3]\d)[^\d\s]{0,3}\s*(?:19|20)\d\d\s+\d')
 
 
+# Today's Lasix and blinkers (PHASE_6E follow-up #12). The box row with the
+# Dis record starts with "L" before today's weight when the horse is on Lasix
+# ("L 122 2025 ..."); a "Blnkr On" / "Blnkr Off" note on the box marks a
+# blinkers change. Today's blinkers are last race's "b" (the medication and
+# equipment letters after the jockey's weight on the race line), flipped by
+# that note. Checked against charts on 4 cards: Lasix 260/261, blinkers
+# 222/223. A PP does not show today's front bandages or the rarer letters, so
+# the full chart equipment string cannot be rebuilt (#11).
+_BOX_LASIX_RE = re.compile(r'(?:^|\s)(L)?\s*(1[0-3]\d)\S*\s*(?:19|20)\d\d\s')
+_LINE_MEDS_RE = re.compile(
+    r"[A-Z][A-Za-z'.]{2,}[§¨©ª«¬\xad®¯°]{3}\*?\s+([A-Za-z]{0,5})\s*\*?\d+\.\d+")
+
+
+def today_lasix_blinkers(box_lines, latest_line) -> tuple:
+    """``(lasix, blinkers)`` today as True/False, or None where unreadable."""
+    lasix = None
+    for line in box_lines:
+        if 'Dis' in line:
+            m = _BOX_LASIX_RE.search(line)
+            if m:
+                lasix = m.group(1) == 'L'
+            break
+    text = ' '.join(box_lines)
+    if 'Blnkr On' in text:
+        return lasix, True
+    if 'Blnkr Off' in text:
+        return lasix, False
+    last_b = None
+    if latest_line:
+        m = _LINE_MEDS_RE.search(latest_line)
+        if m:
+            last_b = 'b' in m.group(1)
+    return lasix, last_b
+
+
 def box_today_weight(box_lines) -> int | None:
     for line in box_lines:
         if 'Dis' not in line:
@@ -1909,13 +1944,15 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
                 latest = [l for l in block if _pp_line_date(l)]
                 latest = ([_full_width_line(max(latest, key=_pp_line_date), lines)]
                           if latest else [])
+                hbox = (header_boxes or {}).get(i, {}).get(pp_num, [])
                 eq_feats = extract_equipment_features(
-                    block,
-                    today_weight=box_today_weight(
-                        (header_boxes or {}).get(i, {}).get(pp_num, [])),
+                    block, today_weight=box_today_weight(hbox),
                     race_lines=latest)
+                today_lasix, today_blinkers = today_lasix_blinkers(
+                    hbox, latest[0] if latest else None)
             else:
                 eq_feats = extract_equipment_features(block)
+                today_lasix = today_blinkers = None
 
             # ── Distance/surface records (Phase D) ──────────────────────────
             today_surface_str = races[current_race].get('surface')
@@ -1995,6 +2032,7 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
                 'first_time_lasix': eq_feats['first_time_lasix'],
                 'weight_change': eq_feats['weight_change'],
                 'today_weight': eq_feats['today_weight'],
+                'today_lasix': today_lasix, 'today_blinkers': today_blinkers,
                 'equipment_change': eq_feats['equipment_change'],
                 'dist_wins': ds_feats['dist_wins'],
                 'dist_starts': ds_feats['dist_starts'],
@@ -2305,10 +2343,12 @@ def parse_pp_file(filepath, track_code: str | None = None) -> dict:
             rec.update(horse_to_pp_features(h))
             # Bridge-only fields, outside PP_FEATURE_COLUMNS (not staged):
             # last finish position and the corpus-definition margin (#10), and
-            # today's weight (#11).
+            # today's weight (#11), today's Lasix / blinkers (#12).
             rec["pp_last_fin_pos"] = _num(h.get("last_fin_pos"))
             rec["pp_margin_next_last"] = _num(h.get("margin_next_last"))
             rec["pp_today_weight"] = _num(h.get("today_weight"))
+            rec["pp_today_lasix"] = h.get("today_lasix")
+            rec["pp_today_blinkers"] = h.get("today_blinkers")
             horses.append(rec)
         out["races"].append({
             "race_num": rn,

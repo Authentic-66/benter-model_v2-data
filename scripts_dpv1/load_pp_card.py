@@ -560,19 +560,28 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
             n_races += 1
 
             for h in r["horses"]:
+                # Today's Lasix / blinkers from the PP (PHASE_6E #12), NULL
+                # where unreadable. Without them the feature builder read a
+                # pre-race NULL as "no equipment": lasix_off = 1 for every
+                # horse that raced on Lasix last time, and a blinkers change
+                # for every horse that wore them. entries.equipment stays
+                # NULL: a PP cannot give the full chart string (#11).
                 conn.execute(
                     """
                     INSERT INTO entries (race_id, horse_id, trainer_id,
                                          jockey_id, program_num, post_pos,
-                                         finish_pos, final_odds)
-                    VALUES (?, ?, ?, ?, ?, ?, NULL, NULL)
+                                         finish_pos, final_odds,
+                                         has_lasix, has_blinkers)
+                    VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?)
                     """,
                     (race_id,
                      _horse_id(conn, h.get("horse_name")),
                      _get_or_create(conn, "trainers", h.get("trainer")),
                      _get_or_create(conn, "jockeys", h.get("jockey")),
                      str(h.get("program_num")),
-                     _to_int(h.get("program_num"))))
+                     _to_int(h.get("program_num")),
+                     _flag(h.get("pp_today_lasix")),
+                     _flag(h.get("pp_today_blinkers"))))
                 n_entries += 1
 
         # Same transaction as the entries insert: a card is either loaded and
@@ -591,6 +600,11 @@ def _to_int(v):
         return int(str(v).strip())
     except (TypeError, ValueError):
         return None
+
+
+def _flag(v):
+    """True/False -> 1/0 for an entries flag column; None stays NULL."""
+    return None if v is None else int(bool(v))
 
 
 def known_horse_rate(db: str | Path, card: dict) -> dict:

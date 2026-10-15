@@ -1433,8 +1433,8 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       P(ITM) values move, 10 by more than 1pp, none by more than 3pp, and no
       top pick changes. The largest moves are ±1.8.
 
-12. **Open (2026-10-15, found while doing #11, NOT fixed): equipment flags
-    on pre-race cards.**
+12. **APPLIED 2026-10-15, option (b) (Doug's decision; details at the end
+    of this item): equipment flags on pre-race cards.**
     * **The cause.** A pre-race card loads with `entries.equipment`,
       `has_lasix` and `has_blinkers` NULL. The feature builder treats NULL
       today as "no equipment" and compares it with the horse's previous
@@ -1482,6 +1482,38 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       the PP shows almost no real Lasix or blinkers changes on this card.
       They would part on a card with real changes; only (b) can see those.
     * The logged 10/15 run is the record and is not re-logged.
+
+    **Applied (b).**
+    * **Parser.** It reads today's Lasix (the `L` before the weight) and
+      blinkers (last race's `b`, flipped by `Blnkr On/Off`) into bridge-only
+      fields.
+    * **Loader.** `load_pp_card` writes them to `entries.has_lasix` and
+      `entries.has_blinkers`, NULL where unreadable. `entries.equipment`
+      stays NULL.
+    * **Feature builder** (`new_features/equipment_features.py`), only for
+      races with no result:
+      * `equipment_change_flag` is NULL;
+      * the Lasix flags are NULL where today's Lasix is unknown;
+      * the blinkers flags are NULL where today's blinkers are unknown;
+      * otherwise the flags are computed exactly as for training rows.
+    * **Verification.**
+      * Features were built with the old code and the new code on one copy
+        of the live DB. All 316,561 rows for entries in races with results
+        are identical in every one of the 130 columns, checked both ways.
+        Only the 222 pre-race rows change.
+      * The model and reranker files have the same sha256 as before.
+    * **DED 10/15** (scratch copy, re-loaded and rebuilt, seed 6001) against
+      the logged run:
+      * 75 of 88 P(ITM) values move by more than 1pp, 17 by more than 3pp.
+      * The top pick changes in R2 (#9 → #2), R4 (#3 → #6), R6 (#6 → #1)
+        and R7 (#5 → #6).
+      * Largest moves: R8 #6 Voodoo Lady 41.7 → 36.3; R7 #6 Ninth Ward
+        Bobby O 40.8 → 45.7; R7 #1 I Gotthe Hint 36.3 → 41.2.
+      * Real equipment changes left on the card: 2 Lasix off, 2 first-time
+        Lasix, 7 blinkers changes (5 first-time on).
+    * **Two unscored cards.** CT 10/1 and GP 10/2 were loaded before this
+      change, and their results are not loaded. Their pre-race rows now
+      build with the equipment flags NULL. They are not re-loaded.
 
 Related, already documented elsewhere and still open:
 

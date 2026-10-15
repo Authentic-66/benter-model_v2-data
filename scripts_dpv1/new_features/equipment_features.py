@@ -67,4 +67,27 @@ def compute(raw: pd.DataFrame, ctx: dict, cfg: dict,
         chg = raw["equipment"].fillna("") != prev["prev_equipment"].fillna("")
         out["equipment_change_flag"] = (
             chg.where(has_prior).astype("boolean").astype("Int8"))
+
+    # Pre-race cards (PHASE_6E follow-up #12). A race with no result at all is
+    # a card loaded from a PP: today's equipment is not a chart value. Above,
+    # a NULL today reads as "no equipment", which set lasix_off and
+    # equipment_change_flag to 1 for every horse with a prior, and a blinkers
+    # change for every horse that wore them last time. load_pp_card now
+    # writes today's has_lasix / has_blinkers from the PP, so those flags are
+    # computed as above where the PP gave a value and left NULL where it did
+    # not. equipment_change_flag is always NULL here: the PP cannot give the
+    # chart's full equipment string (#11). Races with any result are
+    # untouched, so training rows do not change.
+    pre_race = ~raw["finish_pos"].notna().groupby(raw["race_id"]).transform("any")
+    if pre_race.any():
+        lasix_unknown = pre_race & raw["has_lasix"].isna()
+        blink_unknown = pre_race & raw["has_blinkers"].isna()
+        for col, unknown in (("is_first_time_lasix", lasix_unknown),
+                             ("lasix_first_time", lasix_unknown),
+                             ("lasix_off", lasix_unknown),
+                             ("is_first_time_blinkers", blink_unknown),
+                             ("blinkers_change_flag", blink_unknown),
+                             ("equipment_change_flag", pre_race)):
+            if col in out:
+                out[col] = out[col].mask(unknown.to_numpy())
     return out
