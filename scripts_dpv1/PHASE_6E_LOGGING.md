@@ -539,6 +539,22 @@ pick changes. The largest move is R5 #3 Here Comes Hellcat, 27.6 → 40.7. Most
 of that comes from follow-up #10: her real last race was beaten 49 lengths,
 and the coefficient on that feature is positive.
 
+**First post-fix card: DED 2026-10-15** (`generated_at 2026-10-15T16:52:08`,
+`picks/DED_2026-10-15_20261015-1652.txt`, 88 rows).
+* **Code:** it ran on commit `2d574f1`, with no uncommitted code changes. That
+  includes the reader guard, the three parser fixes, #10 option (c), the #9
+  label and #11 (today's weight bridged; equipment flag not bridged).
+* **How it was run:** `load_pp_card.py load`, then the speed-figure and
+  feature rebuilds, then `card_picks.py --pp-file ... --save` at the default
+  seed 6001.
+* **DB:** before the load, `racing_full.db.pre-ded1015.bak`; as it stood at
+  run time, `racing_full.db.ded1015-run.bak`.
+* **Reproduced:** re-scoring the card from the run-time DB into a scratch log
+  gave all 88 rows identical in every field except `generated_at`,
+  `picks_file` and `prediction_id`.
+* **Still affected by #12:** the pre-race equipment-flag skew, which shows as
+  "blinkers change" in most reasons.
+
 Every earlier card is also pre-fix: CT 8/28, CT 8/29, ELP 8/22 and ELP 8/23
 were staged with pdftotext, and GP 9/4, CT 10/1 and GP 10/2 have the
 pdfplumber block bleed. Only the two DED cards were asked to be marked; the
