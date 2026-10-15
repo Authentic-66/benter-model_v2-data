@@ -110,7 +110,19 @@ Prime Power and ML are not inputs to the model, the bridge or the reranker.
 * Doug's PowerShell already uses it, so no install is needed and DED 10/14,
   CT 10/1, GP 9/4 and GP 10/2 stay on the standard reader.
 
-These three fixes are parser changes. They are proposed, not applied, and
+> **Applied 2026-10-15**, one commit each: block boundary `87ee6fa`, header
+> box `c1143dd`, Prime Power `02c0163`. Two corrections to the description
+> above:
+> * **Header box.** The record regex already accepts `Fst(105)`. The real
+>   cause is that the box sits on the right half of the header, outside the
+>   left-crop block. The fix reads it by position.
+> * **Today's weight.** It was **not** applied. Filling it turns on a
+>   weight-swing rule inside `equipment_change_flag` that the corpus does not
+>   have; see `PHASE_6E_LOGGING.md` follow-up #11.
+>
+> Per-fix counts are in the commit messages.
+
+These three fixes are parser changes. They were proposed, not applied, and
 each will change P(ITM) on the horses it touches, so each needs Doug's go and
 its own before/after record.
 

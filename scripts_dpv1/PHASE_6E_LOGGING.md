@@ -520,6 +520,30 @@ but read them as flagged.
 `model_health.py` does not flag these. Card review:
 `tracking/DED_2026-10-14_review.md`.
 
+### Pre-fix logs in the live log (recorded 2026-10-15)
+
+The PP text reader guard (`2398a72`) and three parser fixes landed on
+2026-10-15: horse-block boundaries (`87ee6fa`), the career-record header box
+(`c1143dd`) and the Prime Power map (`02c0163`). The two DED cards below were
+logged before them. They stay in the record as **pre-fix** and are **not
+re-logged**. Read them as produced by the older parse:
+
+| card | run (`generated_at`) | bridged with | what the fixes would change |
+|---|---|---|---|
+| DED 2026-10-10 | both logged runs | **pdftotext** (Git's Xpdf; inferred, 12–1) | the whole text path. pdftotext is no longer the standard reader |
+| DED 2026-10-14 | `2026-10-14T18:22:02` | pdfplumber (confirmed) | block bleed (R5 #4 Olympiad's Choice phantom last race; R5 #3 Here Comes Hellcat read the previous horse's line), blank surface/distance records, blank Prime Power on R6 #8 |
+
+Re-scoring DED 10/14 with all three fixes on the pre-results backup DB at the
+same seed: 58 of 80 P(ITM) values move, 18 by more than 1pp, and no race's top
+pick changes. The largest move is R5 #3 Here Comes Hellcat, 27.6 → 40.7. Most
+of that comes from follow-up #10: her real last race was beaten 49 lengths,
+and the coefficient on that feature is positive.
+
+Every earlier card is also pre-fix: CT 8/28, CT 8/29, ELP 8/22 and ELP 8/23
+were staged with pdftotext, and GP 9/4, CT 10/1 and GP 10/2 have the
+pdfplumber block bleed. Only the two DED cards were asked to be marked; the
+reader per card is in `PP_READER_AUDIT.md` §4.
+
 ---
 
 ## Carry-forward notes for Piece 4
@@ -1262,6 +1286,82 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       recompute the corpus feature as lengths behind the winner and retrain.
     * The reader audit is in `PP_READER_AUDIT.md`; follow-up #8's reader
       question is answered there.
+
+    **Options measured (2026-10-15, scratch only, nothing applied).**
+    * **Can a PP line give the training value? Partly.**
+      * The line has the finish position.
+      * The Top Finishers column gives the 1st→2nd, 2nd→3rd and 3rd→4th
+        margins.
+      * So the corpus value is exact for a winner (0.0) and for 2nd and 3rd.
+        For 4th or worse it needs the next finisher's line, which this
+        horse's block does not have.
+      * Checked against the corpus on 4 cards: finish position right on 114
+        of 117. Margin over the next finisher right on 49 of 54 at 1st–3rd
+        (3 wrong, 2 blank), once Brisnet's neck (0.3) is mapped to the
+        corpus's 0.25.
+      * The current bridged value matched the corpus on 0 of 88 non-winners.
+    * **The three options**, each run on the 9 logged PP cards with today's
+      parser (all three fixes), the standard reader, re-staged rows and
+      seed 6001. DED 10/14 used the pre-results backup DB. Options:
+      * (a) current behaviour (lengths behind the winner);
+      * (b) don't bridge the feature, so it stays missing for horses with no
+        corpus last race;
+      * (c) the training value where the PP gives it exactly (1st–3rd),
+        missing otherwise. 35–50% of bridged cells are kept per card.
+
+      | | (b) vs (a) | (c) vs (a) |
+      |---|---|---|
+      | P(ITM) moved > 1pp | 266 | 262 |
+      | top-pick changes (9 cards, 78 races) | 1 (ELP 8/22) | 1 (the same race) |
+      | largest move | DED 10/14 R5 #3 Here Comes Hellcat 40.7 → 24.7 | same horse, → 24.3 |
+
+      * Other big moves under both: CT 10/1 R5 #1 Moonlight Mistress 44.9 →
+        30.3, ELP 8/22 R9 #12 Secret Meet 24.9 → 10.8, GP 10/2 R3 #5 Higher
+        Self 36.0 → 22.2. One horse moves the other way: DED 10/14 R5 #4
+        Olympiad's Choice 36.9 → 46.2 (b) / 45.6 (c). Under (a) the other
+        first-timers' large beaten-lengths values outrank her.
+    * **Outcomes (7 cards with results loaded; CT 10/1 and GP 10/2 have
+      none):**
+      * Top-pick ITM is 42 of 63 under all three.
+      * Log loss over 526 starters: (a) 0.5857, (b) 0.5831, (c) 0.5829.
+      * On the 280 starters the options actually move: summed P(ITM) is 106
+        under each, against 109 ITM. Log loss (a) 0.572, (b) 0.567,
+        (c) 0.567.
+      * The direction favours (b)/(c), but the sample is far too small to
+        call.
+    * **Reading.** (b) and (c) are nearly the same in practice. Most bridged
+      last races are 4th or worse, so (c) falls back to missing for them.
+      (c) is more code (a Top Finishers reader in the parser) for little
+      measured difference. A fourth option is to rebuild the corpus feature
+      as lengths behind the winner and retrain, which is a model change and
+      was not measured.
+
+11. **Open (2026-10-15, not applied): today's weight and
+    `equipment_change_flag`.** The header-box fix (`c1143dd`) can also read
+    today's weight, and a full-width race-line read gives last race's weight.
+    Both were built and checked against charts:
+    * today's weight right on 184 of 205 starters; the rest are PP vs chart
+      differences such as apprentice allowances and late rider changes;
+    * last race's weight right on 72 of 77, 0 wrong, 5 blank.
+
+    It was **left out of the commit**. Filling weight change turns on
+    `pp_equipment_change`'s rule, "any blinkers/Lasix change OR a weight swing
+    of 2 lb or more". The bridge copies that into `equipment_change_flag`.
+    The corpus defines that flag as "the equipment string changed", with no
+    weight term (`new_features/equipment_features.py`).
+    * The rule fired on about a third of horses in the catalogue (1,838 of
+      4,974 when tried).
+    * It is worth −0.067 log-odds on each horse it flips.
+    * It is already live for every card bridged through pdftotext (CT 8/28,
+      CT 8/29, ELP 8/22, ELP 8/23, DED 10/10, and the GP 10/2 record run).
+
+    Choice for Doug: keep the rule; bridge `equipment_change_flag` from the
+    blinkers/Lasix flags only (matching the corpus) and bridge
+    `weight_change_from_last_race` separately; or leave weight unread. The
+    weight read is not in the repo. It is a regex on the box row that holds
+    the Dis record (`L 122 2025 ...`), plus the most recent race line matched
+    whole in the full-layout text, with whitespace ignored, for the jockey's
+    weight superscript. It is about 60 lines to re-add.
 
 Related, already documented elsewhere and still open:
 
