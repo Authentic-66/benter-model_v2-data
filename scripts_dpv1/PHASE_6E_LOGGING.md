@@ -1461,6 +1461,28 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
         first-time flags exactly, but still not `equipment_change_flag`, for
         the reason in #11.
 
+    **Measured 2026-10-15 (scratch only, nothing applied).**
+    * **(b)'s inputs are reliable.** Read from the PP for today on 4 charted
+      cards (DED 10/14, DED 10/10, CT 8/29, GP 9/4):
+      * Lasix: the `L` before today's weight matched the chart on 260 of 261
+        starters.
+      * Blinkers: last race's `b`, flipped by `Blnkr On/Off`, matched on 222
+        of 223. The other 38 had no last race to read blinkers from, mostly
+        first-timers.
+    * **Effect on DED 10/15**, re-scored from the run-time DB snapshot at
+      seed 6001 against the logged run:
+
+      | | (a) flags NULL | (b) flags from PP Lasix/blinkers, equipment flag NULL |
+      |---|---|---|
+      | P(ITM) moved > 1pp | 76 of 88 | 75 of 88 |
+      | moved > 3pp | 16 | 17 |
+      | top-pick changes | R2 #9→#2, R4 #3→#6, R6 #6→#1, R7 #5→#6 | the same four |
+
+    * (a) and (b) differ by more than 1pp on only 2 horses tonight, because
+      the PP shows almost no real Lasix or blinkers changes on this card.
+      They would part on a card with real changes; only (b) can see those.
+    * The logged 10/15 run is the record and is not re-logged.
+
 Related, already documented elsewhere and still open:
 
 * ~~**Routine PP ingest**~~ **DONE** (`load_pp_card.py` stages at load time, and `parse_pp_files.py --incremental` sweeps the catalogue). Was a hard
