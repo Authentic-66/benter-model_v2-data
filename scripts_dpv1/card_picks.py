@@ -107,7 +107,10 @@ PLAIN_LABELS: dict[str, str] = {
     # ── Speed / recent form ─────────────────────────────────────────
     "last_race_speed_figure": "speed figure last race",
     "speed_trajectory_3_races": "speed trend (last 3)",
-   "last_race_beaten_lengths": "closeness to winner (last race)",
+    # Corpus definition: margin over the NEXT finisher (0 for a winner), so
+    # a bigger value is a horse that pulled clear of the field behind it.
+    # The old "closeness to winner" label read backwards (PHASE_6E #9/#10).
+    "last_race_beaten_lengths": "margin over next finisher (last race)",
     "last_race_finish_pos": "finish placement (last race)",
     "last_race_won": "won last race",
     "last_3_avg_finish": "avg finish placement (last 3)",

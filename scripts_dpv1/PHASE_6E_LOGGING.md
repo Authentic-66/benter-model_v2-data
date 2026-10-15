@@ -1263,6 +1263,15 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
      | `dpv1.3.0-5track` | 12 | 3.6 | 3 |
      | `dpv1.2.0-4track` | 56 | 13.9 | 15 |
      | `dpv1.1.0` | 17 | 6.2 | 6 |
+   **RESOLVED 2026-10-15 by #10.** The coefficient is positive because the
+   training feature is the margin over the next finisher, and the bridge now
+   fills that same definition. The reasons label now reads "margin over next
+   finisher (last race)". That change is display-only: all 80 logged fields
+   on DED 10/14 are identical. The phantom-last-race fill path for first
+   timers went with the block fix (`87ee6fa`).
+   * One quirk remains: the corpus stores 0.0 for a winner, not the winning
+     margin. On this one feature a winner reads like a narrow 2nd;
+     `last_race_won` carries the win separately. Nothing changed for it.
 10. **Open (2026-10-15, read-only, not fixed): `last_race_beaten_lengths`
     means two different things.**
     * **In the corpus (training and DB features):** the chart parser stores the
