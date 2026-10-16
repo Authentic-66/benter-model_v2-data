@@ -1948,9 +1948,28 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
         * EVD 2023-07-20 R7 Luminous Flight (Hushed Court Room's)
         * LAD 2023-06-11 R6 Quickto Blame (Pesoin My Pocket's)
         * LAD 2023-09-02 R5 Halfpriced (Louisiana Cowgirl's)
-      * **Not fixed: proposal.** Clear those 8 pedigrees to NULL. Refill one
-        only from a race that horse won outright (its own Winner: line).
-      * Scratch: `ped489.py`.
+      * **FIXED 2026-10-16 (Doug's call).** All 8 were cleared (color, sex,
+        foaled date and place, sire, dam, breeder). They were refilled only
+        from a race the horse won outright: sole finish-1, win payout, and
+        named on that chart's Winner: line. Where there are several such
+        wins, all must agree on everything except sex (filly → mare), and
+        the earliest is used.
+        * **Refilled (4):**
+          * Souper Attentive (GP 2026-01-01 R4: Kitten's Joy – Giant Cats
+            Eye)
+          * I'ma Total Diva (CT 2021-07-03 R6, 2 wins agree: Fiber Sonde –
+            Soul Queen)
+          * Margarita Sunset (CT 2025-10-29 R1: Golden Years – Daiquiri)
+          * Luminous Flight (FG 2023-03-09 R7, 3 wins agree: Requite – My
+            Queen Olivia)
+        * **Left NULL, no outright win (4):** Star Sign, Dallas Gold,
+          Quickto Blame, Halfpriced.
+        * **Check:** against `racing_full.db.pre-ped14.bak`, only those 8
+          `horses` rows changed and no rows were added. Every other
+          non-derived table is identical.
+        * `pedigree_features.py` reads these, so they are picked up by the
+          rebuild after the 75-starters load.
+      * Scratch: `ped489.py`, `apply_ped.py`.
     * **After all steps:** 6 cleared entries remain (the E list below).
       Races with results but no `finish_pos = 1` went from 260 to 13.
     * **Full-corpus regression after all steps:** 4,800 chart days, 316,637
