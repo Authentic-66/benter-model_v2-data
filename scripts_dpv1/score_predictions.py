@@ -126,7 +126,7 @@ def fetch_results(db: str, track: str, date: str) -> dict:
         rows = conn.execute(
             """
             SELECT r.race_num, e.program_num, h.name, e.finish_pos,
-                   e.finish_status, e.show_payout, e.final_odds
+                   e.finish_status, e.show_payout, e.final_odds, e.win_payout
             FROM entries e
             JOIN races r      ON r.id  = e.race_id
             JOIN horses h     ON h.id  = e.horse_id
@@ -145,10 +145,21 @@ def fetch_results(db: str, track: str, date: str) -> dict:
     finally:
         conn.close()
 
+    # Interim, until the official-placings column (PHASE_6E #14 C) lands: the
+    # DB stores crossing order, so a horse disqualified from 1st sits at
+    # finish_pos 1 although the tote paid another horse. Grade on what the tote
+    # paid: a 1st with no win payout, in a race where another horse has one, is
+    # treated as having no recorded result -- exactly as before #14 A, when its
+    # finish_pos was NULL. Dead-heat co-winners both carry a win payout.
+    paid_win = {int(r[0]) for r in rows if r[7] is not None}
     entries: dict[tuple[int, str], dict] = {}
     have_results: set[int] = set()
     starters: dict[int, int] = defaultdict(int)
-    for race_num, pgm, name, finish_pos, status, show_payout, final_odds in rows:
+    for race_num, pgm, name, finish_pos, status, show_payout, final_odds, win_payout in rows:
+        if finish_pos == 1 and win_payout is None and int(race_num) in paid_win:
+            log.info("R%s: pgm %s crossed 1st but the tote paid another horse "
+                     "(disqualified) -- treated as no recorded result", race_num, pgm)
+            finish_pos = status = None
         entries[(int(race_num), _norm_pgm(pgm))] = {
             "horse_name": name,
             "finish_pos": finish_pos,
@@ -224,9 +235,8 @@ def score_card(preds: list[dict], results: dict) -> tuple[list[dict], dict]:
                 stats["unmatched"] += 1
             else:
                 # An entry row exists but carries no finishing position. In
-                # this corpus that is normally a disqualification: the loader
-                # renames the horse 'DQ-<name>' and leaves finish_pos NULL, so
-                # the race has no recorded winner at all. 0.6% of loaded races.
+                # this corpus that is normally a horse disqualified from 1st
+                # (see fetch_results) or a chart-parse residual.
                 log.warning("R%s: pgm %s (%s) has an entry but no recorded "
                             "result (disqualification?) -- not scored",
                             race_num, p.get("pgm"), p.get("horse_name"))

@@ -31,9 +31,11 @@ and all three are easy to get wrong:
   number down by however often the top pick scratches -- which is often: 12 of
   113 on CT 2026-08-28 alone.
 
-* **A race with no recorded winner cannot be a win.** Disqualifications land in
-  this corpus as a horse renamed ``DQ-<name>`` with a NULL ``finish_pos``, so
-  the race has no ``finish_pos = 1`` at all (168 of 29,020 loaded races, 0.58%).
+* **A race with no recorded winner cannot be a win.** The corpus stores
+  crossing order, so a horse disqualified from 1st keeps ``finish_pos = 1``
+  although the tote paid another horse. Such a race counts as having no
+  recorded winner here (as it did when that horse's ``finish_pos`` was NULL),
+  until official placings get their own column (PHASE_6E #14 C).
   Those races leave the WIN denominator but stay in the ITM denominator, where
   the board is still well defined.
 
@@ -119,6 +121,14 @@ def race_metadata(db: str, cards: set[tuple[str, str]]) -> dict:
                 SELECT r.race_num, r.race_type,
                        EXISTS (SELECT 1 FROM entries e
                                WHERE e.race_id = r.id AND e.finish_pos = 1)
+                       AND NOT EXISTS (
+                           -- crossed 1st, tote paid another horse: a DQ (see
+                           -- score_predictions.fetch_results; interim until #14 C)
+                           SELECT 1 FROM entries e
+                           WHERE e.race_id = r.id AND e.finish_pos = 1
+                             AND e.win_payout IS NULL
+                             AND EXISTS (SELECT 1 FROM entries w WHERE w.race_id = r.id
+                                         AND w.win_payout IS NOT NULL))
                 FROM races r
                 JOIN race_days rd ON rd.id = r.race_day_id
                 JOIN tracks t     ON t.id  = rd.track_id
