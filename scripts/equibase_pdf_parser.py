@@ -1164,7 +1164,13 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
             warnings.add(f"disqualified:pgm={e['program_num']}")
 
     # Second-pass: finish position + beaten lengths, now that we know field_size.
+    # The Trainers: line lists every starter. When a horse row could not be
+    # parsed, len(entries) is one short and a last-place `11` in an 11-horse
+    # field reads as "1st by 1"; the Trainers: count keeps it 11th.
     field_size = len(entries)
+    if len(trainers_by_pgm) > field_size:
+        warnings.add(f"field_size_from_trainers:{len(trainers_by_pgm)}>{field_size}")
+        field_size = len(trainers_by_pgm)
     if horse_header and horse_header.columns:
         final_label = horse_header.columns[-1]
         for e in entries:
