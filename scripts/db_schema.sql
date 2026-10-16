@@ -193,6 +193,7 @@ CREATE TABLE IF NOT EXISTS entries (
     new_trainer_after   TEXT,                        -- if claimed, claiming barn
     new_owner_after     TEXT,
     claiming_price      INTEGER,                     -- this horse's claiming tag (may differ)
+    non_betting         INTEGER NOT NULL DEFAULT 0,  -- ran for purse money only: no odds, not graded
 
     UNIQUE(race_id, program_num)
 );

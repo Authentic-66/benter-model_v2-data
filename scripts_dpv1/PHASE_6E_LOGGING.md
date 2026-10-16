@@ -2023,16 +2023,82 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
     * **1 purse-only runner:** GP 2025-03-30 R5 Samaritano ran "for purse
       money only" (Doug, from the notes). He has a real finish (`6Neck`)
       but was not part of the wagering, so he has no odds.
-    * **Decisions needed before loading:**
-      1. The 34: load them with the parser fix (a fallback for 3-digit
-         odds), as a new item.
-      2. The 40 non-starters: leave them out, as scratches are, or load
-         them with a non-starter status that training and scoring skip.
-      3. Samaritano: load him with NULL odds. This affects only the
-         odds-derived features for his own row.
-    * Scratch: `missing75.py`, `classify75.py` (2026-10-16 scratchpad).
+    * **APPLIED 2026-10-16 (Doug: load the 34 and Samaritano; non-starters
+      stay out, as scratches do).**
+      * **Parser, glued odds.** Try 1-, 2- and 3-digit odds; keep splits
+        whose prefix is a well-formed Fin token; use the split only if
+        exactly one works.
+      * **Parser, rows with no odds.** The row is read by the header's
+        column count. It is kept only when the footnotes say `<NAME>
+        RAN|RACED FOR PURSE MONEY ONLY` and do not call it a non-starter.
+        It then gets `non_betting = 1` and warning `non_betting:pgm=X`.
+        Every other row with no odds is left out
+        (`no_odds_left_out:pgm=X`). Raspberry Ballet's footnote says
+        "non-starter ... and ran for purse money", so she stays out.
+      * **Schema.** `entries.non_betting INTEGER NOT NULL DEFAULT 0`, in
+        `db_schema.sql` and by ALTER on the live DB. The loader writes it.
+        `market_probability_normalized` is NaN for a NULL-odds row, and
+        the race sum skips it.
+      * **Test on the 70 races:** the 34 load with exactly the classified
+        position and odds, Samaritano loads at 6th by a neck with NULL
+        odds and `non_betting` 1, and all 40 non-starters stay out.
+      * **Misread check (Doug's question): none.**
+        * Full-corpus re-parse (4,800 days, 316,637 existing entries), now
+          also comparing odds, favorite flag, pace calls, trip comment,
+          post, start and weight. No existing row changes. The old
+          fallback only ever failed outright; it never produced a wrong,
+          smaller value.
+        * Independently, the winner win payout vs 2 × (odds + 1) check
+          (41,521 winners): 138 disagree, all of them dead heats (the pool
+          is split). None involves odds of 100+.
+        * The DB's odds top out at 276.7.
+      * **DB.** Backup `racing_full.db.pre-starters14.bak`. 35 entries were
+        inserted through `db_loader.ingest_entry`, as a fresh load would.
+        This added 2 horses never seen before. `races.field_size` went up
+        by 1 on those 35 races, since it counts loaded entries.
+        * Check: `entries` +35, no existing row changed; `horses` +2;
+          `races.field_size` on exactly the 35. Everything else identical.
+        * Re-parse after the load: 0 diffs and 0 unloaded rows.
+    * Scratch: `missing75.py`, `classify75.py`, `test75.py`, `apply_75.py`
+      (2026-10-16 scratchpad).
 
     Rebuild once after all of them, then the next retrain picks them up.
+
+15. **FOLLOW-UP (logged 2026-10-16, Doug: don't chase today): positions
+    still missing after #14.**
+    * **6 entries without a position** in races that have results:
+      * GP 2022-08-27 R6 #1 Sea Trident
+      * GP 2024-03-17 R6 #2 Launch
+      * GP 2024-08-04 R3 #7 Bayernee
+      * GP 2025-11-01 R11 #12 Layabout
+      * GP 2026-02-28 R13 #3 Layabout
+      * GP 2026-05-31 R3 #5 Giant Teddy
+
+      These are #14 E: the WPS row was attributed to the wrong horse, or a
+      text artifact in the Fin token.
+    * **13 races with results but no `finish_pos = 1`** (track, date, race,
+      entries, win payouts):
+
+      | race | entries | win payouts |
+      |---|---|---|
+      | GP 2019-04-14 R11 | 12 | 1 |
+      | GP 2019-05-12 R11 | 12 | 1 |
+      | GP 2019-09-15 R1 | 12 | 1 |
+      | EVD 2022-05-27 R5 | 11 | 1 |
+      | GP 2022-08-27 R6 | 9 | 1 |
+      | LAD 2022-09-24 R8 | 12 | 1 |
+      | GP 2022-10-22 R8 | 12 | 1 |
+      | DED 2023-11-09 R5 | 10 | 1 |
+      | GP 2024-03-17 R6 | 3 | 0 |
+      | LAD 2025-07-21 R7 | 12 | 1 |
+      | GP 2025-08-02 R8 | 7 | 1 |
+      | GP 2025-12-13 R11 | 10 | 1 |
+      | GP 2026-05-31 R3 | 3 | 1 |
+
+      Three of them hold E entries (GP 2022-08-27, 2024-03-17, 2026-05-31).
+      Most are 10-12 horse fields with one win payout: worth checking
+      whether the winner's Fin token was read as a bare position. Not
+      investigated.
     Scratch scripts: `cleanup_sim.py`, `relink.py`, `diff_cleanup*.py`,
     `scan_starters.py` (2026-10-16 scratchpad).
 

@@ -329,6 +329,10 @@ def split_into_races(full_text: str) -> list[dict[str, Any]]:
 _HORSE_NAME_PAREN = re.compile(r"^(?P<name>.+?)\((?P<jockey>[^()]+)\)$")
 _RUNRECORD_RE = re.compile(r"^(?:---|\d{1,2}[A-Za-z]{3}\d{2}\d{1,2}[A-Z]{2,4}\d{1,2})$")
 _ODDS_RE = re.compile(r"^\d+\.\d+\*?$")
+# A call/Fin token: position 1-14, then a margin (Nose/Head/Neck, whole
+# lengths, or lengths plus a quarter/half/three-quarter fraction).
+_GLUED_FIN_RE = re.compile(
+    r"^(?:1[0-4]|[1-9])(?:Nose|Head|Neck|[1-9]\d?|(?:[1-9]\d?)?[13]/[24])?$")
 _INT_RE = re.compile(r"^\d+$")
 # Equipment is either letter codes (`L`, `Lb`, `Lbf`) or "--" meaning none.
 _EQUIPMENT_RE = re.compile(r"^(?:[A-Za-z]+|--)$")
@@ -542,22 +546,38 @@ def parse_horse_row(row: str, header: CallHeader) -> dict[str, Any] | None:
             odds_token = t
             break
     if odds_idx is None:
-        # Try the glued case: find a token ending in `<digits>.<digits>[*]`
-        # whose prefix is a valid pace token.
+        # Try the glued case: a token `<fin><odds>`. Odds carry two decimals
+        # and 1-3 integer digits (long shots run past 100-1); try each and keep
+        # the splits whose prefix is a well-formed Fin token. Use the split
+        # only when exactly one works -- `81111.80` (8th by 1 at 111.80, or
+        # 8th by 11 at 11.80) stays unparsed rather than guessed.
         for i, t in enumerate(rest):
-            mg = re.match(r"^(.+?)(\d+\.\d+\*?)$", t)
-            if mg and mg.group(1):
-                pace_prefix, glued_odds = mg.group(1), mg.group(2)
-                # Only accept if the prefix looks like a pace token.
-                if re.match(r"^\d+(?:Head|Neck|Nose|\d+/\d+|\d+)?$", pace_prefix):
-                    rest[i:i + 1] = [pace_prefix, glued_odds]
-                    odds_idx = i + 1
-                    odds_token = glued_odds
-                    break
-        if odds_idx is None:
+            splits = set()
+            for odds_int in (r"\d", r"[1-9]\d", r"[1-9]\d\d"):
+                mg = re.match(rf"^(.+?)({odds_int}\.\d\d\*?)$", t)
+                if mg and _GLUED_FIN_RE.match(mg.group(1)):
+                    splits.add((mg.group(1), mg.group(2)))
+            if len(splits) == 1:
+                (split,) = splits
+                rest[i:i + 1] = list(split)
+                odds_idx = i + 1
+                odds_token = split[1]
+                break
+    odds_missing = odds_idx is None
+    if odds_missing:
+        # No odds at all: a non-starter (bets refunded) or a horse running for
+        # purse money only. Read the row by the header's column count; the
+        # race-level pass decides from the footnotes whether to keep it.
+        n_calls = len(header.columns) if header.columns else 0
+        odds_idx = 1 + n_calls  # PP + Start (if any) + call columns
+        if n_calls == 0 or len(rest) < odds_idx or not all(
+                t == "---" or _GLUED_FIN_RE.match(t) for t in rest[1:odds_idx]):
             return None
-    is_fav = odds_token.endswith("*")
-    odds_value = to_float(odds_token)
+        is_fav = False
+        odds_value = None
+    else:
+        is_fav = odds_token.endswith("*")
+        odds_value = to_float(odds_token)
 
     # Expected layout in `rest`: PP, [Start], *call_columns, ODDS, *comment.
     # "Start" appears in the header for most races but is omitted in some
@@ -575,7 +595,7 @@ def parse_horse_row(row: str, header: CallHeader) -> dict[str, Any] | None:
     else:
         start = None
         call_values = rest[1:odds_idx]
-    comment_tokens = rest[odds_idx + 1 :]
+    comment_tokens = rest[odds_idx:] if odds_missing else rest[odds_idx + 1 :]
     trip_comment = " ".join(comment_tokens) if comment_tokens else None
 
     # Map call columns to header labels. Header may start with "Start" or
@@ -607,6 +627,8 @@ def parse_horse_row(row: str, header: CallHeader) -> dict[str, Any] | None:
         "horse_name": horse_clean,
         "horse_country": country,
         "disqualified": int(disqualified),
+        "odds_missing": int(odds_missing),
+        "non_betting": 0,  # set by parse_race_block from the footnotes
         "jockey": jockey,
         "last_raced_raw": last_raced,
         "weight_lbs": weight,
@@ -1162,6 +1184,22 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
     for e in entries:
         if e["disqualified"]:
             warnings.add(f"disqualified:pgm={e['program_num']}")
+    # A row with no odds is kept only for a horse the footnotes say ran for
+    # purse money only (a non-betting interest). A non-starter has no odds
+    # either -- bets refunded -- and is left out, as a scratch is.
+    notes = re.sub(r"[^A-Z0-9]", "", (_parse_footnotes(body) or "").upper())
+    kept = []
+    for e in entries:
+        if e["odds_missing"]:
+            nm = re.sub(r"[^A-Z0-9]", "", e["horse_name"].upper())
+            purse_only = any(f"{nm}{v}FORPURSEMONEYONLY" in notes for v in ("RAN", "RACED"))
+            if not purse_only or re.search(rf"{nm}.{{0,40}}NONSTARTER", notes):
+                warnings.add(f"no_odds_left_out:pgm={e['program_num']}")
+                continue
+            e["non_betting"] = 1
+            warnings.add(f"non_betting:pgm={e['program_num']}")
+        kept.append(e)
+    entries = kept
 
     # Second-pass: finish position + beaten lengths, now that we know field_size.
     # The Trainers: line lists every starter. When a horse row could not be
