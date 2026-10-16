@@ -1,2 +1,5 @@
-horse,added,track,race_date,race_num,reason,status
-Discerner,2026-10-15,DED,2026-10-14,7,"Won a maiden claimer, then won an allowance at DED 10/14 R7 (5f dirt, $44k, model ranked him 4th of 10 starters at 24.3% P(ITM), 59% coverage; went off 3.6-1)",active
+type,name,last,first,middle,added,track,race_date,race_num,reason,status
+horse,Discerner,,,,2026-10-15,DED,2026-10-14,7,"Won a maiden claimer, then won an allowance at DED 10/14 R7 (5f dirt, $44k, model ranked him 4th of 10 starters at 24.3% P(ITM), 59% coverage; went off 3.6-1)",active
+trainer,Ronnie P. Ward,Ward,Ronnie,P,2026-10-15,DED,,,Added by Doug for the DED meet,active
+jockey,Devin H. Magnon,Magnon,Devin,H,2026-10-15,DED,,,Added by Doug for the DED meet,active
+trainer,Rylee Magnon,Magnon,Rylee,,2026-10-15,DED,2026-10-14,2,"Trains Steady On, DED 10/14 R2 winner (the reranker demoted him from base #1 to #4)",active

@@ -21,7 +21,8 @@ BEFORE THE RACES
    the load stops with "PP text reader error", BENTER_PP_READER is set in
    your environment; clear it and load again.
 
-   Then check the card for watch-list horses (scripts_dpv1/tracking/watch_list.csv):
+   Then check the card for watch-list horses, trainers and jockeys
+   (scripts_dpv1/tracking/watch_list.csv). It lists every race with one:
 
     python scripts_dpv1/tracking/check_watch_list.py --track DED --date 2026-10-14
 
@@ -70,6 +71,12 @@ AFTER THE RACES
 6. Score the logged predictions against the results
 
     python scripts_dpv1/score_predictions.py --track DED --date 2026-10-14
+
+   Then update the running DED tally for watch-list trainers and jockeys
+   (starts, wins, ITM, $2 win ROI, and ITM vs the model's P(ITM)); it rewrites
+   scripts_dpv1/tracking/watch_people_tally.csv:
+
+    python scripts_dpv1/tracking/watch_people_tally.py
 
 7. Rolling record for the live model
 
