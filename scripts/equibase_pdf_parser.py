@@ -803,6 +803,34 @@ def _parse_scratched(text: str) -> list[dict[str, str | None]]:
     return out
 
 
+def _parse_dead_heats(text: str, pgms: list[str]) -> dict[str, int]:
+    """`Dead Heats:` block → {program_num: shared position}.
+
+    The block reads `DeadHeats: 1stplace-#5Slewssongofthenile` with one
+    `Nthplace-#<pgm><Name>` line per horse. Program number and name run
+    together, so the pgm is the longest known program number that prefixes
+    the text and is not followed by a lowercase letter (`#1AAbby` is 1A,
+    `#1Abby` is 1).
+    """
+    m = re.search(r"DeadHeats:(.*)", text, re.DOTALL)
+    if not m:
+        return {}
+    out: dict[str, int] = {}
+    known = sorted(set(pgms), key=len, reverse=True)
+    for i, ln in enumerate(m.group(1).splitlines()):
+        hit = re.match(r"\s*(\d+)(?:st|nd|rd|th)place-#(\S+)", ln)
+        if not hit:
+            if i == 0:
+                continue
+            break
+        rest = hit.group(2)
+        for p in known:
+            if rest.startswith(p) and not rest[len(p):len(p) + 1].islower():
+                out[p] = int(hit.group(1))
+                break
+    return out
+
+
 def _parse_total_wps_pool(text: str) -> int | None:
     m = re.search(r"TotalWPSPool:\s*\$([\d,]+)", text)
     return to_int(m.group(1)) if m else None
@@ -1167,6 +1195,7 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
     # either "position 12" or "position 1 by 2 lengths"; the WPS payouts tell
     # us which. Whoever earned Win is finish_pos=1; Place+Show alone is 2nd;
     # Show alone is 3rd.
+    dead_heats = _parse_dead_heats(body, [e["program_num"] for e in entries])
     forced_positions: dict[str, int] = {}
     for p in wps_payouts:
         amounts = [
@@ -1215,6 +1244,8 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
         # guess.
         if forced_winner_pgm is not None:
             for e in entries:
+                if dead_heats.get(e["program_num"]) == 1:
+                    continue
                 if e.get("finish_pos") == 1 and e["program_num"] != forced_winner_pgm:
                     e["finish_pos"] = None
                     e["winning_margin_text"] = None
@@ -1222,6 +1253,27 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
                     warnings.add(
                         f"contradictory_winner_cleared:pgm={e['program_num']}"
                     )
+
+    # Dead heats: the chart's `Dead Heats:` block names every horse sharing a
+    # position. Both co-winners of a dead heat for win carry a win payout, so
+    # the WPS rule above cannot tell them apart; the block is authoritative.
+    if horse_header and horse_header.columns and dead_heats:
+        final_label = horse_header.columns[-1]
+        for e in entries:
+            pos = dead_heats.get(e["program_num"])
+            if pos is None:
+                continue
+            warnings.add(f"dead_heat:pos={pos}:pgm={e['program_num']}")
+            if e.get("finish_pos") == pos:
+                continue
+            fin_token = e["pace_calls"].get(final_label) if e.get("pace_calls") else None
+            if not fin_token or not fin_token.startswith(str(pos)):
+                warnings.add(f"dead_heat_token_mismatch:pgm={e['program_num']}")
+                continue
+            margin = fin_token[len(str(pos)):] or None
+            e["finish_pos"] = pos
+            e["winning_margin_text"] = margin
+            e["beaten_lengths"] = 0.0 if pos == 1 else margin_to_lengths(margin)
 
     # Stitch WPS payouts into corresponding entries. The payouts table reserves
     # 1-3 money columns (Win/Place/Show) depending on field size — small fields
