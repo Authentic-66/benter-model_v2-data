@@ -30,10 +30,13 @@ exactly; see `PHASE_6E_LOGGING.md`, follow-up #8.
 ## Per race (re-ranked among horses that ran)
 
 Bets checked:
-* **Tri-box key:** the model's top 3 boxed in 1st–3rd, with ALL underneath for 4th.
-* **Super box:** a straight 4-horse box of the model's top 4.
+* **Top-3 wheel:** a superfecta wheel 1,2,3/1,2,3/1,2,3/ALL, using the model's
+  top 3. It hits when those three fill 1st–3rd in any order, with anything
+  4th. (Earlier versions called this a "tri-box key"; it is a wheel, not a
+  box.)
+* **Super box:** a 4-horse superfecta box of the model's top 4 (24 combos).
 
-| R | | model top 4 | actual 1-2-3-4 | model #1 fin | top-3 overlap | tri-box key | super box |
+| R | | model top 4 | actual 1-2-3-4 | model #1 fin | top-3 overlap | top-3 wheel | super box |
 |---|---|---|---|---|---|---|---|
 | 1 | post | 7-5-3-1 | 7-4-5-6 | **1st** | 2/3 | miss | miss |
 | 2 | post | 6-9-8-2 | 2-4-8-9 | 8th | 1/3 | miss | miss |
@@ -45,8 +48,8 @@ Bets checked:
 | 8 | pre | 3-5-4-9 | 6-4-5-2 | 5th | 2/3 | miss | miss |
 
 **Model:** the #1 pick won 1 race and hit the board in 3/8 (R1–R4 2/4,
-R5–R8 1/4). Top-3 overlap was 13/24. The tri-box key hit 0/8 and the super
-box 0/8, so a 4th-place subset never came into play. A base-only ranking
+R5–R8 1/4). Top-3 overlap was 13/24. The top-3 wheel hit 0/8 and the super
+box 0/8. A base-only ranking
 (no reranker) would have had 4/8 #1 ITM; the difference is R2, below.
 
 ## Reranker moves over 5 points
@@ -102,7 +105,7 @@ up to 4th. R5 #2 scratched, so his alt #4 moves up.
 | 7 | 4-10-2-3 | 3rd | 1/3 | 7th | 1/3 |
 | 8 | 6-4-3-5 | **1st** | 2/3 | 5th | 2/3 |
 
-| | #1 wins | #1 ITM | top-3 overlap | tri-box | super box |
+| | #1 wins | #1 ITM | top-3 overlap | top-3 wheel | super box |
 |---|---|---|---|---|---|
 | Model | 1 | 3/8 | 13/24 | 0 | 0 |
 | Don | 1 | 4/8 | 11/24 | 0 | 0 |

@@ -555,6 +555,19 @@ and the coefficient on that feature is positive.
 * **Still affected by #12:** the pre-race equipment-flag skew, which shows as
   "blinkers change" in most reasons.
 
+### Bet terminology (Doug, 2026-10-15). Use it in every doc and report.
+
+* **Box:** N horses in all orders. For example, a 4-horse superfecta box is 24
+  combos.
+* **Wheel:** ALL in one or more positions. For example, 1,2,3/1,2,3/1,2,3/ALL.
+* **Part wheel:** specific horses in each position, with no ALL. For example,
+  Don's Pick 4 tickets.
+
+Corrected 2026-10-15: the bet tracked as "tri-box key" (the model's top 3 in
+1st–3rd, ALL 4th) is a **superfecta wheel**, now called the "top-3 wheel".
+It was mislabelled in `tracking/DED_2026-10-14_review.md` and in the
+hindsight table below. "Super box" was correct.
+
 ### HINDSIGHT DIAGNOSTIC: shadow re-score of the logged cards (2026-10-15)
 
 > **This is not a re-log, and the logged runs remain the record.** It asks how
@@ -572,8 +585,11 @@ and the coefficient on that feature is positive.
 * Logged side: each card's record run, meaning the latest run per race of
   the model that was live then (the `score_predictions` rule).
 * Scoring: both rankings are re-ranked among starters, with DNF last.
-  * tri-box: the top-3 set equals the actual 1-2-3.
-  * super box: the top-4 set equals the actual 1-2-3-4.
+  * top-3 wheel: a superfecta wheel 1,2,3/1,2,3/1,2,3/ALL on the model's top
+    3. It hits when the top-3 set equals the actual 1-2-3. This column was
+    first published as "tri-box"; it is a wheel.
+  * super box: a 4-horse superfecta box of the top 4 (24 combos). It hits
+    when the top-4 set equals the actual 1-2-3-4.
 * Script and logs: session scratch (`shadow/`).
 
 **Read the totals with three caveats.**
@@ -586,7 +602,7 @@ and the coefficient on that feature is positive.
 3. **Some logs were written after the race date:** CT 7/25, ELP 8/21 and
    CT 8/28. The CT 8/29 record run under the rule is an 8/31 re-run.
 
-| card | logged record run | races | #1 ITM | #1 win | top-3 hits | tri-box | super box | top-pick changes |
+| card | logged record run | races | #1 ITM | #1 win | top-3 hits | top-3 wheel | super box | top-pick changes |
 |---|---|---|---|---|---|---|---|---|
 | CT 7/25 | 08-29 13:19 (after race day) | 9 | 6 → 6 | 2 → 2 | 17 → 17 | 1 → 1 | 4 → 4 | 0/9 |
 | ELP 8/21 | 08-29 13:19 (after race day) | 9 | 4 → 4 | 3 → 3 | 14 → 15 | 1 → 1 | 0 → 1 | 3/9 |
