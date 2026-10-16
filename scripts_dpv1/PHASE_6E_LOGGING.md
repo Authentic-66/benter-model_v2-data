@@ -1710,6 +1710,162 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
     * Scratch scripts and DBs are in the 2026-10-16 session scratchpad
       (`dh_classify.py`, `scan_charts.py`, `join_scan.py`, `build_dedup.py`
       and `diff_features.py`).
+    * **APPLIED 2026-10-16 (Doug's decision: dead heats for win only, DB
+      updated in place, not reloaded).**
+      * **Parser (`3db3aeb`).** The `Dead Heats:` block sets the shared
+        position, and dead-heat horses are never cleared. Each one logs
+        `dead_heat:pos=N:pgm=X`.
+        * Regression: 679 chart days were re-parsed (all 529 with a dead
+          heat at any position, plus 150 random days), 48,208 entries.
+        * Exactly the 73 co-winners differ from the DB.
+      * **Feature builder (`115f22f`).** `_track_speed_bias` keeps one
+        winner row per race (the first co-winner by `entry_id`), and
+        `write_table` refuses duplicate `entry_id`s.
+        * On scratch copies, a DB without dead heats builds bit-identical
+          to the old code.
+        * With them restored, the build is bit-identical to the simulated
+          dedupe.
+      * **DB.**
+        * Backup: `scripts/racing_full.db.pre-dh13.bak`.
+        * The 73 entries were set to the patched parser's exact values:
+          `finish_pos` 1, `finish_status` 'finished', `beaten_lengths` 0.0
+          and the token margin.
+        * Checked row by row against the backup: in `entries` only those
+          73 ids changed, and only in those four columns. Every other
+          non-derived table is identical: `races`, `race_days`,
+          `exotic_payouts`, `horses`, people, `parsed_files`, `pp_*`.
+        * Speed figures and features were rebuilt:
+          `computed_speed_figures_dpv1` and `entry_features_dpv1` have
+          316,771 rows each, one per entry. This includes the DED 10/15
+          result rows loaded that morning.
+        * `dpv1.pkl`, `dpv1_pp_reranker.pkl` and
+          `dpv1_classctx_reranker.pkl` have the same sha256 as before.
+        * DED 10/15 R7 #9 Misdeal is now 1st, with speed figure 89.9, the
+          same as his co-winner.
+      * **Five of the 73 were dead heats where a co-winner was then
+        disqualified:**
+        * GP 2019-02-18 R11 #4 (DQ 1→2), plus four others: DQ 1→2 twice,
+          1→6 and 1→7.
+        * They were set to 1st, their crossing position. That is
+          consistent with the crossing-order proposal in #14 below; their
+          official placings would go in the proposed official column.
+      * **Not re-scored:** the scoring log still has 75 rows for DED 10/15.
+        Misdeal is absent, and the review already counted him as a
+        dead-heat winner.
+
+14. **PROPOSAL (2026-10-16, measured on scratch copies, nothing applied):
+    corpus cleanup before the next retrain.** It groups the #13 dead heats
+    (already applied) with disqualifications and dropped chart rows. Doug's
+    direction:
+    * train on crossing order;
+    * keep official placings separately for payout and ticket scoring;
+    * give dropped-row horses their real position.
+
+    Every number below was measured against the live DB after #13. Each
+    change was applied to its own scratch copy, and speed figures and
+    features were rebuilt.
+
+    **A. DQ'd from 1st → crossing position 1st.**
+    * **What changes in the DB:**
+      * 245 entries go NULL → 1. These are the on-track DQs whose DQ'd
+        winner the parser cleared.
+      * Nothing else is needed for crossing order. DQs from 2nd or lower
+        (330), post-race positive-test DQs (177) and the promoted horses
+        are already stored at their crossing position, because the WPS
+        pass only sets a position when the Fin token agrees.
+    * **Labels:** ITM goes 0 → 1 for all 245, 191 of them in 2022+. Under
+      official placings, 193 of the 245 were placed 2nd or 3rd anyway, so
+      their current label is wrong under either rule.
+    * **Features:** small, but they reach far.
+      * `track_{dirt,turf}_bias_90d` move on about 173k entries. Those
+        races gain a winner observation. The median move is 0.02 against a
+        feature SD of 2.2; the largest is 0.77.
+      * Jockey and trainer win rates move on 171k entries, 26k of them by
+        more than 0.01.
+      * `days_since_*_last_win` moves on 2,892 entries.
+      * Rail and outside bias flags: 5,377 + 3,234 flips.
+
+    **B. DQ'd horses are filed under a phantom horse: found during this
+    measurement.**
+    * The chart prints a DQ'd horse as `DQ-<Name>`, and the loader creates
+      a horse record from that name. That gives 734 phantom `DQ-…`
+      horses, and **all 756 DQ entries** point at them.
+    * 716 of them match exactly one real horse by normalized name. 18 have
+      no other record and would just be renamed. None is ambiguous.
+    * **Effect today:**
+      * The DQ race is missing from the real horse's career.
+      * In the DQ race itself, the horse is built as a debut runner: 729
+        of the 756 rows have `career_starts` 0.
+    * **Re-link effect:**
+      * 660 horses have 6,799 later entries (6,180 in 2022+). **All 6,799
+        change**: career starts, win and ITM %, surface, condition and
+        track records, `starts_at_track`, and the field-experience terms.
+      * In the DQ rows themselves, `career_starts` 0 drops from 729 to 98.
+        The median goes from 0 to 5.
+      * Field-experience features (`field_avg_career_starts` and the
+        rest) change on 43k other entries.
+      * People win rates change on 33k entries (4k by more than 0.01).
+      * No labels change.
+    * Fix: the loader strips `DQ-` and records a DQ flag.
+
+    **A + B together:** 266,812 entries change, 207,886 of them in 2022+.
+    Almost all of it is the small track-bias and people-rate drift. The
+    large per-row changes are the 245 labels, the 756 DQ rows and the
+    6,799 later races.
+
+    **C. Official placings column, for payout and ticket scoring only.**
+    * Proposed: a new `official_finish_pos` column, populated from the
+      `Disqualification(s):` lines (and dead heats). Training keeps
+      `finish_pos`.
+    * **On-track DQs:** 579 races, where WPS paid on the official
+      placings. In those races 1,917 entries' official placing differs
+      from crossing, and 469 differ in ITM status.
+    * **Post-race positive-test DQs:** 169 races. These paid *as run*, so
+      for betting the official column should equal crossing. **Decision
+      needed:** use the betting-time placing, or the final administrative
+      one.
+    * **Logged cards affected:** two races. CT 8/29 R3's model #4, #7,
+      crossed 4th and was placed 3rd, so it becomes an ITM hit. CT 7/25
+      R7's top 4 doesn't change. `score_predictions.py` would read the
+      new column; exotic payouts are already official.
+
+    **D. Dropped chart rows (last-place horses).**
+    * 34 entries: a starter's row was lost in the PDF text, so
+      `field_size = len(entries)` is one short. The last horse's bare
+      `11`/`12`/`13` Fin token then reads as "1st by X", and the WPS rule
+      clears it.
+    * Real positions: 11th (17), 12th (15), 13th (1) and 14th (1).
+    * **Labels:** none change.
+    * **Features:** 22 of these horses ran again, and 64 of their later
+      entries change: `last_3_avg_finish`, `avg_class_recent`,
+      `class_drop_signed`, `last_race_finish_pos` and `last_race_won`
+      (NULL → 0).
+    * **Parser fix:** take the field size from the chart's `Trainers:`
+      line (every starter is listed) when it exceeds the parsed rows.
+    * **Related, larger, not covered by this fix:** the dropped rows
+      themselves. 75 starters in 70 races appear on the Trainers line but
+      have no entry in the DB. Recovering them means fixing the
+      horse-table row parse. **Decision needed.**
+
+    **E. Residual, 8 cleared entries.**
+    * 5 races have no stored winner because the WPS row was attributed to
+      the wrong horse. Examples: a 3-horse race with no show column; a race
+      with a DQ from 2nd to 9th.
+    * 3 positions come from a text artifact: a bare `12` or `11/2` that is
+      really 2nd, 3rd or 4th. The missing slot shows it.
+    * A crossing-order rule that keeps the Fin-token position (with the
+      true field size) and stops clearing restores the 5 winners. The 3
+      artifacts need the position-slot check or a manual fix.
+
+    **Suggested order, one commit each:**
+    1. B, the re-link: the biggest feature effect, and no label risk.
+    2. A, the crossing-order parser rule, plus the 245 in-place updates.
+    3. D, field size from the Trainers line, plus the 34 updates.
+    4. C, the official column plus the scoring change.
+
+    Rebuild once after all of them, then the next retrain picks them up.
+    Scratch scripts: `cleanup_sim.py`, `relink.py`, `diff_cleanup*.py`,
+    `scan_starters.py` (2026-10-16 scratchpad).
 
 Related, already documented elsewhere and still open:
 
