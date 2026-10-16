@@ -555,6 +555,62 @@ and the coefficient on that feature is positive.
 * **Still affected by #12:** the pre-race equipment-flag skew, which shows as
   "blinkers change" in most reasons.
 
+### HINDSIGHT DIAGNOSTIC: shadow re-score of the logged cards (2026-10-15)
+
+> **This is not a re-log, and the logged runs remain the record.** It asks how
+> the logged picks would have differed on the fully fixed code. Nothing was
+> written to `logs/predictions.jsonl`.
+
+**Method**
+* Code: commit `634be74`, the reader guard plus every fix through #12.
+* Model: the live model `dpv1.3.0-5track`, seed 6001, 10,000 iterations.
+* Data: a scratch copy of the live DB.
+  * Every PP card was re-staged with the current parser.
+  * CT 10/1 and GP 10/2, which have no results, were re-loaded with the
+    current loader.
+  * Speed figures and features were rebuilt.
+* Logged side: each card's record run, meaning the latest run per race of
+  the model that was live then (the `score_predictions` rule).
+* Scoring: both rankings are re-ranked among starters, with DNF last.
+  * tri-box: the top-3 set equals the actual 1-2-3.
+  * super box: the top-4 set equals the actual 1-2-3-4.
+* Script and logs: session scratch (`shadow/`).
+
+**Read the totals with three caveats.**
+1. **Jul–Sep cards are in-sample for the fixed run.** `dpv1.3.0-5track` was
+   trained 2026-09-19 on a corpus that already held those charts, while the
+   logged runs used `dpv1.2.0-4track` before the races. Their "fixed" numbers
+   are flattered, and they mix a model change with the code fixes.
+2. **Cards with results score on chart rows.** Today's weight and equipment
+   come from the chart, not the PP, which is also a hindsight advantage.
+3. **Some logs were written after the race date:** CT 7/25, ELP 8/21 and
+   CT 8/28. The CT 8/29 record run under the rule is an 8/31 re-run.
+
+| card | logged record run | races | #1 ITM | #1 win | top-3 hits | tri-box | super box | top-pick changes |
+|---|---|---|---|---|---|---|---|---|
+| CT 7/25 | 08-29 13:19 (after race day) | 9 | 6 → 6 | 2 → 2 | 17 → 17 | 1 → 1 | 4 → 4 | 0/9 |
+| ELP 8/21 | 08-29 13:19 (after race day) | 9 | 4 → 4 | 3 → 3 | 14 → 15 | 1 → 1 | 0 → 1 | 3/9 |
+| ELP 8/22 | 08-22 09:44 | 9 | 5 → 6 | 1 → 2 | 12 → 13 | 0 → 1 | 0 → 0 | 5/9 |
+| ELP 8/23 | 08-22 09:24 | 9 | 9 → 8 | 4 → 3 | 14 → 16 | 2 → 2 | 0 → 2 | 3/9 |
+| CT 8/28 | 08-29 08:34 (after race day) | 13 | 8 → 9 | 3 → 4 | 24 → 20 | 2 → 1 | 1 → 2 | 3/13 |
+| CT 8/29 | 08-31 08:17 (re-run after race day) | 8 | 3 → 5 | 1 → 2 | 14 → 18 | 0 → 2 | 2 → 2 | 2/8 |
+| GP 9/4 | 09-03 20:17 | 9 | 7 → 7 | 2 → 3 | 16 → 16 | 1 → 1 | 2 → 4 | 2/9 |
+| DED 10/10 | 10-10 12:27 | 9 | 5 → 5 | 4 → 4 | 12 → 13 | 0 → 0 | 1 → 1 | 4/9 |
+| DED 10/14 | 10-14 18:22 | 8 | 3 → 2 | 1 → 2 | 13 → 14 | 0 → 1 | 0 → 0 | 4/8 |
+| CT 10/1 | 10-01 18:31 | no results loaded | | | | | | 2/8 |
+| GP 10/2 | 10-02 09:15 | no results loaded | | | | | | 3/9 |
+| DED 10/15 | 10-15 16:52 | no results yet | | | | | | 4/8 |
+| **Total, all scored** | | **83** | **50 → 52** | **21 → 25** | **136 → 142** of 249 | **7 → 10** | **10 → 16** | |
+| **Out-of-sample only (DED 10/10 + 10/14)** | | **17** | **8 → 7** | **5 → 6** | **25 → 27** of 51 | **0 → 1** | **1 → 1** | |
+
+**Reading.**
+* The only clean comparison is the two October DED cards: 17 races, where
+  the fixed code is about level with the logged picks (one fewer #1 ITM, one
+  more win, two more top-3 hits).
+* The all-card gain is mostly from in-sample cards and should not be taken
+  as an estimate of the fixes' value.
+* The top pick differs in 35 of the 108 races compared, including races with no results yet.
+
 Every earlier card is also pre-fix: CT 8/28, CT 8/29, ELP 8/22 and ELP 8/23
 were staged with pdftotext, and GP 9/4, CT 10/1 and GP 10/2 have the
 pdfplumber block bleed. Only the two DED cards were asked to be marked; the
