@@ -1250,10 +1250,11 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
         # that contradicts the WPS winner. Rare chart-text artifacts (e.g.
         # pdfplumber merging adjacent table cells) can produce Fin tokens
         # starting with `1` for non-winners. Leave finish_pos NULL rather than
-        # guess.
+        # guess. A horse disqualified from 1st is not an artifact: finish_pos is
+        # crossing order, so it keeps 1st; the tote paid the promoted horse.
         if forced_winner_pgm is not None:
             for e in entries:
-                if dead_heats.get(e["program_num"]) == 1:
+                if dead_heats.get(e["program_num"]) == 1 or e["disqualified"]:
                     continue
                 if e.get("finish_pos") == 1 and e["program_num"] != forced_winner_pgm:
                     e["finish_pos"] = None
