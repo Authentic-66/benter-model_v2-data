@@ -291,9 +291,14 @@ def _track_speed_bias(raw: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     bullring dirt into GP's main track.
     """
     window = cfg["defaults"]["bias_window_days"]
-    win_rows = raw.loc[raw["finish_pos"] == 1,
-                       ["race_id", "track_id", "surface", "race_date_dt",
-                        "speed_figure_own"]].copy()
+    # One observation per race: in a dead heat for win both co-winners have
+    # finish_pos 1 (same final time); keep the first by entry_id.
+    win_rows = (raw.loc[raw["finish_pos"] == 1,
+                        ["entry_id", "race_id", "track_id", "surface",
+                         "race_date_dt", "speed_figure_own"]]
+                .sort_values("entry_id")
+                .drop_duplicates("race_id")
+                .drop(columns="entry_id"))
     win_rows["race_bias"] = win_rows["speed_figure_own"] - 80.0
     win_rows["one"] = win_rows["race_bias"].notna().astype(float)
     win_rows["race_bias"] = win_rows["race_bias"].fillna(0.0)

@@ -404,6 +404,14 @@ def build_features(conn: sqlite3.Connection, cfg: dict) -> pd.DataFrame:
 
 def write_table(conn: sqlite3.Connection, df: pd.DataFrame,
                 table: str = FEATURES_TABLE) -> int:
+    # One row per entry. A merge on a key that is not unique per race (e.g.
+    # "the winner's row" when two horses dead-heat for win) multiplies every
+    # entry in that race; refuse to replace the table with such a frame.
+    dup = df["entry_id"].duplicated(keep=False)
+    if dup.any():
+        raise ValueError(
+            f"{table}: {int(dup.sum())} rows share {df.loc[dup, 'entry_id'].nunique()}"
+            f" entry_ids; table not written")
     log.info("Writing %s (drop-and-replace)…", table)
     df.to_sql(table, conn, if_exists="replace", index=False)
     for col in ("race_id", "horse_id", "track_id"):
