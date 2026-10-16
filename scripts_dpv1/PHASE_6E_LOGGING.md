@@ -1833,6 +1833,13 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       payouts, so the column can be checked race by race: every horse with
       a win payout must be official 1st, and so on. Since #14 B the parser
       also flags every `DQ-` horse (`disqualified:pgm=X`).
+    * **Scheduled (Doug, 2026-10-16): build after the DED 10/16 card, not
+      before.**
+      * Payout and ticket grading leave out non-betting interests
+        (`entries.non_betting = 1`, e.g. GP 2025-03-30 R5 Samaritano). They
+        keep their crossing position for training.
+      * Once the column is in, remove the interim guard below from
+        `score_predictions.fetch_results` and `model_health.race_metadata`.
     * **Interim, already in (`2d96ea3`):** until the column exists,
       `score_predictions` treats a horse that crossed 1st without the win
       payout as having no recorded result, and `model_health` treats the
