@@ -1638,7 +1638,7 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       |---|---|
       | dead heat for win: the second co-winner is cleared | 72 |
       | horse disqualified from 1st (on-track DQ) | 245 |
-      | last-place horse in a 10+ field with one entry row missing, so `field_size` is one short and a bare `11`/`12`/`13` Fin token reads as "1st by X" | 41 |
+      | last-place horse in a 10+ field with one entry row missing, so `field_size` is one short and a bare `11`/`12`/`13` Fin token reads as "1st by X" | 41 (first-pass count; 34 confirmed, see #14 D) |
       | small field with no win payout in the WPS table | 1 |
 
     * **Dead heats, by position.** Only dead heats for win are affected.
@@ -1753,8 +1753,9 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
         Misdeal is absent, and the review already counted him as a
         dead-heat winner.
 
-14. **PROPOSAL (2026-10-16, measured on scratch copies, nothing applied):
-    corpus cleanup before the next retrain.** It groups the #13 dead heats
+14. **Corpus cleanup before the next retrain. B, A and D APPLIED
+    2026-10-16 (see "APPLIED" below); C is a proposal; the 75 missing
+    starters were investigated.** It groups the #13 dead heats
     (already applied) with disqualifications and dropped chart rows. Doug's
     direction:
     * train on crossing order;
@@ -1821,9 +1822,23 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       placings. In those races 1,917 entries' official placing differs
       from crossing, and 469 differ in ITM status.
     * **Post-race positive-test DQs:** 169 races. These paid *as run*, so
-      for betting the official column should equal crossing. **Decision
-      needed:** use the betting-time placing, or the final administrative
-      one.
+      for betting the official column should equal crossing. **Decided
+      (Doug, 2026-10-16): grade bets on the order the tote paid on.** The
+      column is the betting-time placing: on-track DQs take the stewards'
+      placing, post-race DQs stay as run. The later administrative ruling
+      is not used.
+    * **Source of the column, still a proposal:** the WPS table plus the
+      `Disqualification(s):` / footnote placings, and dead heats from
+      `Dead Heats:`. The tote's own record of who it paid is the WPS
+      payouts, so the column can be checked race by race: every horse with
+      a win payout must be official 1st, and so on. Since #14 B the parser
+      also flags every `DQ-` horse (`disqualified:pgm=X`).
+    * **Interim, already in (`2d96ea3`):** until the column exists,
+      `score_predictions` treats a horse that crossed 1st without the win
+      payout as having no recorded result, and `model_health` treats the
+      race as having no recorded winner. That is what both did before #14 A.
+      The promoted horse still scores at its crossing position (usually
+      2nd), as it always has; C fixes that.
     * **Logged cards affected:** two races. CT 8/29 R3's model #4, #7,
       crossed 4th and was placed 3rd, so it becomes an ITM hit. CT 7/25
       R7's top 4 doesn't change. `score_predictions.py` would read the
@@ -1835,6 +1850,13 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       `11`/`12`/`13` Fin token then reads as "1st by X", and the WPS rule
       clears it.
     * Real positions: 11th (17), 12th (15), 13th (1) and 14th (1).
+    * **41 vs 34.** The #13 cause table's 41 was a first-pass label for
+      everything cleared that was neither a dead heat nor a DQ from 1st
+      (42 entries with the small-field case). Checked against the
+      Trainers: line, 34 sit in races with a missing starter. The other 7,
+      plus the small-field case, are the 8 in E below; none of those races
+      is missing a starter. After #13 the cleared entries were 287 =
+      245 (A) + 34 (D) + 8 (E).
     * **Labels:** none change.
     * **Features:** 22 of these horses ran again, and 64 of their later
       entries change: `last_3_avg_finish`, `avg_class_recent`,
@@ -1844,8 +1866,7 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       line (every starter is listed) when it exceeds the parsed rows.
     * **Related, larger, not covered by this fix:** the dropped rows
       themselves. 75 starters in 70 races appear on the Trainers line but
-      have no entry in the DB. Recovering them means fixing the
-      horse-table row parse. **Decision needed.**
+      have no entry in the DB. See "75 missing starters" below.
 
     **E. Residual, 8 cleared entries.**
     * 5 races have no stored winner because the WPS row was attributed to
@@ -1862,6 +1883,135 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
     2. A, the crossing-order parser rule, plus the 245 in-place updates.
     3. D, field size from the Trainers line, plus the 34 updates.
     4. C, the official column plus the scoring change.
+
+    **APPLIED 2026-10-16: B, A, D (Doug's order). C is still a proposal.**
+    * Backup: `scripts/racing_full.db.pre-cleanup14.bak` (after #13, before
+      B). Per-step snapshots: `.pre-cleanup14A.bak`, `.pre-cleanup14D.bak`.
+    * For each step the parser was patched first. Chart days were
+      re-parsed: every DQ, dropped-row and residual day plus 150 random
+      ones, 913 days and 62,600 entries. The DB was then set to the
+      parser's exact values and compared row by row with the snapshot.
+    * **B, `a29d414`.** The parser strips `DQ-`, sets
+      `entry["disqualified"]` and logs `disqualified:pgm=X`.
+      * **761 entries**, not 756: this morning's Disqualification-line scan
+        missed GP 2026-04-16 R1, GP 2026-04-30 R8 and LAD 2026-06-29 R1,
+        plus the 2 E residuals below.
+      * 743 entries were re-linked to their real horse and those 716
+        phantoms deleted. 18 phantoms with no other record were renamed.
+      * 50 entries' `claimed_in_race` / `new_trainer_after` /
+        `new_owner_after` were corrected. A claimed DQ'd horse never
+        matched the claim list while its name carried the prefix.
+      * One renamed phantom, MNR 2023-10-17 R4 Gizmo's Mission (post-race
+        positive-test DQ), carried the promoted horse's pedigree (Circle
+        Indy: same sire, dam and foaling date). It was cleared to NULL.
+      * Check: `entries` changed only `horse_id` (743) and the claim
+        columns (50). `horses` changed only the 734 phantoms. Every other
+        non-derived table is identical.
+    * **A, `4743d71`.** A `DQ-` horse that crossed 1st is no longer cleared
+      by the WPS pass.
+      * **247 entries** NULL → 1 (finish_status 'finished', beaten_lengths
+        0.0, token margin). That is the 245 plus EVD 2026-06-25 R6 Julia's
+        Warrior and MNR 2026-06-29 R3 Flight Control: both footnotes say
+        "disqualified and placed second". They were 2 of the 8 in E.
+      * Check: only those 247 rows, and only 4 columns.
+    * **Scoring guard, `2d96ea3`.** See C. Re-scoring every logged card
+      (1,232 rows) and `model_health` output are identical before and after
+      A. Tested on EVD 6/25 R6 (DQ'd horse → no recorded result) and DED
+      10/15 R7 (both dead-heat winners stay 1st).
+    * **D, `15493dc`.** Positions are read against the Trainers: count when
+      rows are missing (warning `field_size_from_trainers:N>M`).
+      `races.field_size` is unchanged: it counts loaded entries, and the
+      missing rows are the separate item below.
+      * **34 entries in 33 races:** 11th (17), 12th (15), 13th (1),
+        14th (1). Values match the measured plan.
+      * Check: only those 34 rows.
+    * **Loader, `d042ca9`.** The Winner: pedigree goes only to the horse the
+      chart names. Before this, a dead-heat co-winner or a DQ'd horse at
+      finish 1 would get the official winner's pedigree on later loads.
+      Nothing in the DB was affected except Gizmo's Mission above. A
+      full-corpus parse found 489 finish-1 horses that differ from the
+      Winner: line: 421 DQ'd and 68 dead-heat co-winners, none else.
+    * **Stored pedigrees of the 489, checked:**
+      * **DQ'd horses (421):** none carries the winner's pedigree. 342 have
+        a pedigree that differs from the named winner's and matches no other
+        horse; 79 have none stored.
+      * **Dead-heat co-winners (68):** 48 have their own pedigree and 12
+        have none.
+      * **8 carry the other co-winner's pedigree** (same sire, dam and
+        foaling date). This dates from their original load: before #13
+        the parser kept the co-winner the Winner: line does not name.
+        * GP 2022-05-13 R7 Star Sign (has Speargun's)
+        * GP 2024-05-31 R4 Souper Attentive (Zozan's)
+        * CT 2021-05-28 R5 I'ma Total Diva (Jacks Sister Jill's)
+        * CT 2024-03-20 R5 Margarita Sunset (Symptomatic's)
+        * DED 2023-01-27 R5 Dallas Gold (Bode's Light's)
+        * EVD 2023-07-20 R7 Luminous Flight (Hushed Court Room's)
+        * LAD 2023-06-11 R6 Quickto Blame (Pesoin My Pocket's)
+        * LAD 2023-09-02 R5 Halfpriced (Louisiana Cowgirl's)
+      * **Not fixed: proposal.** Clear those 8 pedigrees to NULL. Refill one
+        only from a race that horse won outright (its own Winner: line).
+      * Scratch: `ped489.py`.
+    * **After all steps:** 6 cleared entries remain (the E list below).
+      Races with results but no `finish_pos = 1` went from 260 to 13.
+    * **Full-corpus regression after all steps:** 4,800 chart days, 316,637
+      entries, **0 differences** between the parser and the DB. The 134
+      other rows are the two staged PP cards.
+    * **Rebuild (once, after D):**
+      * `computed_speed_figures_dpv1`: 316,771 rows, 247 changed (the A
+        winners now have figures).
+      * `entry_features_dpv1`: 316,771 rows × 129 columns. 266,927 changed,
+        208,000 of them 2022+.
+        * The changes are mostly `track_dirt_bias_90d` (140k) and
+          jockey/trainer win rates.
+        * Field-experience terms change on about 50k.
+        * The A rows (247), the DQ rows themselves (511 of 761) and 30 of
+          the D rows also change.
+      * **Live/pre-race rows:** 134, on the staged CT 10/01 and GP 10/02
+        cards. 95 changed, all small:
+        * jockey/trainer win rates, max 0.009;
+        * field-experience terms, max 0.89 against an SD of 5.6.
+      * **Labels:** 247 ITM 0 → 1 and 247 WIN 0 → 1 (193 in 2022+).
+        `finish_pos` changed on 281 entries.
+      * `dpv1.pkl`, `dpv1_pp_reranker.pkl` and `dpv1_classctx_reranker.pkl`
+        have the same sha256. The live model is unchanged until a retrain.
+    * **E residual now 6:** GP 2022-08-27 R6, GP 2024-03-17 R6, GP 2024-08-04
+      R3, GP 2025-11-01 R11, GP 2026-02-28 R13 and GP 2026-05-31 R3. Not
+      touched.
+    * **Not re-scored:** DED 10/15 (Misdeal's dead heat, 10 rows differ
+      on a re-score).
+    * Scratch: `regress14.py`, `apply_B.py`, `apply_A.py`, `apply_D.py`,
+      `verify14.py`, `diff14.py` (2026-10-16 scratchpad, session
+      26e98f80).
+
+    **75 missing starters: investigated 2026-10-16, nothing loaded.**
+    * Every one is a horse-table row the parser rejected: re-parsing the
+      70 races gives exactly 75 `horse_row_unparsed` warnings, one per
+      missing starter.
+    * **34 recoverable exactly: long shots at 100-1 or more.** The Fin
+      token and the odds are glued together, e.g. `12321/2111.80` = Fin
+      `12321/2` (12th by 32 1/2) + odds `111.80`. The glued-odds fallback
+      only handles odds under 100.
+      * Every candidate split was tried (2- or 3-digit odds, margin
+        fractions /2 or /4). Each of the 34 has exactly one valid split.
+      * In all 34 the recovered position fills the race's single empty
+        finishing slot.
+    * **40 non-starters.** Bets were refunded and there is no finish.
+      * 37 are labelled on the chart ("declared non-starter", "reared,
+        non-starter", ...).
+      * 3 were confirmed by Doug from the race notes: GP 2021-08-22 R5
+        Raspberry Ballet (hit the gate), GP 2024-12-22 R6 Oxymore and
+        GP 2025-01-24 R6 Some of It (stall doors did not open in unison).
+    * **1 purse-only runner:** GP 2025-03-30 R5 Samaritano ran "for purse
+      money only" (Doug, from the notes). He has a real finish (`6Neck`)
+      but was not part of the wagering, so he has no odds.
+    * **Decisions needed before loading:**
+      1. The 34: load them with the parser fix (a fallback for 3-digit
+         odds), as a new item.
+      2. The 40 non-starters: leave them out, as scratches are, or load
+         them with a non-starter status that training and scoring skip.
+      3. Samaritano: load him with NULL odds. This affects only the
+         odds-derived features for his own row.
+    * Scratch: `missing75.py`, `classify75.py` (2026-10-16 scratchpad).
 
     Rebuild once after all of them, then the next retrain picks them up.
     Scratch scripts: `cleanup_sim.py`, `relink.py`, `diff_cleanup*.py`,
