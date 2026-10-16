@@ -18,10 +18,10 @@ which has the reader guard, parser fixes, #9, #10 and #11 but not #12. See
 * There were 2 DNF: R3 #4 Shred It Up and R8 #5 Meaner Than Mean. They count
   as starters and are ranked last.
 * **R7 was a dead heat for win** between #5 Slewssongofthenile and #9 Misdeal.
-  The chart parser forces the WPS winner to 1st and clears every other
-  `finish_pos = 1` (`contradictory_winner_cleared`). It picked Misdeal as the
-  WPS winner, set Slewssongofthenile to 1st from his Fin token, and then
-  cleared Misdeal. **Misdeal is in the DB with `finish_pos` NULL.**
+  The chart parser takes the first horse with a win payout as "the" winner.
+  That was Slewssongofthenile, who is listed first. It then clears every
+  other `finish_pos = 1` (`contradictory_winner_cleared`), so Misdeal was
+  cleared. **Misdeal is in the DB with `finish_pos` NULL.**
   `score_predictions` therefore skipped him (75 scored rows, not 76). This
   review scores him as dead-heat 1st. See the open item at the end.
 * `score_predictions.py`, official figures: the top pick was ITM in 3 of 7 races
@@ -154,6 +154,7 @@ card's case is R7 #9 Misdeal: `finish_pos` is NULL in the DB. As a result:
 * it is missing from `scored_predictions.jsonl`;
 * it will enter the training corpus as a non-finisher unless it is fixed.
 
-171 cached chart JSONs carry a `contradictory_winner_cleared` warning. Most of
-them should be the legitimate 10+-field "12 vs 1-by-2" case; how many are dead
-heats has not been checked. Nothing was changed.
+Investigated 2026-10-16 as follow-up #13 in `PHASE_6E_LOGGING.md`. Across
+the whole DB there are 73 dead heats for win and every one is affected.
+Dead heats at 2nd, 3rd and lower are stored correctly. Most other cleared
+entries are disqualifications. Nothing has been changed.

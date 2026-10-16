@@ -1615,6 +1615,102 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       change, and their results are not loaded. Their pre-race rows now
       build with the equipment flags NULL. They are not re-loaded.
 
+13. **Open (2026-10-16, measured on scratch copies, nothing applied): the
+    chart parser drops one co-winner of a dead heat for win.** Found on DED
+    10/15 R7: #5 Slewssongofthenile and #9 Misdeal dead-heated for win, and
+    Misdeal is in the DB with `finish_pos` NULL.
+    * **Mechanism.** See `scripts/equibase_pdf_parser.py` around line 1185.
+      * The WPS pass takes `forced_winner_pgm` as the *first* horse with a
+        win payout.
+      * The second pass then clears every other `finish_pos = 1` and logs
+        `contradictory_winner_cleared`.
+      * In a dead heat for win both co-winners have a win payout, so the one
+        listed second is cleared.
+    * **Ground truth.** The chart's `Dead Heats:` and `Disqualification(s):`
+      lines were scanned with pdftotext in every result PDF in the DB. That
+      is 4,798 race days and 41,343 of 41,494 races with results; the 151
+      races whose header the scan did not match are not covered.
+    * **Every cleared entry, classified.** There are 359 cleared entries in
+      357 races, on 344 charts. (The 171 counted on 10/15 was `ct_cache`
+      only.)
+
+      | cause | entries |
+      |---|---|
+      | dead heat for win: the second co-winner is cleared | 72 |
+      | horse disqualified from 1st (on-track DQ) | 245 |
+      | last-place horse in a 10+ field with one entry row missing, so `field_size` is one short and a bare `11`/`12`/`13` Fin token reads as "1st by X" | 41 |
+      | small field with no win payout in the WPS table | 1 |
+
+    * **Dead heats, by position.** Only dead heats for win are affected.
+
+      | position | races | DB state |
+      |---|---|---|
+      | win | 73 | 72 co-winners NULL; 1 (GP 2019-02-18 R11 #4) stored as **11** (Fin `111/4` read as "11th by 1/4") |
+      | 2nd | 106 | all correct, both at 2 |
+      | 3rd | 119 | all correct, both at 3 |
+      | 4th or lower | 255 | all correct, shared position |
+
+      The 2nd/3rd case is safe because the forced-position pass only *sets*
+      positions 2 and 3. Nothing clears a duplicate.
+    * **Proposed fix (not applied).**
+      1. **Parser.** Read the `Dead Heats:` block into `{pgm: position}`. A
+         1st-place dead-heat horse is set to 1 with `beaten_lengths = 0.0`,
+         and the second pass does not clear it. Everything else keeps the
+         current rule. The chart block is exact (it was present in all 73
+         cases), so no payout-based guess is needed.
+      2. **Feature builder: required with the parser fix.**
+         * `_track_speed_bias` (`new_features/aggregate_features.py:294`)
+           keys "the winner's row" on `race_id`. With two winners, every
+           entry in a dead-heat race comes out 4×: the build gave 318,499
+           rows, not 316,771.
+         * It needs one row per race, either the first co-winner or the
+           mean of the co-winners' figures.
+         * A uniqueness assertion on `entry_id` before `write_table` would
+           catch this class of problem.
+         * `scripts/feature_builder.py:873` has the same pattern. It is the
+           frozen v1 reference and should not be touched.
+      3. **DB.** Either update the 73 entries in place, or purge and reload
+         those ~73 race days with the fixed parser. A reload also re-parses
+         the rest of each chart with today's parser, so diff it before
+         accepting.
+    * **What would change.** Measured on two scratch copies of the live DB
+      (one untouched, one with the 73 entries set to 1st), both rebuilt with
+      speed figures and features, with the bias builder deduplicated:
+      * **73 entries:** 72 go NULL → 1 and one goes 11 → 1, all with
+        `beaten_lengths` 0.0. 52 of them are in the 2022+ training window,
+        where the ITM label goes **0 → 1** (`finish_pos <= 3` is False for
+        NULL).
+      * **69 of them gain a speed figure.** The 11 → 1 horse moves from
+        81.60 to 81.85.
+      * **60 of the 73 horses have later races in the DB:** 559 entries,
+        506 of them in 2022+. **All 559 shift**, in `career_wins`,
+        `career_win_pct_shrunk`, `career_itm_pct_shrunk`,
+        `wins_at_track`, the surface and condition win rates,
+        `last_3_avg_finish`, `avg_class_recent` and `class_drop_signed`.
+      * **The wider ripple is through people and track bias:**
+        * Jockey and trainer win rates change on 87,433 entries, but only
+          6,994 of them by more than 0.01.
+        * `days_since_{trainer,jockey}_last_win` changes on 706 entries.
+        * `rail_bias_flag` and `outside_bias_flag` flip on 2,492 entries.
+      * The live model is unchanged until a retrain picks up the corrected
+        labels and features.
+    * **Separate, larger issue found on the way (Doug's call; not part of
+      this fix).** In DQ races the DB stores the order of crossing, not the
+      official placings:
+      * **On-track DQ from 1st (249 races).** The DQ'd horse is NULL, and
+        the promoted horse keeps its crossing position, usually 2. 245 of
+        these races have **no winner at all** in the DB. They are 245 of
+        the 260 races that have results but no `finish_pos = 1`, which is
+        what `model_health` counts.
+      * **DQ from 2nd or lower (330).** All are stored at the crossing
+        position.
+      * **Post-race DQ from 1st for a positive test (177).** These are
+        stored as 1st. WPS paid as run, so for racing performance this is
+        arguably right.
+    * Scratch scripts and DBs are in the 2026-10-16 session scratchpad
+      (`dh_classify.py`, `scan_charts.py`, `join_scan.py`, `build_dedup.py`
+      and `diff_features.py`).
+
 Related, already documented elsewhere and still open:
 
 * ~~**Routine PP ingest**~~ **DONE** (`load_pp_card.py` stages at load time, and `parse_pp_files.py --incremental` sweeps the catalogue). Was a hard
