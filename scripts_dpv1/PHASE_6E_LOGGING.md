@@ -555,6 +555,34 @@ and the coefficient on that feature is positive.
 * **Still affected by #12:** the pre-race equipment-flag skew, which shows as
   "blinkers change" in most reasons.
 
+### DED meet tracking files (recorded 2026-10-15)
+
+All files are in `scripts_dpv1/tracking/`. None of them feeds the model.
+
+| file | what | when |
+|---|---|---|
+| `don_picks.csv` | Don's four picks plus the alt, per race | as he publishes them |
+| `don_bets.csv` | Don's Pick of Destiny (POD) and Pick 4 part wheels. At DED, EP4 = R2–R5 and LP4 = R5–R8; on 10/15 the legs matched his race picks | as he publishes them |
+| `watch_list.csv` + `check_watch_list.py` | watch-list horses, trainers and jockeys; the script lists every race with one | after each PP card load |
+| `watch_people_tally.py` → `watch_people_tally.csv` | DED tally for watch-list trainers and jockeys, see below | after each results load |
+| `DED_<date>_review.md` | card review: model vs result vs Don | after each results load |
+
+* **People matching:** last name plus first name, and the middle initial only
+  when both sides have one. "Ward, Ronnie" on a chart and "Ward Ronnie P" on
+  a PP are the same trainer.
+* **Watch list on 2026-10-15:**
+  * horse Discerner;
+  * trainers Ronnie P. Ward, Rylee Magnon and W.B. Calhoun;
+  * jockey Devin H. Magnon.
+* **The tally**, for this meet and for all DED results in the DB:
+  * starts, wins, ITM, and $2 win ROI;
+  * ITM against the summed P(ITM) the model gave their starters.
+* **That model comparison uses logged record runs only.** Older DED charts
+  are in the training data, so re-scoring them would flatter the model. It is
+  meant to show whether the model under-rates a trainer or jockey, or whether
+  they simply stand out, and it needs many more logged starts before it can
+  say either.
+
 ### Bet terminology (Doug, 2026-10-15). Use it in every doc and report.
 
 * **Box:** N horses in all orders. For example, a 4-horse superfecta box is 24
