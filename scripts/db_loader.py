@@ -282,8 +282,14 @@ def ingest_entry(
     # Horse pedigree comes from race.winner only for the winner. For non-winners
     # we have just the name; pedigree backfills when this horse later appears as
     # a winner or as another entry with richer info (re-ingest is harmless).
+    # The Winner: line describes the official winner only. A dead-heat co-winner
+    # or a horse disqualified from 1st also has finish_pos 1, so match by name.
     winner_info = race.get("winner") or {}
-    is_winner = entry.get("finish_pos") == 1
+    is_winner = (
+        entry.get("finish_pos") == 1
+        and bool(winner_info.get("name"))
+        and _norm(parser.strip_country_code(winner_info["name"])[0]) == _norm(entry["horse_name"])
+    )
     pedigree = winner_info if is_winner else {}
 
     sire_id = get_or_create_sire(conn, pedigree.get("sire"))
