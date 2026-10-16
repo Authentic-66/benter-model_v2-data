@@ -506,6 +506,11 @@ def parse_horse_row(row: str, header: CallHeader) -> dict[str, Any] | None:
     horse_raw, jockey = split_horsename_jockey(horse_token)
     horse_name = insert_spaces(horse_raw)
     horse_clean, country = strip_country_code(horse_name)
+    # The chart prints a disqualified horse as `DQ-<Name>`. The prefix is not
+    # part of the name: left on, the loader files the run under a phantom horse.
+    disqualified = horse_clean.startswith("DQ-")
+    if disqualified:
+        horse_clean = horse_clean[3:].strip()
 
     # Right of horse token
     rest = tokens[horse_idx + 1 :]
@@ -601,6 +606,7 @@ def parse_horse_row(row: str, header: CallHeader) -> dict[str, Any] | None:
         "program_num": pgm,
         "horse_name": horse_clean,
         "horse_country": country,
+        "disqualified": int(disqualified),
         "jockey": jockey,
         "last_raced_raw": last_raced,
         "weight_lbs": weight,
@@ -1153,6 +1159,9 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
     claiming_price = _parse_claiming_price(conditions_text or body)
 
     horse_header, entries = _parse_horse_table(body, warnings)
+    for e in entries:
+        if e["disqualified"]:
+            warnings.add(f"disqualified:pgm={e['program_num']}")
 
     # Second-pass: finish position + beaten lengths, now that we know field_size.
     field_size = len(entries)
