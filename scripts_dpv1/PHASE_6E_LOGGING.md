@@ -1904,10 +1904,10 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
         line's "from 1" is used for the official order. These are 7 of the
         13 winnerless races in #15; their `finish_pos` (the training label)
         is still wrong and is NOT fixed here.
-      * **Decisions over 762 DQ races:** stewards' placing by tote 501 (incl.
-        2 of 2 DQs applied in 4 races), as run by tote 217, partial (1 of 2)
-        3, tie resolved by default/footnote 44 (38 + 1 stewards' default, 5
-        as run by footnote). 13 races still disagree with the tote by 2+
+      * **Decisions over 762 DQ races:** stewards' placing by tote 505 (incl.
+        2 of 2 DQs applied in 4 races), as run by tote 217, 1 of 2 applied by
+        tote 2, ties 38 (32 stewards' default, 1 partial default, 5 as run by
+        footnote). 13 races still disagree with the tote by 2+
         records under the chosen order (2019-2024, none on a logged card);
         not hand-fixed. Note the tote check has a noise floor: crossing order
         also disagrees with the tote by 1-2 records in 862 of 41,782 races
