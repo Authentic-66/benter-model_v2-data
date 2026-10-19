@@ -31,11 +31,10 @@ and all three are easy to get wrong:
   number down by however often the top pick scratches -- which is often: 12 of
   113 on CT 2026-08-28 alone.
 
-* **A race with no recorded winner cannot be a win.** The corpus stores
-  crossing order, so a horse disqualified from 1st keeps ``finish_pos = 1``
-  although the tote paid another horse. Such a race counts as having no
-  recorded winner here (as it did when that horse's ``finish_pos`` was NULL),
-  until official placings get their own column (PHASE_6E #14 C).
+* **A race with no recorded winner cannot be a win.** Winners are read from
+  ``official_finish_pos``, the order the tote paid on (PHASE_6E #14 C), not
+  from ``finish_pos``, which is crossing order and the training label. A race
+  with no official 1st is a chart-parse residual (PHASE_6E #15).
   Those races leave the WIN denominator but stay in the ITM denominator, where
   the board is still well defined.
 
@@ -120,15 +119,7 @@ def race_metadata(db: str, cards: set[tuple[str, str]]) -> dict:
                 """
                 SELECT r.race_num, r.race_type,
                        EXISTS (SELECT 1 FROM entries e
-                               WHERE e.race_id = r.id AND e.finish_pos = 1)
-                       AND NOT EXISTS (
-                           -- crossed 1st, tote paid another horse: a DQ (see
-                           -- score_predictions.fetch_results; interim until #14 C)
-                           SELECT 1 FROM entries e
-                           WHERE e.race_id = r.id AND e.finish_pos = 1
-                             AND e.win_payout IS NULL
-                             AND EXISTS (SELECT 1 FROM entries w WHERE w.race_id = r.id
-                                         AND w.win_payout IS NOT NULL))
+                               WHERE e.race_id = r.id AND e.official_finish_pos = 1)
                 FROM races r
                 JOIN race_days rd ON rd.id = r.race_day_id
                 JOIN tracks t     ON t.id  = rd.track_id

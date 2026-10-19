@@ -125,8 +125,8 @@ def fetch_results(db: str, track: str, date: str) -> dict:
     try:
         rows = conn.execute(
             """
-            SELECT r.race_num, e.program_num, h.name, e.finish_pos,
-                   e.finish_status, e.show_payout, e.final_odds, e.win_payout
+            SELECT r.race_num, e.program_num, h.name, e.official_finish_pos,
+                   e.finish_status, e.show_payout, e.final_odds, e.non_betting
             FROM entries e
             JOIN races r      ON r.id  = e.race_id
             JOIN horses h     ON h.id  = e.horse_id
@@ -145,20 +145,20 @@ def fetch_results(db: str, track: str, date: str) -> dict:
     finally:
         conn.close()
 
-    # Interim, until the official-placings column (PHASE_6E #14 C) lands: the
-    # DB stores crossing order, so a horse disqualified from 1st sits at
-    # finish_pos 1 although the tote paid another horse. Grade on what the tote
-    # paid: a 1st with no win payout, in a race where another horse has one, is
-    # treated as having no recorded result -- exactly as before #14 A, when its
-    # finish_pos was NULL. Dead-heat co-winners both carry a win payout.
-    paid_win = {int(r[0]) for r in rows if r[7] is not None}
+    # Bets are graded on the official order -- the order the tote paid on
+    # (PHASE_6E #14 C): stewards' DQs applied, post-race DQs as run. The DB's
+    # finish_pos is crossing order and stays the training label only. A
+    # non-betting interest (ran for purse money only) is not in the official
+    # order and is not graded: treated as having no recorded result.
     entries: dict[tuple[int, str], dict] = {}
     have_results: set[int] = set()
     starters: dict[int, int] = defaultdict(int)
-    for race_num, pgm, name, finish_pos, status, show_payout, final_odds, win_payout in rows:
-        if finish_pos == 1 and win_payout is None and int(race_num) in paid_win:
-            log.info("R%s: pgm %s crossed 1st but the tote paid another horse "
-                     "(disqualified) -- treated as no recorded result", race_num, pgm)
+    for race_num, pgm, name, finish_pos, status, show_payout, final_odds, non_betting in rows:
+        if non_betting:
+            log.info("R%s: pgm %s is a non-betting interest -- not graded",
+                     race_num, pgm)
+            if status is not None:
+                have_results.add(int(race_num))
             finish_pos = status = None
         entries[(int(race_num), _norm_pgm(pgm))] = {
             "horse_name": name,
@@ -234,9 +234,9 @@ def score_card(preds: list[dict], results: dict) -> tuple[list[dict], dict]:
                             race_num, p.get("pgm"), p.get("horse_name"))
                 stats["unmatched"] += 1
             else:
-                # An entry row exists but carries no finishing position. In
-                # this corpus that is normally a horse disqualified from 1st
-                # (see fetch_results) or a chart-parse residual.
+                # An entry row exists but carries no official position: a
+                # non-betting interest (see fetch_results) or a chart-parse
+                # residual.
                 log.warning("R%s: pgm %s (%s) has an entry but no recorded "
                             "result (disqualification?) -- not scored",
                             race_num, p.get("pgm"), p.get("horse_name"))
