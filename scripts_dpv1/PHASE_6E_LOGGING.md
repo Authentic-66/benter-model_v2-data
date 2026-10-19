@@ -2193,6 +2193,22 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       2019-09-15 R1, 2022-10-22 R8; EVD 2022-05-27 R5; LAD 2022-09-24 R8,
       2025-07-21 R7). The official column is right for them; their
       `finish_pos` label is not fixed.
+      **FIXED 2026-10-19 (Doug's call, before the purse-change retrain).**
+      The parser now takes a DQ'd horse's crossing position from its
+      Disqualification line when the Fin token starts with it (warning
+      `dq_crossing_from_dq_line`). Backup `racing_full.db.pre-dqlabel15.bak`
+      (sha256 = live, integrity ok, equal counts). Re-parse of all 705 DQ /
+      non-betting days + 150 random (57,689 entries, 18 fields incl. the
+      official column): exactly these 7 differ, in `finish_pos` (11/12 → 1),
+      `beaten_lengths` (→ 0.0) and `winning_margin_text` (token margin). DB
+      set to those values; checked against the backup: only those 7 rows and
+      3 columns changed, no other table changed, no duplicate positions in
+      the 7 races. Winnerless races with results: 13 → 6 (the #14 E list).
+      Rebuild (`PYTHONHASHSEED=0`): 7 speed figures changed; features
+      318,724 rows, 20,794 changed (14,564 in 2022+; mostly track turf/dirt
+      bias and jockey/trainer rates), 0 rows without results changed.
+      `dpv1.pkl` and both rerankers unchanged (sha256). Labels: 7 ITM/WIN
+      0 → 1; only GP 2022-10-22 R8 is in the 5-track training window.
       Most are 10-12 horse fields with one win payout: worth checking
       whether the winner's Fin token was read as a bare position. Not
       investigated.

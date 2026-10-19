@@ -1466,6 +1466,25 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
             e["winning_margin_text"] = margin
             e["beaten_lengths"] = 0.0 if pos == 1 else margin_to_lengths(margin)
 
+    # A DQ'd horse's crossing position is stated on its Disqualification line.
+    # In a 10+ field a winner's Fin token like `111/2` (1st by 1 1/2) reads as
+    # "11th by 1/2"; the DQ line's "from 1" settles it (7 corpus cases, #15).
+    if horse_header and horse_header.columns:
+        final_label = horse_header.columns[-1]
+        by_pgm = {e["program_num"]: e for e in entries}
+        for pgm, frm, _ in _parse_disqualifications(body, entries):
+            e = by_pgm.get(pgm)
+            if e is None or e.get("finish_pos") == frm:
+                continue
+            fin_token = e["pace_calls"].get(final_label) if e.get("pace_calls") else None
+            if not fin_token or not fin_token.startswith(str(frm)):
+                continue
+            margin = fin_token[len(str(frm)):] or None
+            warnings.add(f"dq_crossing_from_dq_line:pgm={pgm}:{e.get('finish_pos')}->{frm}")
+            e["finish_pos"] = frm
+            e["winning_margin_text"] = margin
+            e["beaten_lengths"] = 0.0 if frm == 1 else margin_to_lengths(margin)
+
     # Stitch WPS payouts into corresponding entries. The payouts table reserves
     # 1-3 money columns (Win/Place/Show) depending on field size — small fields
     # drop the Show column, very small fields drop Place too. Each horse row
