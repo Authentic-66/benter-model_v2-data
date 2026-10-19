@@ -859,6 +859,143 @@ def _parse_dead_heats(text: str, pgms: list[str]) -> dict[str, int]:
     return out
 
 
+def _parse_disqualifications(text: str, entries: list[dict[str, Any]]) -> list[tuple[str, int, int]]:
+    """`Disqualification(s):` block → [(program_num, from_pos, to_pos)].
+
+    The block reads `Disqualification(s): #3CashierCheckfrom1to5`, one DQ per
+    line. Program number and name run together, so the pgm is the known
+    program number whose horse name the rest of the text spells out (falling
+    back to the dead-heat prefix rule).
+    """
+    m = re.search(r"Disqualification\(s\):(.*)", text, re.DOTALL)
+    if not m:
+        return []
+    names = {e["program_num"]: re.sub(r"[^A-Z0-9]", "", e["horse_name"].upper()) for e in entries}
+    known = sorted(names, key=len, reverse=True)
+    out: list[tuple[str, int, int]] = []
+    for i, ln in enumerate(m.group(1).splitlines()):
+        hit = re.match(r"\s*#(\S+?)from(\d+)to(\d+)\s*$", ln)
+        if not hit:
+            if i == 0:
+                continue
+            break
+        rest = hit.group(1)
+        flat = re.sub(r"[^A-Z0-9]", "", rest.upper())
+        pgm = next((p for p in known if flat == p.upper() + names[p]), None)
+        if pgm is None:
+            pgm = next((p for p in known if rest.startswith(p)
+                        and not rest[len(p):len(p) + 1].islower()), None)
+        if pgm is not None:
+            out.append((pgm, int(hit.group(2)), int(hit.group(3))))
+    return out
+
+
+_ORDERED_EXOTICS = ("EXACTA", "TRIFECTA", "SUPERFECTA", "SUPERHIGHFIVE")
+
+
+def _tote_mismatches(order: dict[str, int], forced: dict[str, int], n_money: int,
+                     exotics: list[dict[str, Any]]) -> int:
+    """How many tote records (WPS rows, ordered exotics) disagree with `order`.
+
+    `forced` is the WPS-implied position per pgm (1 win, 2 place, 3 show);
+    every horse `order` puts inside the money must have a WPS row. An ordered
+    exotic's winning numbers must read as `order`, ties (dead heats) allowed.
+    """
+    bad = sum(order.get(p) != f for p, f in forced.items())
+    bad += sum(1 for p, pos in order.items() if pos <= n_money and p not in forced)
+    for x in exotics:
+        nm = re.sub(r"[^A-Z]", "", (x.get("wager_name") or "").upper())
+        if nm not in _ORDERED_EXOTICS:
+            continue
+        slots = [s.split("/") for s in (x.get("winning_numbers") or "").split("-")]
+        seen: list[int] = []
+        for slot in slots:
+            ps = [order.get(p) for p in slot]
+            if any(v is None for v in ps):
+                bad += 1
+                break
+            if any(v != 1 + sum(s < v for s in seen) for v in ps):
+                bad += 1
+                break
+            seen.extend(ps)
+    return bad
+
+
+def _official_positions(entries: list[dict[str, Any]], body: str, footnotes: str | None,
+                        forced: dict[str, int], money_columns: list[str],
+                        exotics: list[dict[str, Any]], warnings: RaceParseWarnings) -> None:
+    """Set `official_finish_pos`: the order the tote paid on.
+
+    `finish_pos` is crossing order (the training label). Betting is graded on
+    the official order instead:
+    * an on-track DQ (stewards' inquiry or objection) moves the horse to its
+      placing and the tote pays on that order;
+    * a post-race DQ (e.g. a positive test) is announced after the tote paid as
+      run, so the official order for betting stays as run;
+    * a non-betting interest (ran for purse money only) is not in the order at
+      all: NULL, and the betting horses behind it move up.
+    The decision is per DQ, since one race can hold both kinds (CT 2022-02-03
+    R7: an on-track DQ from 3rd and a later ruling against the winner). Every
+    subset of the race's DQs is applied and checked against the WPS table and
+    the ordered exotics, and the subset the tote agrees with best is used.
+    When several agree equally (a DQ that only moves horses outside every paid
+    position), a footnote naming a positive test or a commission ruling means
+    as run (fewest DQs applied), anything else the stewards' placing (most).
+    """
+    crossing = {e["program_num"]: e["finish_pos"] for e in entries if e.get("finish_pos") is not None}
+    betting_out = [e["program_num"] for e in entries if e.get("non_betting")]
+
+    def without_non_betting(o: dict[str, int]) -> dict[str, int]:
+        nb = [o[p] for p in betting_out if p in o]
+        return {p: v - sum(1 for x in nb if x < v) for p, v in o.items() if p not in betting_out}
+
+    def placed(applied: list[tuple[str, int, int]]) -> dict[str, int]:
+        # Stewards' placing: take the DQ'd horses out, close up the order, then
+        # put each back at its placing (lowest first), pushing the rest down.
+        out_pgms = {p for p, _, _ in applied}
+        o = {p: pos - sum(1 for d in out_pgms if d in crossing and crossing[d] < pos)
+             for p, pos in crossing.items() if p not in out_pgms}
+        for p, _, to in sorted(applied, key=lambda d: d[2]):
+            o = {q: v + 1 if v >= to else v for q, v in o.items()}
+            o[p] = to
+        return without_non_betting(o)
+
+    order = without_non_betting(crossing)
+    dqs = _parse_disqualifications(body, entries)
+    if dqs:
+        for p, frm, _ in dqs:
+            if crossing.get(p) != frm:
+                # The DQ line is the chart's own statement of where the horse
+                # crossed. A disagreement is a misread Fin token (a 1st by 1 1/2
+                # in a 10+ field read as `11/2` = 11th): use the DQ line.
+                warnings.add(f"dq_from_mismatch:pgm={p}:{frm}!={crossing.get(p)}")
+                crossing[p] = frm
+        order = without_non_betting(crossing)
+        n_money = len(money_columns)
+        scored = []
+        for mask in range(1 << len(dqs)):
+            applied = [d for i, d in enumerate(dqs) if mask >> i & 1]
+            o = placed(applied)
+            scored.append((_tote_mismatches(o, forced, n_money, exotics), len(applied), o))
+        best = min(s[0] for s in scored)
+        tied = [s for s in scored if s[0] == best]
+        notes = re.sub(r"[^A-Z]", "", (footnotes or "").upper())
+        as_run_note = bool(re.search(r"POSITIVETEST|COMMISSION|POSTRACE", notes))
+        if len(tied) == 1:
+            how = "tote"
+        elif as_run_note:
+            how = "footnote"
+        else:
+            how = "default"
+        pick = min(tied, key=lambda s: s[1]) if as_run_note else max(tied, key=lambda s: s[1])
+        order = pick[2]
+        warnings.add(f"official:{pick[1]}of{len(dqs)}_applied:{how}")
+        if best > 0:
+            warnings.add(f"official_tote_mismatch:{best}")
+    for e in entries:
+        e["official_finish_pos"] = order.get(e["program_num"])
+
+
 def _parse_total_wps_pool(text: str) -> int | None:
     m = re.search(r"TotalWPSPool:\s*\$([\d,]+)", text)
     return to_int(m.group(1)) if m else None
@@ -1362,6 +1499,9 @@ def parse_race_block(track_text: str, date_iso: str | None, race_num: int, body:
             e["win_payout"] = None
             e["place_payout"] = None
             e["show_payout"] = None
+
+    _official_positions(entries, body, footnotes, forced_positions, money_columns,
+                        exotics, warnings)
 
     return {
         "race_num": race_num,

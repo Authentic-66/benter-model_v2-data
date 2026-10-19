@@ -327,7 +327,7 @@ def ingest_entry(
             speed_figure, trip_comment, last_raced_raw,
             win_payout, place_payout, show_payout,
             claimed_in_race, new_trainer_after, new_owner_after, claiming_price,
-            non_betting
+            non_betting, official_finish_pos
         ) VALUES (
             ?, ?, ?, ?, ?,
             ?, ?, ?,
@@ -339,7 +339,7 @@ def ingest_entry(
             ?, ?, ?,
             ?, ?, ?,
             ?, ?, ?, ?,
-            ?
+            ?, ?
         )
         """,
         (
@@ -358,7 +358,7 @@ def ingest_entry(
             entry.get("win_payout"), entry.get("place_payout"), entry.get("show_payout"),
             entry.get("claimed_in_race", 0), entry.get("new_trainer_after"),
             entry.get("new_owner_after"), entry.get("claiming_price"),
-            entry.get("non_betting", 0),
+            entry.get("non_betting", 0), entry.get("official_finish_pos"),
         ),
     )
 

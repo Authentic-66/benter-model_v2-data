@@ -194,6 +194,7 @@ CREATE TABLE IF NOT EXISTS entries (
     new_owner_after     TEXT,
     claiming_price      INTEGER,                     -- this horse's claiming tag (may differ)
     non_betting         INTEGER NOT NULL DEFAULT 0,  -- ran for purse money only: no odds, not graded
+    official_finish_pos INTEGER,                     -- order the tote paid on: stewards' DQs applied, post-race DQs as run, non-betting NULL. finish_pos (crossing) stays the training label
 
     UNIQUE(race_id, program_num)
 );
