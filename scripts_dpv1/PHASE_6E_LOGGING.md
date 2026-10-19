@@ -1883,6 +1883,58 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       crossed 4th and was placed 3rd, so it becomes an ITM hit. CT 7/25
       R7's top 4 doesn't change. `score_predictions.py` would read the
       new column; exotic payouts are already official.
+    * **APPLIED 2026-10-19 (`c33c897` column, `0ff82e9` scoring).** Backup
+      `scripts/racing_full.db.pre-official14C.bak` (sha256 = live at copy,
+      integrity ok, equal table counts).
+      * **Column.** `entries.official_finish_pos`, written by the parser and
+        loader. `finish_pos` (crossing) is unchanged and stays the label.
+      * **Rule.** The parser reads the `Disqualification(s):` block and
+        decides **per DQ** which order the tote paid on: every subset of the
+        race's DQs is applied and checked against the WPS table and the
+        ordered exotics (exacta, trifecta, superfecta, HI-5); the subset the
+        tote agrees with best wins. Per DQ, not per race, because one race
+        can hold both kinds: CT 2022-02-03 R7 had an on-track DQ from 3rd
+        and a later ruling against the winner. Ties (the DQ only moves horses
+        outside every paid position): a footnote naming a positive test or a
+        commission ruling means as run, otherwise the stewards' placing.
+        Non-betting interests are NULL, and betting horses behind them move
+        up one.
+      * **Misread DQ'd winners.** In 7 races the DQ'd winner's Fin token was
+        read as 11th/12th (`11/2` = 1st by 1 1/2 in a 10+ field). The DQ
+        line's "from 1" is used for the official order. These are 7 of the
+        13 winnerless races in #15; their `finish_pos` (the training label)
+        is still wrong and is NOT fixed here.
+      * **Decisions over 762 DQ races:** stewards' placing by tote 501 (incl.
+        2 of 2 DQs applied in 4 races), as run by tote 217, partial (1 of 2)
+        3, tie resolved by default/footnote 44 (38 + 1 stewards' default, 5
+        as run by footnote). 13 races still disagree with the tote by 2+
+        records under the chosen order (2019-2024, none on a logged card);
+        not hand-fixed. Note the tote check has a noise floor: crossing order
+        also disagrees with the tote by 1-2 records in 862 of 41,782 races
+        without a DQ (coupled entries, small-field WPS layouts).
+      * **DB.** ALTER + backfill from a full-corpus re-parse: 4,830 chart
+        days, 318,724 entries, **0 differences** in every existing field.
+        Every pre-existing column of every table is identical to the backup.
+        1,668 entries in 541 races differ from crossing; 416 differ in ITM
+        status. Tote cross-check: 42 win-payout horses are not official 1st
+        (37 coupled-entry races, 5 #14 E residuals), against 299 under
+        crossing order. Races with results but no official 1st: 6 (the #14 E
+        list); no crossing 1st: 13.
+      * **Scoring.** `score_predictions` grades `actual_finish` / `hit_itm` /
+        `hit_win` on the official column; a non-betting interest is not
+        graded and not counted as a starter. `model_health` reads winners
+        from it. The `2d96ea3` guard is removed from both.
+      * **Re-score check (every logged card, 1,587 rows):** identical except
+        CT 8/29 R3 and CT 7/25 R7, exactly as predicted above. CT 8/29 R3
+        model #4 (pgm 7) is now an ITM hit; the DQ'd horses (8/29 pgm 5, 7/25
+        pgm 2) are graded at their placing instead of dropped, so
+        `n_starters` there goes 6 → 7. Top-pick ITM is unchanged in every
+        window; top-pick WIN 34/133 → 35/136 ("no recorded winner" 3 → 0).
+        The live `scored_predictions.jsonl` was re-scored with `--all`; that
+        also adds DED 10/15 R7 #9 Misdeal (the #13 dead heat, never
+        re-scored).
+      * **Not switched (outside this piece):** `tracking/watch_people_tally.py`
+        still grades on `finish_pos`.
 
     **D. Dropped chart rows (last-place horses).**
     * 34 entries: a starter's row was lost in the PDF text, so
@@ -2136,6 +2188,11 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       | GP 2026-05-31 R3 | 3 | 1 |
 
       Three of them hold E entries (GP 2022-08-27, 2024-03-17, 2026-05-31).
+      **Update 2026-10-19 (#14 C):** 7 of the 13 are DQ'd winners whose Fin
+      token was read as 11th/12th (GP 2019-04-14 R11, 2019-05-12 R11,
+      2019-09-15 R1, 2022-10-22 R8; EVD 2022-05-27 R5; LAD 2022-09-24 R8,
+      2025-07-21 R7). The official column is right for them; their
+      `finish_pos` label is not fixed.
       Most are 10-12 horse fields with one win payout: worth checking
       whether the winner's Fin token was read as a bare position. Not
       investigated.
