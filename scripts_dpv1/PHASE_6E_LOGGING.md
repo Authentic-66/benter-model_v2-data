@@ -555,6 +555,39 @@ and the coefficient on that feature is positive.
 * **Still affected by #12:** the pre-race equipment-flag skew, which shows as
   "blinkers change" in most reasons.
 
+### Results catch-up, 2026-10-18
+
+* **Backup:** `scripts/racing_full.db.pre-results1018.bak`, verified: same
+  sha256 as the live DB at copy time, `integrity_check` ok on both, and the
+  same counts in races, entries, horses, exotic_payouts,
+  entry_features_dpv1 and parsed_files.
+* **Loaded 31 charts** with `retrain_pipeline.load_charts`, after a dry
+  parse found no duplicate dates:
+  * CT 10/1–10/3, 10/8–10/10, 10/14–10/17;
+  * GP 9/5, 9/6, 9/11–13, 9/18–20, 9/25–27, 10/2–10/4, 10/9–10/11,
+    10/16–10/18;
+  * DED 10/17.
+  * Totals: 279 races, 1,970 entries, 1,384 exotic rows, 0 errors. The three
+    pre-race cards (CT 10/1, GP 10/2, DED 10/17: 235 entries) were purged
+    first.
+  * Parser warnings: DQs on CT 10/3, 10/9 (2), 10/10 and GP 9/12, 9/20,
+    10/4, 10/9, 10/18; dead heats on CT 10/8, GP 9/11, 10/3 and 10/4. None
+    of them is on a logged card.
+* **Scored** (official `score_predictions.py` figures; re-ranked = the model's
+  order among horses that ran):
+
+  | card | logged run | official #1 ITM | re-ranked #1 ITM (W) | top-3 overlap | top-3 wheel | super box |
+  |---|---|---|---|---|---|---|
+  | CT 10/1 | 18:31:58, **no-bridge record** | 3/8 | 3/8 (0) | 11/24 | 1 (R8) | 0 |
+  | GP 10/2 | 09:15:31, bridged (08:49 run superseded) | 4/8 | 5/9 (1) | 17/27 | 1 (R4) | 1 (R2) |
+  | DED 10/17 | 07:58:47, bridged | 6/9 | 7/10 (5) | 16/30 | 1 (R10) | 1 (R6) |
+
+  The other 28 charts are not logged cards. They are new corpus rows only,
+  which the live model sees as history at scoring time and as labels only at
+  the next retrain. DED 10/17 review: `tracking/DED_2026-10-17_review.md`.
+* **Rebuilt once at the end:** speed figures, then features (318,724 rows =
+  entries).
+
 ### DED meet tracking files (recorded 2026-10-15)
 
 All files are in `scripts_dpv1/tracking/`. None of them feeds the model.
