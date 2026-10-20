@@ -1,0 +1,61 @@
+=== C2 (a) -> (b): control folds_a.csv -> candidate folds_b.csv
+rows 137,094, races 18,220; labels from racing_a.db
+
+-- top-pick ITM (control, candidate, delta pp, discordant up/down, McNemar p)
+  GP                      6876    64.41%    64.44%   +0.03   123/121    0.949
+  CT                      4738    66.95%    67.16%   +0.21    81/71     0.466
+  MNR                     3321    65.82%    65.85%   +0.03    69/68     1.000
+  ELP                     1036    57.24%    57.82%   +0.58    32/26     0.512
+  DED                     2249    63.32%    62.96%   -0.36    46/54     0.484
+  ALL five tracks        18220    64.79%    64.85%   +0.06   351/340    0.704
+  year 2023               5225    64.38%    64.38%   +0.00   112/112    1.000
+  year 2024               4992    65.89%    65.97%   +0.08    96/92     0.827
+  year 2025               5056    64.72%    64.83%   +0.12    99/93     0.718
+  year 2026               2947    63.76%    63.79%   +0.03    44/43     1.000
+  track x year delta:
+    GP 2023 -0.11  2024 +0.53  2025 -0.21  2026 -0.17
+    CT 2023 +0.22  2024 +0.16  2025 +0.00  2026 +0.59
+    MNR 2023 +0.10  2024 -0.90  2025 +0.74  2026 +0.49
+    ELP 2023 +0.28  2024 +1.32  2025 +2.64  2026 -1.75
+    DED 2023 -0.41  2024 -0.33  2025 -0.45  2026 +0.00
+
+-- log-loss delta candidate - control (negative = candidate better), race-clustered z; AUC
+  GP          n  52,172  fund -0.00076 (z  -2.61)  blend +0.00004 (z  +1.23)  AUC 0.6966 -> 0.6972
+  CT          n  35,223  fund -0.00121 (z  -3.90)  blend +0.00003 (z  +1.53)  AUC 0.7006 -> 0.7022
+  MNR         n  23,155  fund -0.00158 (z  -5.80)  blend +0.00002 (z  +0.73)  AUC 0.6939 -> 0.6963
+  ELP         n   8,398  fund -0.00055 (z  -0.82)  blend -0.00004 (z  -0.78)  AUC 0.6591 -> 0.6589
+  DED         n  18,146  fund -0.00086 (z  -2.85)  blend -0.00000 (z  -0.15)  AUC 0.6918 -> 0.6934
+  year 2023   n  39,809  fund -0.00113 (z  -5.06)  blend +0.00002 (z  +0.72)  AUC 0.6915 -> 0.6934
+  year 2024   n  37,801  fund -0.00102 (z  -3.74)  blend +0.00004 (z  +0.93)  AUC 0.7033 -> 0.7044
+  year 2025   n  37,992  fund -0.00077 (z  -3.16)  blend +0.00002 (z  +1.21)  AUC 0.6960 -> 0.6971
+  year 2026   n  21,492  fund -0.00121 (z  -1.94)  blend +0.00001 (z  +0.42)  AUC 0.6869 -> 0.6875
+  ALL         n 137,094  fund -0.00101 (z  -6.54)  blend +0.00002 (z  +1.57)  AUC 0.6953 -> 0.6966
+
+-- calibration: weighted mean |error| pp, own deciles / fixed 0.1 bins; mean pred - actual (p_fund)
+  GP   control 0.726/0.784  candidate 0.815/0.820   mean pred-actual +0.73 -> +0.82
+  CT   control 1.247/1.245  candidate 1.374/1.444   mean pred-actual -0.53 -> -0.50
+  MNR  control 0.997/0.735  candidate 1.111/0.911   mean pred-actual -0.18 -> -0.26
+  ELP  control 2.542/2.058  candidate 2.354/2.042   mean pred-actual -0.19 -> -0.21
+  DED  control 0.839/0.497  candidate 0.700/0.590   mean pred-actual +0.35 -> +0.44
+  ALL  control 0.497/0.526  candidate 0.556/0.503   mean pred-actual +0.14 -> +0.18
+
+-- purse-change bucket table (actual - predicted p_fund, pp; z race-clustered)
+  bucket          n  actual  ctl pred ctl diff     z  cand pred cand diff     z
+  <=-50%       6680   0.478     0.463    +1.55  +2.8      0.502     -2.35  -4.2
+  -50..-30    11751   0.460     0.440    +1.99  +5.0      0.450     +1.03  +2.6
+  -30..-10    14281   0.428     0.419    +0.87  +2.5      0.422     +0.53  +1.5
+  -10..0       7443   0.418     0.406    +1.20  +2.4      0.405     +1.30  +2.6
+  0           41641   0.408     0.408    -0.01  -0.1      0.407     +0.14  +0.8
+  0..+10      10169   0.411     0.431    -2.00  -4.8      0.427     -1.54  -3.7
+  +10..+30    10636   0.374     0.407    -3.30  -8.1      0.396     -2.22  -5.5
+  +30..+60     7886   0.337     0.371    -3.37  -7.1      0.356     -1.90  -4.0
+  +60..+100    4349   0.328     0.335    -0.74  -1.1      0.321     +0.74  +1.2
+  +1x..+3x     3792   0.296     0.283    +1.26  +1.9      0.277     +1.86  +2.9
+  >+3x          441   0.261     0.117   +14.37  +6.2      0.218     +4.25  +2.3
+  NULL        18025   0.355     0.355    -0.00  -0.0      0.356     -0.13  -0.5
+  weighted mean |bucket error|: control 1.107pp -> candidate 0.874pp
+
+-- RULES (RULES.md)
+  Rule 1: GP/CT/MNR >= -0.5pp True [('GP', 0.03), ('CT', 0.21), ('MNR', 0.03)]; every track >= -2pp True [('ELP', 0.58), ('DED', -0.36)]; pooled not sig. negative True (+0.060pp p=0.704)  -> PASS
+  Rule 2: pooled +0.060pp (>=0: True); positive years 3/4 [('2023', 0.0), ('2024', 0.08), ('2025', 0.12), ('2026', 0.03)]; fund log-loss -0.00101 (z -6.54)  -> PASS
+  C2 (a) -> (b): PASS

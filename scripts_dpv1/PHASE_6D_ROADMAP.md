@@ -7068,3 +7068,24 @@ Retrain ablation, rules committed before any arm trains:
 corpus cleanup only, arm (b) cleanup + P1, arm (a2) determinism re-run of
 (a), compared with each other and with live on the same held-out rows and
 cleaned labels. Live model unchanged.
+
+### Retrain ablation results (2026-10-19)
+
+Rules committed first (`40c0b6b`); full results in
+`scripts_dpv1/_purse15/RESULTS.md`. Gate 0 (determinism) PASS. All three
+comparisons pass Rules 1 and 2:
+
+* **C1 live → (a) cleanup only:** +0.23pp top-pick ITM (p 0.012), 4/4 years,
+  fund log-loss z -9.15. The cleanup earns its keep.
+* **C2 (a) → (b) P1:** +0.06pp (p 0.70; 3/4 years on noise-sized deltas) but
+  fund log-loss z -6.54 on every track and year, purse-bucket error 1.107 →
+  0.874pp, stakes tail +14.4 → +4.3pp. **A calibration fix with no ranking
+  effect**, as the screen predicted. It introduces one new error (drops of
+  50%+ now over-credited, -2.35pp, z -4.2), DED top pick -0.36pp (n.s.), and
+  overall own-decile calibration error is worse (0.497 → 0.556) while fixed-
+  bin error is better.
+* **C3 live → (b):** +0.29pp (p 0.068), fund log-loss z -9.72.
+
+Nothing promoted; live unchanged. If P1 is pursued, a tighter lower cap
+(e.g. -ln 2) would address the new big-drop error; that would be a new,
+separately pre-registered arm.

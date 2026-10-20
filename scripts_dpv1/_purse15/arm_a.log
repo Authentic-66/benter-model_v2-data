@@ -1,0 +1,10 @@
+2026-10-19 19:15:13,503 [INFO] arm dpv1.3.1-5track-clean: 94 features (p1=False) on _purse15/racing_a.db
+2026-10-19 19:15:27,267 [INFO] corpus=['GP', 'CT', 'MNR', 'ELP', 'DED']  train_on=['GP', 'CT', 'MNR', 'ELP', 'DED']
+2026-10-19 19:15:27,306 [INFO] best combo from grid: half_life=2.50y l2=0.001
+2026-10-19 19:15:31,156 [INFO]   fold_val2023: n=40034 alpha=0.0764 beta=0.8050 gamma=-0.0433
+2026-10-19 19:15:37,880 [INFO]   fold_val2024: n=38052 alpha=0.1289 beta=0.7677 gamma=-0.0347
+2026-10-19 19:15:46,508 [INFO]   fold_val2025: n=38204 alpha=0.0702 beta=0.7837 gamma=-0.0484
+2026-10-19 19:15:57,927 [INFO]   fold_val2026: n=23982 alpha=0.0684 beta=0.7660 gamma=-0.0490
+2026-10-19 19:15:59,060 [INFO] wrote _purse15/folds_a.csv (140272 val entries)
+2026-10-19 19:16:11,874 [INFO] wrote _purse15/dpv1_arm_a.pkl
+2026-10-19 19:16:11,874 [INFO] blend: alpha=0.0968 beta=0.7759 gamma=-0.0404

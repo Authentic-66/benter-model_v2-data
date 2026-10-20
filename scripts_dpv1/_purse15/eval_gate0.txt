@@ -1,0 +1,3 @@
+GATE 0 determinism: _purse15/folds_a.csv e5678d353977bb23b990d5e06e8a45e6
+                    _purse15/folds_a2.csv e5678d353977bb23b990d5e06e8a45e6
+GATE 0 PASS (byte-identical)
