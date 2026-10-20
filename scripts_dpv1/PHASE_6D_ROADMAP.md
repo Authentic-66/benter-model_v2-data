@@ -6950,3 +6950,121 @@ errors.**
 2. **The morning-line setup is unmeasured.** Doug's live EV uses the morning
    line on both the blend and the payout side. That could be logged
    prospectively at DED, alongside the final tote, to measure it.
+
+## `purse_change_from_last` representation (2026-10-19)
+
+The open lead carried from Kel-Co Test 1 ("is `purse_change_from_last` a
+representation problem?"). Read-only investigation on the live model's own
+out-of-fold predictions (`dpv1_fold_predictions.csv`, dpv1.3.0-5track Arm B,
+137,908 rows, 2023-2026). Scripts and outputs:
+`scripts_dpv1/diagnostics/purse_change/` (README there; `out/` is not
+committed). Investigation run before the #15 label fix of the same day; the
+scripts reproduce every number below on the fixed DB.
+
+### Status: REAL, STABLE REPRESENTATION ERROR; CALIBRATION-HEAVY; RETRAIN ABLATION PRE-REGISTERED
+
+### 1. How it is built
+
+`(purse - prev_purse) / prev_purse` against the horse's most recent prior
+start at any loaded track (`class_change_features.py`). Recomputed from the
+DB it matches the stored feature on 100% of 269,650 rows. Training fills
+NULL with the median (0.0) plus `__missing`, standardises (mean 0.051, sd
+0.707 on the live fit) and uses one linear term, no clipping. Coefficient
+**-0.197 per sd, |coef| rank 11 of 226**.
+
+Training scope (2022+, five tracks, 179,126 rows, 13.2% NULL):
+
+| quantile | 0.1% | 1% | 5% | 25% | 50% | 75% | 95% | 99% | 99.9% | max |
+|---|---|---|---|---|---|---|---|---|---|---|
+| value | -0.88 | -0.68 | -0.51 | -0.13 | 0.00 | +0.08 | +0.78 | +1.84 | +7.33 | **+62.3** |
+
+Skew 31, kurtosis 1,881. Bounded at -100% below, unbounded above, so **the
+sd is set by a few stakes jumps**: a 30% drop arrives as -0.39 sd, while the
+Pegasus-type jumps (MSW/AOC/claiming into a $3M stake) arrive at +40 to +80
+sd. Logit contributions: -0.5 → +0.15, +1 (double) → -0.26, +3 → -0.82,
++10 → -2.77, +50 → **-13.9**. 83% of the x > +3 tail is stakes races today;
+the x ≤ -50% tail is mostly claiming / maiden claiming out of MSW, stakes and
+allowance, and 25% of it ships (vs 9.5% overall).
+
+### 2. Calibration by bucket (live OOF, raw `p_fund`)
+
+| purse change | n | actual | pred | diff | z |
+|---|---|---|---|---|---|
+| ≤ -50% | 6,728 | .473 | .461 | +1.24pp | +2.2 |
+| -50..-30% | 11,817 | .456 | .438 | **+1.82** | +4.6 |
+| -30..-10% | 14,368 | .424 | .417 | +0.66 | +1.9 |
+| -10..0% | 7,480 | .415 | .404 | +1.08 | +2.2 |
+| 0 | 41,868 | .405 | .406 | -0.13 | -0.7 |
+| 0..+10% | 10,232 | .408 | .429 | **-2.16** | -5.2 |
+| +10..+30% | 10,695 | .372 | .406 | **-3.39** | -8.4 |
+| +30..+60% | 7,932 | .335 | .369 | **-3.45** | -7.3 |
+| +60..+100% | 4,376 | .326 | .335 | -0.93 | -1.4 |
+| +1x..+3x | 3,821 | .292 | .283 | +0.94 | +1.5 |
+| > +3x | 448 | .257 | .117 | **+13.96** | +6.1 |
+| NULL | 18,143 | .352 | .357 | -0.53 | -1.9 |
+
+S-shaped: drops under-credited, moderate rises over-rated, the stakes tail
+crushed. Same shape on the card-style normalised P(ITM), and in every year
+2023-2026 and every track except ELP. The blended (with-market) P(ITM) is
+roughly calibrated across buckets: the market absorbs it. The odds-free card
+P(ITM) Doug reads carries it in full.
+
+**Residual slopes** (level-stripped in 20 `p_fund` bins, within-race
+demeaned, race-clustered z; negative = the model over-rates higher values):
+raw pct -0.75pp/sd (z -3.9); **log ratio -1.66 (z -11.4)**; capped pct
+-1.69 (z -11.9); log ratio partial on raw pct -1.96 (z -10.7). In the core
+range |x| ≤ 1 the raw term itself is under-used: -1.86pp/sd (z -12.7). Log
+ratio by year -1.84 / -1.84 / -1.84 / -0.64 (2026, z -1.7); by track GP -1.52,
+CT -1.97, MNR -1.96, DED -1.75, ELP -0.31 (n.s.). This is the Gap #11 Step 3
+pattern: the information is in the model at a scale it cannot use.
+
+**Kel-Co Test 1 revisited (same-track claiming → claiming, 35,767 rows).**
+Test 1's "purse beyond tag" residual (-2.06pp/sd) **did not reproduce**: with
+d2 = log purse move beyond the log tag move, -0.14 (z -0.5). My tag fit
+explains far more of the purse move (R² 0.54 vs Test 1's 0.17), so the fit
+population differs and this is a re-read, not a replication. What does
+survive: the class-move magnitude as a whole is under-weighted. Log purse
+ratio -2.55 (z -9.7), raw pct -2.55, log tag ratio -2.81 (z -10.7),
+`class_score_change_from_last` -2.53 partial on d2. The lead is
+representation of move size, not purse-specific information.
+
+### 3. Logged DED cards
+
+Horses whose largest negative card reason was "purse change vs last" in the
+record run (card reasons are contributions relative to the race average, so
+these are horses stepping up more than their field; mostly LAD/EVD claimers
+into DED allowance): **31 horses, ITM 11 vs 6.6 expected (35.5% vs 21.2%),
+z 2.0**, 0 wins. All DED logged horses run +4.2pp (33.9% vs 29.7%), so about
++10pp net. Same direction as the corpus; small sample.
+
+### 4. Candidate representations
+
+* **P1 (chosen by Doug for the retrain):** `purse_logratio_clipped` =
+  clip(ln(purse / prev_purse), -ln 4, +ln 4), NULL where the raw feature is
+  NULL. Symmetric up/down, the stakes tail capped at 4×, replaces the raw term.
+* **P2 (deferred; its own experiment if P1 passes):** class tier move
+  (clipped ±3) plus P1. Overlaps the unpromoted Gap #11 Step 3 features.
+
+**Screen (not a retrain).** One-variable correction `y ~ offset(logit p_fund)
++ f(candidate)` fit on 2023-24, scored on 2025-26 (8,003 races). A correction
+cannot remove the existing raw term, so this under-states a replacement:
+
+| correction | log-loss Δ | top-pick ITM Δ | discordant up/down |
+|---|---|---|---|
+| raw refit | +0.8e-4 | +0.00pp | 8 / 8 |
+| P1 clipped log | +0.8e-4 | -0.12 | 66 / 76 |
+| P1 + >3x flag | -2.8e-4 | -0.17 | 83 / 97 |
+| capped pct | +0.7e-4 | -0.19 | 56 / 71 |
+| P2 tier move + log | -0.3e-4 | +0.39 (p≈0.045) | 128 / 97 |
+| free bins (upper bound) | **-5.7e-4** | +0.32 (p≈0.16) | 185 / 159 |
+
+Expect the main gain in calibration, not ranking. Measuring P1 with top-pick
+ITM alone would likely read it as null (see Gap #8's warning).
+
+### What happens next
+
+Retrain ablation, rules committed before any arm trains:
+`scripts_dpv1/_purse15/RULES.md` and `_purse15/eval_purse15.py`. Arm (a)
+corpus cleanup only, arm (b) cleanup + P1, arm (a2) determinism re-run of
+(a), compared with each other and with live on the same held-out rows and
+cleaned labels. Live model unchanged.
