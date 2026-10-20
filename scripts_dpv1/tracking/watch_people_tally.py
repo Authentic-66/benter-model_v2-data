@@ -17,6 +17,10 @@ meet, and every DED result in the DB):
   got. ITM well above the summed P(ITM) means the model under-rated their
   horses; ITM near it means they stand out on form the model already sees.
 
+Results are graded on ``official_finish_pos`` (the order the tote paid on,
+PHASE_6E #14 C), and non-betting starters are left out, as in
+``score_predictions``.
+
 Only logged runs are used for the model comparison: they are out of sample
 and are the record. Older DED charts were in the training data, so a
 re-score of them would flatter the model. That sample is small for now
@@ -68,7 +72,7 @@ def tally(db: str | Path) -> list[dict]:
     logged = record_runs()
     with sqlite3.connect(f"file:{db}?mode=ro", uri=True) as conn:
         rows = conn.execute("""
-            SELECT d.race_date, r.race_num, e.program_num, e.finish_pos,
+            SELECT d.race_date, r.race_num, e.program_num, e.official_finish_pos,
                    e.finish_status, e.win_payout, tr.name, j.name
             FROM entries e
             JOIN races r ON r.id = e.race_id
@@ -76,7 +80,8 @@ def tally(db: str | Path) -> list[dict]:
             JOIN tracks t ON t.id = d.track_id
             LEFT JOIN trainers tr ON tr.id = e.trainer_id
             LEFT JOIN jockeys j ON j.id = e.jockey_id
-            WHERE t.code = ? AND e.finish_status IS NOT NULL""", (TRACK,)).fetchall()
+            WHERE t.code = ? AND e.finish_status IS NOT NULL
+              AND e.non_betting = 0""", (TRACK,)).fetchall()
     out = []
     for w in watch:
         col = 6 if w["type"] == "trainer" else 7
