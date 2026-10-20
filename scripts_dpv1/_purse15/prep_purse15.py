@@ -28,9 +28,10 @@ shutil.copyfile(A, B)
 c = sqlite3.connect(B)
 with c:
     c.execute("ALTER TABLE entry_features_dpv1 ADD COLUMN purse_logratio_clipped REAL")
-    rows = c.execute("SELECT entry_id, purse_change_from_last FROM entry_features_dpv1").fetchall()
-    vals = [(None if x is None else max(-CAP, min(CAP, math.log1p(x))), eid) for eid, x in rows]
-    c.executemany("UPDATE entry_features_dpv1 SET purse_logratio_clipped=? WHERE entry_id=?", vals)
+    # by rowid: entry_id has no index on this table, so a WHERE entry_id update scans per row
+    rows = c.execute("SELECT rowid, purse_change_from_last FROM entry_features_dpv1").fetchall()
+    vals = [(None if x is None else max(-CAP, min(CAP, math.log1p(x))), rid) for rid, x in rows]
+    c.executemany("UPDATE entry_features_dpv1 SET purse_logratio_clipped=? WHERE rowid=?", vals)
 n, nn, lo, hi = c.execute("""SELECT count(*), count(purse_logratio_clipped), min(purse_logratio_clipped),
                               max(purse_logratio_clipped) FROM entry_features_dpv1""").fetchone()
 raw_nn = c.execute("SELECT count(purse_change_from_last) FROM entry_features_dpv1").fetchone()[0]
