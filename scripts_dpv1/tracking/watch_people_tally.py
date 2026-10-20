@@ -46,7 +46,10 @@ LOG = HERE.parent / "logs" / "predictions.jsonl"
 OUT = HERE / "watch_people_tally.csv"
 TRACK = "DED"
 MEET_START = "2026-10-09"
-LIVE_MODEL = "dpv1.3.0-5track"
+# Every model that has been live during the meet. The cutover is by date
+# (dpv1.3.1-5track-clean from 2026-10-21, PHASE_6E), so a race is logged
+# under one of them; the tally pools the meet's record across both.
+LIVE_MODELS = ("dpv1.3.0-5track", "dpv1.3.1-5track-clean")
 
 
 def record_runs(path: Path = LOG) -> dict:
@@ -55,7 +58,7 @@ def record_runs(path: Path = LOG) -> dict:
     with open(path, encoding="utf-8") as fh:
         for line in fh:
             r = json.loads(line)
-            if r.get("track") == TRACK and r.get("model_version") == LIVE_MODEL:
+            if r.get("track") == TRACK and r.get("model_version") in LIVE_MODELS:
                 rows.append(r)
     latest: dict = {}
     for r in rows:

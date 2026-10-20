@@ -1,0 +1,26 @@
+=== PP reranker (live, applied) on PP-joinable held-out rows ===
+ base = live dpv1.3.0  (1,960 rows)
+  shipped, all common rows                     races   268  base  66.4%  reranked  70.5%   +4.1pp  (19/8, p 0.052)  log-loss -0.00539 (z -2.89)
+  shipped, its training period (in-sample)     races   259  base  66.8%  reranked  70.3%   +3.5pp  (17/8, p 0.108)  log-loss -0.00527 (z -2.77)
+  shipped, after its training (out-of-sample)  races     9  base  55.6%  reranked  77.8%  +22.2pp  (2/0, p 0.500)  log-loss -0.00940 (z -0.93)
+  5-fold race-grouped CV refit (offset)        races   268  base  66.4%  reranked  67.5%   +1.1pp  (15/12, p 0.701)  log-loss +0.00015 (z +0.07)
+ base = arm (a)  (1,960 rows)
+  shipped, all common rows                     races   268  base  66.0%  reranked  71.3%   +5.2pp  (20/6, p 0.009)  log-loss -0.00539 (z -2.89)
+  shipped, its training period (in-sample)     races   259  base  66.4%  reranked  71.0%   +4.6pp  (18/6, p 0.023)  log-loss -0.00527 (z -2.77)
+  shipped, after its training (out-of-sample)  races     9  base  55.6%  reranked  77.8%  +22.2pp  (2/0, p 0.500)  log-loss -0.00937 (z -0.93)
+  5-fold race-grouped CV refit (offset)        races   268  base  66.0%  reranked  68.7%   +2.6pp  (17/10, p 0.248)  log-loss +0.00001 (z +0.00)
+ base = arm (a), rows beyond live's fold window (after 2026-09-18; both out of sample): 500 rows, tracks ['CT', 'DED', 'GP']
+  shipped, post-9/18 PP cards                  races    61  base  44.3%  reranked  50.8%   +6.6pp  (6/2, p 0.289)  log-loss -0.00255 (z -0.67)
+     CT                                        races     8  base  50.0%  reranked  62.5%  +12.5pp  (1/0, p 1.000)  log-loss -0.00084 (z -0.15)
+     DED                                       races    44  base  40.9%  reranked  47.7%   +6.8pp  (5/2, p 0.453)  log-loss -0.00240 (z -0.54)
+     GP                                        races     9  base  55.6%  reranked  55.6%   +0.0pp  (0/0, p 1.000)  log-loss -0.00518 (z -0.35)
+
+=== classctx-reranker-0.1 (shadow, not applied live) ===
+ base = live dpv1.3.0  (137,094 rows)
+  shipped, all rows (non-DED in its training)  races 18220  base  64.6%  reranked  65.2%   +0.7pp  (639/517, p 0.000)  log-loss -0.00147 (z -10.37)
+  shipped, DED (out-of-sample)                 races  2249  base  63.0%  reranked  63.6%   +0.6pp  (91/77, p 0.316)  log-loss -0.00158 (z -3.76)
+  shipped, non-DED                             races 15971  base  64.8%  reranked  65.5%   +0.7pp  (548/440, p 0.001)  log-loss -0.00145 (z -9.67)
+ base = arm (a)  (137,094 rows)
+  shipped, all rows (non-DED in its training)  races 18220  base  64.8%  reranked  65.4%   +0.6pp  (647/535, p 0.001)  log-loss -0.00149 (z -10.56)
+  shipped, DED (out-of-sample)                 races  2249  base  63.3%  reranked  63.8%   +0.4pp  (93/83, p 0.498)  log-loss -0.00162 (z -3.87)
+  shipped, non-DED                             races 15971  base  65.0%  reranked  65.6%   +0.6pp  (554/452, p 0.001)  log-loss -0.00147 (z -9.84)

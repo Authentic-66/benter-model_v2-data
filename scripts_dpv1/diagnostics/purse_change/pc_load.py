@@ -29,7 +29,7 @@ def load():
     ent["tier"] = ent["race_type"].map(class_tier)
     ent["prev_tier"] = ent["prev_race_type"].map(class_tier)
     ent["recon_pct"] = (ent["purse"] - ent["prev_purse"]) / ent["prev_purse"]
-    oof = pd.read_csv(REPO / "scripts_dpv1/dpv1_fold_predictions.csv",
+    oof = pd.read_csv(REPO / "scripts_dpv1/dpv1_fold_predictions_dpv1.3.0.csv",
                       usecols=["entry_id", "y_true", "p_fund", "y_pred", "fold"])
     df = oof.merge(ent, on="entry_id", how="left")
     # card-style P(ITM): p_fund normalised to sum min(3, n) per race

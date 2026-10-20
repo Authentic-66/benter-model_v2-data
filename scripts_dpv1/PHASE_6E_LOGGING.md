@@ -1216,6 +1216,78 @@ reverting `f40d392` reinstates the hard-coded four-track dict, so DED, EVD, FG
 and LAD must be dropped from the database as well or the builder will silently
 produce the INT64_MIN values again on every non-GP/CT/MNR/ELP row.
 
+### Promotion decision, 2026-10-19: PROMOTED `dpv1.3.1-5track-clean`
+
+**Live from 2026-10-19 ~19:40 CDT. The first card it runs is Wednesday
+2026-10-21; every prediction from then on is tagged `dpv1.3.1-5track-clean`.
+The DED meet's record splits here:** 10/10-10/17 (six cards) under
+`dpv1.3.0-5track`, 10/21 onward under `dpv1.3.1-5track-clean`. Piece 3
+filters by `model_version`, so `model_health.py --model dpv1.3.1` opens a
+fresh window; `--model dpv1.3.0` keeps the old one. A window holding both is
+labelled MIXED.
+
+**What it is.** Arm (a) of the purse-change ablation (`_purse15/`, rules
+`40c0b6b`, results `c06a018`): live's 94 features, same code path, retrained
+on the cleaned corpus (#13 dead heats, #14 A/B/D DQs and dropped rows, the 35
+starters, the #15 DQ'd-winner labels, and every feature rebuild since
+2026-09-19). Installed byte-for-byte (the arm was trained with this version
+string; nothing rewritten). Arm (b), P1 purse representation, is HELD (see
+follow-up #16).
+
+**Evidence (vs `dpv1.3.0-5track` on the same 18,220 held-out races, cleaned
+labels):** top-pick ITM +0.23pp (64.56 → 64.79, 149/108, McNemar p 0.012),
+positive in 4/4 years, every track up or flat; fundamental log-loss z -9.15,
+blended z -5.77. Rules 1 and 2 PASS; Gate 0 determinism PASS.
+
+**Reranker check before installing (`_purse15/reranker_check.txt`).**
+* `pp-reranker-1.0` still helps on top of (a), at least as much as on 1.3.0:
+  shipped artifact on the 268 common PP races +5.2pp over (a) alone (20/6,
+  p 0.009) vs +4.1pp over 1.3.0 (19/8, p 0.052); its 5-fold race-grouped CV
+  refit +2.6pp vs +1.1pp (n.s. both); log-loss -0.0054 (z -2.89) on both
+  bases. 259 of those 268 races are its own training period, so read the
+  shipped numbers as relative only. Out of sample for both (61 PP races after
+  2026-09-18, CT/DED/GP): +6.6pp (6/2, p 0.29), log-loss slightly better.
+* `classctx-reranker-0.1` (shadow): +0.6pp over (a) (647/535, p 0.001),
+  log-loss z -10.56; DED (never in its training) +0.4pp, z -3.87. Same as on
+  1.3.0. Still shadow-only.
+
+**Artifacts and hashes (`_purse15/promotion_hashes.txt`).**
+
+| file | sha256 |
+|---|---|
+| `dpv1.pkl` (now dpv1.3.1-5track-clean, = `_purse15/dpv1_arm_a.pkl`) | `e639c86a…d281` |
+| `dpv1_20260919_040326_retired.pkl` (dpv1.3.0-5track, = old live) | `70b529db…7ff1` |
+| `dpv1_fold_predictions.csv` (now arm (a)'s folds) | `e27ae48b…561b` |
+| `dpv1_fold_predictions_dpv1.3.0.csv` (1.3.0's folds, frozen) | `e6473dd2…0092` |
+| `dpv1_pp_reranker.pkl`, `dpv1_classctx_reranker.pkl` | unchanged |
+
+The investigation and ablation scripts were pinned to the frozen 1.3.0
+files and re-run: identical output.
+
+**Smoke test.** `card_picks.py --track DED --date 2026-10-17 --pp-file
+ded1017y.pdf --save` into a scratch outdir and `--log-file`: all 10 races,
+84 rows, every row tagged `dpv1.3.1-5track-clean`, PP reranker applied on
+all 84, classctx shadow delta logged and not applied, coverage 54-100%
+(median 94%), no warnings. Live `predictions.jsonl` and
+`scored_predictions.jsonl` byte-identical before and after; `picks/`
+untouched. Top pick changed in R3 and R10; not a measurement: (a)'s final
+refit includes 10/17's results, and this is a post-scratch re-read (R10's
+1.3.0 pick scratched).
+
+**Also changed with the cutover.** `tracking/watch_people_tally.py` reads
+logged runs from both meet models (`LIVE_MODELS`), since it hard-coded 1.3.0.
+
+**Caveats.** The rerankers sit on the older fold basis (as at Stage 4); any
+reranker retrain now reads arm (a)'s folds. DED calibration on deciles is
+slightly worse than 1.3.0 (0.621 → 0.839; mean pred - actual +0.26 →
++0.35pp) while ranking and log-loss improve.
+
+**To roll back** (no DB change needed: both models read the same 94 columns
+of the current table):
+
+    copy scripts_dpv1\dpv1_20260919_040326_retired.pkl scripts_dpv1\dpv1.pkl
+    copy scripts_dpv1\dpv1_fold_predictions_dpv1.3.0.csv scripts_dpv1\dpv1_fold_predictions.csv
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
@@ -2214,6 +2286,29 @@ Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
       investigated.
     Scratch scripts: `cleanup_sim.py`, `relink.py`, `diff_cleanup*.py`,
     `scan_starters.py` (2026-10-16 scratchpad).
+
+16. **FOLLOW-UP (logged 2026-10-19, Doug: not now): pre-registered arm (b2),
+    a tighter cap on purse drops.** Arm (b) (P1 = ln purse ratio clipped at
+    ±ln 4) fixed most of the purse-change calibration error (bucket error
+    1.107 → 0.874pp, stakes tail +14.4 → +4.3pp, fund log-loss z -6.54) but
+    over-corrected big drops: ≤ -50% went from +1.55 to **-2.35pp (z -4.2)**,
+    because the log stretches drops (ln 0.25 = -1.39 against a raw -0.75).
+    Ranking effect nil (+0.06pp, p 0.70); DED -0.36pp n.s.
+    * **Candidate (b2):** asymmetric cap, e.g. clip(ln ratio, -ln 2, +ln 4),
+      so drops stop at -50% while rises keep the 4× ceiling. Alternatives to
+      weigh when it is written: -ln 1.5 floor; or P1 plus a separate drop
+      indicator.
+    * **Procedure, as for (b):** commit the rule file and evaluator first;
+      control = the then-live `dpv1.3.1-5track-clean` (arm (a)) on identical
+      held-out rows and cleaned labels; Gate 0 determinism; Rules 1-2; report
+      the purse-bucket table with the ≤ -50% bucket called out, fundamental
+      log-loss, and calibration error.
+    * **If promoted, it needs code:** `purse_logratio_clipped` (or the b2
+      name) in `feature_builder_dpv1.py`, the config, and
+      `pp_feature_bridge.py`, which bridges `purse_change_from_last` on live
+      cards; otherwise `dpv1_runtime._ensure_columns` feeds NaN.
+    * Artifacts to start from: `_purse15/` (`prep_purse15.py` makes the
+      column, `train_arm.py --p1` pins it).
 
 Related, already documented elsewhere and still open:
 

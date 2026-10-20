@@ -6,7 +6,7 @@ OUT = Path(__file__).resolve().parent / "out"
 OUT.mkdir(exist_ok=True)
 pd.set_option("display.width", 220)
 df = pd.read_pickle(OUT / "pc_df.pkl")
-m = pickle.load(open(r"D:\Benter Model_v2 Data\benter-model_v2-data\scripts_dpv1\dpv1.pkl", "rb"))
+m = pickle.load(open(r"D:\Benter Model_v2 Data\benter-model_v2-data\scripts_dpv1\dpv1_20260919_040326_retired.pkl", "rb"))
 pre = m.preprocessor
 names = m.fundamental.feature_names_ if hasattr(m.fundamental, "feature_names_") else None
 co = m.coefficients

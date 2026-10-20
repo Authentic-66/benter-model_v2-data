@@ -15,7 +15,8 @@ from dpv1_runtime import load_model
 
 db, model_out, fold_csv, version = sys.argv[1:5]
 p1 = "--p1" in sys.argv[5:]
-COLS = list(load_model(HERE / "dpv1.pkl").fund_cols)
+# dpv1.3.0 (live when the arms trained) defines the 94 pinned features
+COLS = list(load_model(HERE / "dpv1_20260919_040326_retired.pkl").fund_cols)
 assert len(COLS) == 94 and "purse_change_from_last" in COLS
 if p1:
     COLS = ["purse_logratio_clipped" if c == "purse_change_from_last" else c for c in COLS]

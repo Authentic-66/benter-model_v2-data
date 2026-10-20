@@ -6,7 +6,7 @@ sys.path[:0] = [str(D), str(D.parent / "scripts"), str(D.parent / "scripts_v2a")
 from pathlib import Path
 OUT = Path(__file__).resolve().parent / "out"
 OUT.mkdir(exist_ok=True)
-m = pickle.load(open(D / "dpv1.pkl", "rb")); k = "purse_change_from_last"
+m = pickle.load(open(D / "dpv1_20260919_040326_retired.pkl", "rb")); k = "purse_change_from_last"
 coef, mu, sd = m.coefficients[k], m.preprocessor.means[k], m.preprocessor.stds[k]
 sc = [json.loads(l) for l in open(D / "logs/scored_predictions.jsonl")]
 sc = [r for r in sc if r["track"] == "DED" and r["model_version"] == "dpv1.3.0-5track"]

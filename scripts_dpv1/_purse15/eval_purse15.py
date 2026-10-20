@@ -13,7 +13,7 @@ from scipy.stats import binomtest
 from sklearn.metrics import roc_auc_score
 
 HERE = Path(__file__).resolve().parent
-LIVE_FOLDS = HERE.parent / "dpv1_fold_predictions.csv"
+LIVE_FOLDS = HERE.parent / "dpv1_fold_predictions_dpv1.3.0.csv"  # live (dpv1.3.0) at evaluation time
 TRACKS = ["GP", "CT", "MNR", "ELP", "DED"]
 BINS = [-np.inf, -0.5, -0.3, -0.1, -1e-9, 1e-9, 0.1, 0.3, 0.6, 1.0, 3.0, np.inf]
 BLAB = ["<=-50%", "-50..-30", "-30..-10", "-10..0", "0", "0..+10", "+10..+30", "+30..+60",

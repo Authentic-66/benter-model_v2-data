@@ -65,3 +65,13 @@ Nothing promoted. What a promotion would involve, for Doug's call:
   (`dpv1_runtime._ensure_columns`).
 * Either resets the live record (Piece 3 filters by `model_version`); the
   rerankers sit on the old fold basis (Stage 4 caveat still applies).
+
+## Decision (Doug, 2026-10-19)
+
+**Arm (a) promoted** as `dpv1.3.1-5track-clean` after the reranker check
+(`reranker_check.txt`: PP reranker +5.2pp over (a) vs +4.1pp over 1.3.0 on
+the same 268 races; classctx shadow +0.6pp). Installed byte-for-byte; record
+in PHASE_6E "Promotion decision, 2026-10-19". **Arm (b) held**; asymmetric
+drop cap (b2) is PHASE_6E follow-up #16. Scripts here now read the frozen
+1.3.0 files (`dpv1_20260919_040326_retired.pkl`,
+`dpv1_fold_predictions_dpv1.3.0.csv`) and reproduce their outputs.

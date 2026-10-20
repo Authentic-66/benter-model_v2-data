@@ -7089,3 +7089,8 @@ comparisons pass Rules 1 and 2:
 Nothing promoted; live unchanged. If P1 is pursued, a tighter lower cap
 (e.g. -ln 2) would address the new big-drop error; that would be a new,
 separately pre-registered arm.
+
+**Decision (Doug, 2026-10-19): arm (a) PROMOTED as `dpv1.3.1-5track-clean`
+(PHASE_6E promotion record); arm (b) HELD.** The over-corrected big-drop
+bucket is the next step: a pre-registered arm (b2) with an asymmetric cap
+(PHASE_6E follow-up #16). P2 stays deferred.
