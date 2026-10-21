@@ -1,0 +1,43 @@
+ded1010y.pdf: 265 line pairs, 14 feature pairs so far
+ded1014y.pdf: 573 line pairs, 27 feature pairs so far
+ded1015y.pdf: 965 line pairs, 45 feature pairs so far
+ded1016y.pdf: 1387 line pairs, 62 feature pairs so far
+ded1017y.pdf: 1722 line pairs, 75 feature pairs so far
+ctx0619y.pdf: 2111 line pairs, 121 feature pairs so far
+ctx0620y.pdf: 2473 line pairs, 121 feature pairs so far
+ctx0625y.pdf: 2809 line pairs, 156 feature pairs so far
+ctx0828y.pdf: 3484 line pairs, 226 feature pairs so far
+ctx0829y.pdf: 3820 line pairs, 270 feature pairs so far
+ctx1001y.pdf: 4155 line pairs, 287 feature pairs so far
+gpx0619y.pdf: 4505 line pairs, 333 feature pairs so far
+gpx0620y.pdf: 4861 line pairs, 333 feature pairs so far
+gpx0621y.pdf: 5249 line pairs, 381 feature pairs so far
+gpx0626y.pdf: 5472 line pairs, 422 feature pairs so far
+gpx0904y.pdf: 5730 line pairs, 462 feature pairs so far
+gpx1002y.pdf: 6058 line pairs, 509 feature pairs so far
+evd0618y.pdf: 6421 line pairs, 556 feature pairs so far
+evd0620y.pdf: 6950 line pairs, 556 feature pairs so far
+evd0625y.pdf: 7403 line pairs, 611 feature pairs so far
+elp0822y.pdf: 7497 line pairs, 640 feature pairs so far
+elp0823y.pdf: 7596 line pairs, 677 feature pairs so far
+
+LINE LEVEL (PP race line vs chart of the same race), 1295 horses, 6990 races
+  BL stretch call  n=6,990  exact(<=0.01)  57.1%  <=0.25L  95.8%  <=1L 100.0%  median |diff| 0.00  corr 0.9996
+  BL finish        n=6,990  exact(<=0.01)  66.5%  <=0.25L  85.6%  <=1L 100.0%  median |diff| 0.00  corr 0.9997
+  gain             n=6,990  exact(<=0.01)  46.9%  <=0.25L  85.7%  <=1L 100.0%  median |diff| 0.05  corr 0.9991
+
+FEATURE LEVEL (today's value: PP most recent line vs charts), n=677
+  last_str_gain    n=  677  exact(<=0.01)  50.5%  <=0.25L  87.9%  <=1L 100.0%  median |diff| 0.00  corr 0.9989
+  padj (pooled pace) n=  677  exact(<=0.01)   5.8%  <=0.25L  75.6%  <=1L  96.6%  median |diff| 0.09  corr 0.9925
+  (padj from a PP line uses the pooled pace expectation; charts use the race's pace bucket, so padj can differ by design)
+
+largest line-level gain differences:
+        file           horse       date  pp_bl_str  ch_bl_str  pp_bl_fin  ch_bl_fin  pp_gain  ch_gain    d
+ctx0829y.pdf    honorthebull 2026-05-09      14.00       10.1      26.00      25.50   -12.00   -15.40 3.40
+ded1015y.pdf marriedformoney 2025-11-29       4.50        4.6       3.75       5.00     0.75    -0.40 1.15
+ctx0829y.pdf        slownomo 2025-10-04       7.75        7.7      20.00      20.85   -12.25   -13.15 0.90
+ctx1001y.pdf    suttonvalley 2025-09-13       9.75        9.7      20.00      20.85   -10.25   -11.15 0.90
+evd0620y.pdf            sono 2025-12-18       7.25        7.2      13.00      13.85    -5.75    -6.65 0.90
+ctx0829y.pdf      yorktavern 2026-03-04       5.75        5.7      13.00      13.85    -7.25    -8.15 0.90
+evd0625y.pdf         beleout 2026-02-05       4.25        4.2      12.00      12.85    -7.75    -8.65 0.90
+ded1015y.pdf   cfspuniestyle 2026-05-08       9.50        9.5      22.00      22.85   -12.50   -13.35 0.85
