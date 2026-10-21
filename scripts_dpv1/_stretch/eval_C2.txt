@@ -1,0 +1,55 @@
+=== C2: control folds_c0.csv -> candidate folds_s2.csv
+rows 139,440, races 18,542; labels from racing_s.db
+
+-- top-pick ITM (control, candidate, delta pp, discordant up/down, McNemar p)
+  GP                      7063    64.43%    64.83%   +0.40   136/108    0.084
+  CT                      4820    66.87%    66.83%   -0.04    71/73     0.934
+  MNR                     3321    65.82%    65.88%   +0.06    57/55     0.925
+  ELP                     1036    57.24%    57.14%   -0.10    13/14     1.000
+  DED                     2302    62.86%    62.68%   -0.17    44/48     0.755
+  ALL five tracks        18542    64.72%    64.84%   +0.12   321/298    0.377
+  year 2023               5225    64.38%    64.57%   +0.19   113/103    0.540
+  year 2024               4992    65.89%    65.89%   +0.00    83/83     1.000
+  year 2025               5056    64.72%    64.77%   +0.06    80/77     0.873
+  year 2026               3269    63.48%    63.78%   +0.31    45/35     0.314
+  track x year delta:
+    GP 2023 +0.49  2024 +0.11  2025 +0.46  2026 +0.58
+    CT 2023 -0.30  2024 +0.47  2025 -0.23  2026 -0.11
+    MNR 2023 +0.41  2024 -1.00  2025 +0.43  2026 +0.97
+    ELP 2023 -0.28  2024 +0.88  2025 -1.32  2026 +0.44
+    DED 2023 +0.28  2024 +0.00  2025 -0.60  2026 -0.65
+
+-- log-loss delta candidate - control (negative = candidate better), race-clustered z; AUC
+  GP          n  53,448  fund -0.00029 (z  -2.83)  blend -0.00002 (z  -2.24)  AUC 0.6972 -> 0.6977
+  CT          n  35,831  fund -0.00011 (z  -0.82)  blend -0.00004 (z  -3.19)  AUC 0.6998 -> 0.7000
+  MNR         n  23,155  fund -0.00011 (z  -0.65)  blend -0.00004 (z  -2.58)  AUC 0.6939 -> 0.6942
+  ELP         n   8,398  fund +0.00007 (z  +0.31)  blend -0.00001 (z  -0.57)  AUC 0.6591 -> 0.6592
+  DED         n  18,608  fund -0.00033 (z  -1.77)  blend -0.00004 (z  -2.26)  AUC 0.6909 -> 0.6914
+  year 2023   n  39,809  fund -0.00025 (z  -1.86)  blend -0.00004 (z  -2.81)  AUC 0.6915 -> 0.6920
+  year 2024   n  37,803  fund -0.00018 (z  -1.42)  blend -0.00005 (z  -3.13)  AUC 0.7033 -> 0.7036
+  year 2025   n  37,997  fund -0.00019 (z  -1.68)  blend -0.00002 (z  -2.37)  AUC 0.6961 -> 0.6963
+  year 2026   n  23,831  fund -0.00015 (z  -1.01)  blend -0.00002 (z  -1.62)  AUC 0.6873 -> 0.6876
+  ALL         n 139,440  fund -0.00020 (z  -3.03)  blend -0.00003 (z  -5.07)  AUC 0.6953 -> 0.6956
+
+-- calibration: weighted mean |error| pp, own deciles / fixed 0.1 bins; mean pred - actual (p_fund)
+  GP   control 0.720/0.774  candidate 0.706/0.766   mean pred-actual +0.72 -> +0.71
+  CT   control 1.244/1.253  candidate 1.118/1.249   mean pred-actual -0.55 -> -0.56
+  MNR  control 0.997/0.735  candidate 0.948/0.742   mean pred-actual -0.18 -> -0.17
+  ELP  control 2.542/2.058  candidate 2.251/2.288   mean pred-actual -0.19 -> -0.10
+  DED  control 0.703/0.515  candidate 0.692/0.468   mean pred-actual +0.31 -> +0.31
+  ALL  control 0.483/0.528  candidate 0.491/0.600   mean pred-actual +0.13 -> +0.13
+
+-- stretch-rank bucket table (last_str_gain_rank_pct) (actual - predicted p_fund, pp; z race-clustered)
+  bucket          n  actual  ctl pred ctl diff     z  cand pred cand diff     z
+  0 fastest   16214   0.489     0.458    +3.08  +8.8      0.471     +1.80  +5.1
+  (0,.25]     19251   0.465     0.457    +0.75  +2.4      0.465     -0.04  -0.1
+  (.25,.5]    26308   0.428     0.431    -0.27  -1.0      0.433     -0.45  -1.7
+  (.5,.75]    21336   0.381     0.392    -1.17  -4.0      0.388     -0.76  -2.6
+  (.75,1]     27900   0.320     0.333    -1.30  -5.4      0.325     -0.50  -2.1
+  NULL        28431   0.368     0.374    -0.53  -2.4      0.370     -0.18  -0.8
+  weighted mean |bucket error|: control 1.058pp -> candidate 0.552pp
+
+-- RULES (_stretch/RULES.md)
+  Rule 1: GP/CT/MNR >= -0.5pp True [('GP', 0.4), ('CT', -0.04), ('MNR', 0.06)]; every track >= -2pp True [('ELP', -0.1), ('DED', -0.17)]; pooled not sig. negative True (+0.124pp p=0.377)  -> PASS
+  Rule 2: pooled +0.124pp (>=0: True); positive years 3/4 [('2023', 0.19), ('2024', 0.0), ('2025', 0.06), ('2026', 0.31)]; fund log-loss -0.00020 (z -3.03)  -> PASS
+  C2: PASS

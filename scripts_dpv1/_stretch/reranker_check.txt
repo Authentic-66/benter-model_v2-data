@@ -1,0 +1,23 @@
+=== PP reranker (live, applied) on PP-joinable held-out rows ===
+ base = live dpv1.3.1 (c0)  (2,460 rows)
+  shipped, all common rows                     races   329  base  62.0%  reranked  67.5%   +5.5pp  (26/8, p 0.003)  log-loss -0.00481 (z -2.88)
+  shipped, its training period (in-sample)     races   259  base  66.4%  reranked  71.0%   +4.6pp  (18/6, p 0.023)  log-loss -0.00527 (z -2.77)
+  shipped, after its training (out-of-sample)  races    70  base  45.7%  reranked  54.3%   +8.6pp  (8/2, p 0.109)  log-loss -0.00327 (z -0.92)
+  5-fold race-grouped CV refit (offset)        races   329  base  62.0%  reranked  65.7%   +3.6pp  (22/10, p 0.050)  log-loss +0.00009 (z +0.05)
+ base = arm s1  (2,460 rows)
+  shipped, all common rows                     races   329  base  62.9%  reranked  68.1%   +5.2pp  (27/10, p 0.008)  log-loss -0.00455 (z -2.73)
+  shipped, its training period (in-sample)     races   259  base  66.0%  reranked  71.4%   +5.4pp  (21/7, p 0.013)  log-loss -0.00501 (z -2.63)
+  shipped, after its training (out-of-sample)  races    70  base  51.4%  reranked  55.7%   +4.3pp  (6/3, p 0.508)  log-loss -0.00297 (z -0.85)
+  5-fold race-grouped CV refit (offset)        races   329  base  62.9%  reranked  65.0%   +2.1pp  (17/10, p 0.248)  log-loss +0.00039 (z +0.22)
+ base = arm s1, rows beyond live's fold window (after 2026-09-18; both out of sample): 0 rows, tracks []
+  shipped, post-9/18 PP cards                  races     0  base   nan%  reranked   nan%   +nanpp  (0/0, p 1.000)  log-loss +nan (z +nan)
+
+=== classctx-reranker-0.1 (shadow, not applied live) ===
+ base = live dpv1.3.1 (c0)  (139,440 rows)
+  shipped, all rows (non-DED in its training)  races 18542  base  64.7%  reranked  65.4%   +0.6pp  (663/544, p 0.001)  log-loss -0.00149 (z -10.61)
+  shipped, DED (out-of-sample)                 races  2302  base  62.9%  reranked  63.4%   +0.5pp  (98/86, p 0.417)  log-loss -0.00162 (z -3.90)
+  shipped, non-DED                             races 16240  base  65.0%  reranked  65.6%   +0.7pp  (565/458, p 0.001)  log-loss -0.00147 (z -9.87)
+ base = arm s1  (139,440 rows)
+  shipped, all rows (non-DED in its training)  races 18542  base  65.2%  reranked  65.8%   +0.6pp  (657/542, p 0.001)  log-loss -0.00148 (z -10.55)
+  shipped, DED (out-of-sample)                 races  2302  base  63.5%  reranked  63.6%   +0.1pp  (83/80, p 0.876)  log-loss -0.00162 (z -3.90)
+  shipped, non-DED                             races 16240  base  65.4%  reranked  66.1%   +0.7pp  (574/462, p 0.001)  log-loss -0.00145 (z -9.80)

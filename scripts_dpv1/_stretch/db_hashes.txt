@@ -1,0 +1,6 @@
+live   3ad2c0891e2bab5360d7a5e2b307a4f3ae3f238125617fd1831cd0be460df881
+s      a929f9397bf350eaf0de11c4ef000c7ab08061afe955b2357578066937b7dc02
+last_str_gain: 318797 rows, 241917 non-null, range [-15.0000, 15.0000]
+last_str_gain_rank_pct: 318797 rows, 241917 non-null, range [0.0000, 1.0000]
+last_str_gain_padj: 318797 rows, 241917 non-null, range [-15.0000, 15.0000]
+last_str_gain_padj_rank_pct: 318797 rows, 241917 non-null, range [0.0000, 1.0000]

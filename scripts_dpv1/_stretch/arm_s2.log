@@ -1,0 +1,11 @@
+2026-10-21 14:49:33,177 [INFO] arm s2 (dpv1.3.1-stretch-s2): 96 features on _stretch/racing_s.db
+2026-10-21 14:49:49,348 [INFO] dropping 73 entries in 8 unrun races: [datetime.date(2026, 10, 21)]
+2026-10-21 14:49:49,995 [INFO] corpus=['GP', 'CT', 'MNR', 'ELP', 'DED']  train_on=['GP', 'CT', 'MNR', 'ELP', 'DED']
+2026-10-21 14:49:50,019 [INFO] best combo from grid: half_life=2.50y l2=0.001
+2026-10-21 14:49:54,524 [INFO]   fold_val2023: n=40034 alpha=0.0832 beta=0.8024 gamma=-0.0417
+2026-10-21 14:50:02,313 [INFO]   fold_val2024: n=38052 alpha=0.1353 beta=0.7653 gamma=-0.0330
+2026-10-21 14:50:12,407 [INFO]   fold_val2025: n=38204 alpha=0.0753 beta=0.7818 gamma=-0.0474
+2026-10-21 14:50:25,478 [INFO]   fold_val2026: n=23982 alpha=0.0723 beta=0.7644 gamma=-0.0481
+2026-10-21 14:50:26,699 [INFO] wrote _stretch/folds_s2.csv (140272 val entries)
+2026-10-21 14:50:40,356 [INFO] wrote _stretch/dpv1_arm_s2.pkl
+2026-10-21 14:50:40,356 [INFO] blend: alpha=0.1044 beta=0.7733 gamma=-0.0382
