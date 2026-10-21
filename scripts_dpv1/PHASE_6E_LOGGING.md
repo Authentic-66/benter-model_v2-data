@@ -1288,6 +1288,58 @@ of the current table):
     copy scripts_dpv1\dpv1_20260919_040326_retired.pkl scripts_dpv1\dpv1.pkl
     copy scripts_dpv1\dpv1_fold_predictions_dpv1.3.0.csv scripts_dpv1\dpv1_fold_predictions.csv
 
+### PP purse bug: claiming races loaded with the claim price as purse (fixed 2026-10-21)
+
+**What was wrong.** `load_pp_card.parse_purse` never read the race header's
+"Purse $X". It took a `NNk` token from the conditions, else the parser's
+`class_money`, and in claiming, maiden-claiming, starter and optional-claiming
+races `class_money` is the claim/condition number. So "Clm 5000n2L" with a
+$14,000 purse loaded as `races.purse = 5000`; MC 50000 for $39,000 loaded as
+50000. Allowance, MSW and stakes races were right. The chart load later
+overwrote the purse with the correct value, so the corpus and the training
+data were never affected: the wrong purse existed only on the pre-race card,
+in the features the model scored live.
+
+**What it changed at scoring time.** `purse_change_from_last` and the
+non-claiming `class_score` offset (log purse), with everything derived from
+them (`class_score_change_from_last`, `class_change_from_last`,
+`class_drop_signed`, `last_class_move_clipped`, `trainer_dropping_class_win_pct`
+gating). In a claiming race the whole field showed a fake purse drop of
+roughly 55-95%, so mostly a race-level (calibration) shift, but not exactly
+constant within a race: each horse's drop depends on its own last purse.
+
+**Earlier PP-loaded cards ran with wrong purses in their claiming races.**
+The purse call is unchanged since `load_pp_card.py` was added (`3f25844`,
+2026-08-21), so treat every logged GP, CT and DED card as affected, including
+the whole DED meet through the 09:35 10/21 run; only the eight cards below
+were re-parsed and verified. Re-parsed for the regression: CT 10/1 (5 races), GP 10/2 (4), DED 10/10 (2), 10/14 (4),
+10/15 (5), 10/16 (5), 10/17 (5), 10/21 (6 purses + R7 race type). After the
+fix, every PP-loaded purse equals the chart purse on all 57 races with a
+chart, and nothing else in `build_card` output moved. **Old cards are NOT
+re-logged:** their logged predictions stay the predictions of record, read
+with this caveat.
+
+**The purse investigation's DED-log part may be affected.** Section 3 of
+PHASE_6D_ROADMAP "`purse_change_from_last` representation" (`pc3_ded_cards.py`:
+31 logged DED horses whose largest negative reason was purse change, ITM 11
+vs 6.6 expected) was computed from card reasons on these cards. Their
+purse-change contributions, and which horses were selected, came from the
+wrong claiming-race purses. Read that result as unreliable. The corpus
+parts (sections 1, 2, 4) and the retrain ablation used chart purses and are
+not affected.
+
+**Also fixed:** PP class token `RHP` (ratings handicap, "RHP 65-85") now maps
+to `Ratings Handicap`, the chart spelling, which the class ladder already puts
+at the HANDICAP tier. Before, race_type was NULL and the class features were
+blank for the race (DED 10/21 R7).
+
+**Re-run.** DED 10/21 re-logged at 10:25 (still pre-race), superseding the
+09:35 run as the record. Per-race max |ΔP(ITM)|: R1 3.8, R2 1.4, R3 1.9, R4 0
+(purse was right), R5 0.4, R6 3.4, R7 4.2, R8 1.1pp. One top-4 change: R2
+#4 Emily's Boy and #7 Prince Perfecta swap 3rd/4th. Historical feature rows
+hash-identical before and after the rebuild. Backup
+`racing_full.db.pre-ppfix1021.bak`.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
