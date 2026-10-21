@@ -9,6 +9,7 @@ tests = [
     ("™Autumn50K 4½ Furlongs 3&up, F & M",          "STAKES"),
     ("Alw 34100n2L 6½ Furlongs",                    "ALLOWANCE"),
     ("MC 12500 5 Furlongs",                         "MAIDENCLAIMING"),
+    ("™RHP 65-85 5 Furlongs 3&up, F & M",            "Ratings Handicap"),
 ]
 for cond, want in tests:
     got = parse_race_type(cond)

@@ -124,6 +124,9 @@ RACE_TYPE_TOKENS: list[tuple[str, str]] = [
     ("ALW", "ALLOWANCE"),
     ("STK", "STAKES"),
     ("HCP", "HANDICAP"),
+    # Ratings handicap ("RHP 65-85"). The charts spell it "Ratings Handicap",
+    # which the class ladder already places at the HANDICAP tier.
+    ("RHP", "Ratings Handicap"),
     ("SOC", "STARTEROPTIONALCLAIMING"),
     ("STR", "STARTERALLOWANCE"),
     ("WCL", "WAIVERCLAIMING"),
@@ -191,8 +194,18 @@ def parse_claiming_price(conditions: str, race_type: str | None) -> int | None:
     return int(m.group(1)) if m else None
 
 
-def parse_purse(conditions: str, fallback: float | None) -> int | None:
-    """Purse from a ``100k`` / ``175K`` / ``102000`` token, else the parser's."""
+def parse_purse(conditions: str, pp_purse: str | None,
+                fallback: float | None) -> int | None:
+    """Today's purse, matching the chart ``races.purse``.
+
+    First choice is the race header's own "Purse $14,000" (the parser keeps
+    it as ``purse``). Before 2026-10-21 this went straight to the
+    conditions token and then ``class_money``, which in claiming and starter
+    races is the claim price ("Clm 5000n2L" -> $5,000), not the purse.
+    """
+    m = re.search(r"\$?([\d,]+)", pp_purse or "")
+    if m and m.group(1).replace(",", "").isdigit():
+        return int(m.group(1).replace(",", ""))
     if conditions:
         m = re.search(r"(\d+(?:\.\d+)?)\s*[kK]\b", conditions)
         if m:
@@ -301,7 +314,7 @@ def build_card(pdf: str | Path, track_code: str | None = None) -> dict:
             "surface": surface_from_conditions(cond, rc.get("surface")),
             "distance_yards": yards,
             "distance_furlongs": furlongs,
-            "purse": parse_purse(cond, rc.get("class_money")),
+            "purse": parse_purse(cond, rc.get("purse"), rc.get("class_money")),
             "claiming_price": parse_claiming_price(cond, race_type),
             "horses": rc.get("horses", []),
         })
