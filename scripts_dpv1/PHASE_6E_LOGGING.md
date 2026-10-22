@@ -598,6 +598,8 @@ All files are in `scripts_dpv1/tracking/`. None of them feeds the model.
 | `don_bets.csv` | Don's Pick of Destiny (POD) and Pick 4 part wheels. At DED, EP4 = R2–R5 and LP4 = R5–R8; on 10/15 the legs matched his race picks | as he publishes them |
 | `watch_list.csv` + `check_watch_list.py` | watch-list horses, trainers and jockeys; the script lists every race with one | after each PP card load |
 | `watch_people_tally.py` → `watch_people_tally.csv` | DED tally for watch-list trainers and jockeys, see below | after each results load |
+| `doug_picks.csv` (added 2026-10-22) | Doug's own picks, up to four per race (blank = "Pick 'em"); third benchmark beside the model and Don. Made on race day with scratches and odds known, unlike Don's and the model's. Scratched picks drop; no alt | as Doug sends them |
+| `doug_bets.csv` | Doug's own bets (`note` column; amount "unknown" until TwinSpires history is added) | as Doug sends them |
 | `DED_<date>_review.md` | card review: model vs result vs Don | after each results load |
 
 * **People matching:** last name plus first name, and the middle initial only
