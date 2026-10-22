@@ -1,6 +1,6 @@
 """Train one arm of the stretch-run ablation. See RULES.md.
 
-    PYTHONHASHSEED=0 python _stretch/train_arm.py <c0|s1|s2> <db> <model_out> <fold_csv>
+    PYTHONHASHSEED=0 python _stretch/train_arm.py <c0|s1|s2> <db> <model_out> <fold_csv> [version]
 
 Live dpv1.pkl's 94 fundamental features, pinned, plus the arm's two columns.
 Everything else is train_dpv1.cmd_final unchanged (five tracks, grid
@@ -24,6 +24,8 @@ BASE = list(load_model(HERE / "dpv1_20260919_040326_retired.pkl").fund_cols)
 assert len(BASE) == 94 and sorted(BASE) == sorted(live.fund_cols)
 COLS = BASE + EXTRA
 VERSION = live.version if arm == "c0" else f"dpv1.3.1-stretch-{arm}"
+if len(sys.argv) > 5:   # install build: same arm, its promotion name (2026-10-21)
+    VERSION = sys.argv[5]
 _orig = train_dpv1.split_feature_columns
 def pinned(cols):
     fund, market = _orig(cols)

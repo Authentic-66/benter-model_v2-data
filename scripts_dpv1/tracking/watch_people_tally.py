@@ -47,9 +47,10 @@ OUT = HERE / "watch_people_tally.csv"
 TRACK = "DED"
 MEET_START = "2026-10-09"
 # Every model that has been live during the meet. The cutover is by date
-# (dpv1.3.1-5track-clean from 2026-10-21, PHASE_6E), so a race is logged
-# under one of them; the tally pools the meet's record across both.
-LIVE_MODELS = ("dpv1.3.0-5track", "dpv1.3.1-5track-clean")
+# (dpv1.3.1-5track-clean for 2026-10-21 only, dpv1.3.2-5track-stretch from the
+# next card, PHASE_6E), so a race is logged
+# under one of them; the tally pools the meet's record across all of them.
+LIVE_MODELS = ("dpv1.3.0-5track", "dpv1.3.1-5track-clean", "dpv1.3.2-5track-stretch")
 
 
 def record_runs(path: Path = LOG) -> dict:
