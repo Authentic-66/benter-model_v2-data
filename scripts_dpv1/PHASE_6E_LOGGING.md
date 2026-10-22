@@ -1218,6 +1218,8 @@ produce the INT64_MIN values again on every non-GP/CT/MNR/ELP row.
 
 ### Promotion decision, 2026-10-19: PROMOTED `dpv1.3.1-5track-clean`
 
+*Superseded 2026-10-21 by `dpv1.3.2-5track-stretch` (below); 1.3.1 ran one card, DED 10/21.*
+
 **Live from 2026-10-19 ~19:40 CDT. The first card it runs is Wednesday
 2026-10-21; every prediction from then on is tagged `dpv1.3.1-5track-clean`.
 The DED meet's record splits here:** 10/10-10/17 (six cards) under
@@ -1339,6 +1341,80 @@ blank for the race (DED 10/21 R7).
 #4 Emily's Boy and #7 Prince Perfecta swap 3rd/4th. Historical feature rows
 hash-identical before and after the rebuild. Backup
 `racing_full.db.pre-ppfix1021.bak`.
+
+### Promotion decision, 2026-10-21: PROMOTED `dpv1.3.2-5track-stretch`
+
+**Approved by Doug 2026-10-21; installed ~20:35 CDT, after the DED 10/21
+card had run. Cutover: `dpv1.3.1-5track-clean` covers DED 10/21 only (its
+one card, logged 10:25 after the purse fix); `dpv1.3.2-5track-stretch`
+starts with the next card. Every prediction carries its `model_version`, so
+`model_health.py --model dpv1.3.2` opens a fresh window and `--model
+dpv1.3.1` holds the single 10/21 card.** The DED meet record is now split
+three ways: 10/10-10/17 on 1.3.0, 10/21 on 1.3.1, the rest on 1.3.2.
+
+**What it is.** Arm s1 of the stretch-run ablation (`_stretch/`, rules
+`a62eabe` before training, results `6bb9c3c`): live 1.3.1's 94 features plus
+`last_str_gain` (lengths gained from the stretch call to the finish in the
+previous corpus race, clipped +-15) and `last_str_gain_rank_pct` (its rank
+in that field, 0 = best). Definition: `scripts_dpv1/stretch_run.py`.
+
+**Evidence (vs 1.3.1 on the same 18,542 held-out races):** top-pick ITM
++0.49pp (64.72 -> 65.20, 501/411, McNemar p 0.003), positive in 4/4 years
+and on every track but ELP (0.00); fundamental log-loss z -6.18, blended
+z -5.90. Horses with last race's fastest stretch run go from +3.08pp
+under-predicted to +0.82pp. Overall own-decile calibration slightly worse
+(0.483 -> 0.547pp). The pace-adjusted arm s2 passed only marginally and
+lost to s1 head to head (p 0.005). Both rerankers still help on top of s1
+(`_stretch/reranker_check.txt`).
+
+**Live path (`d61ef0d`).** `feature_builder_dpv1` computes the two columns
+via `stretch_run.compute_for_builder` (config `dpv1.5.5`, 125 active).
+Verified after a full rebuild on the live DB: both columns identical to the
+ablation table `_stretch/racing_s.db` on all 318,797 rows; the other 130
+columns unchanged vs the backup. **Never bridged** (Doug): a PP line gives
+the gain but not the rank, and in training both are NULL together, so a
+horse with no previous charted race keeps both NULL
+(`pp_feature_bridge.NEVER_BRIDGED`, asserted disjoint from `BRIDGEABLE`).
+Also NULL, as in training, when the previous race's stretch and finish
+calls cannot be read for the whole field (about 9% of charted races).
+
+**Install.** s1 retrained under its promotion name (training is
+deterministic, Gate 0): folds md5 `a2ef4cc6…` and coefficients identical to
+the evaluated arm, only the version string differs. Installed byte-for-byte
+from `_stretch/dpv1_s1_install.pkl`.
+
+| file | sha256 |
+|---|---|
+| `dpv1.pkl` (now dpv1.3.2-5track-stretch) | `33bfb329…a918` |
+| `dpv1_20261019_191513_retired.pkl` (dpv1.3.1-5track-clean, = old live) | `e639c86a…d281` |
+| `dpv1_fold_predictions.csv` (now s1's folds) | `cef3d28f…9926` |
+| `dpv1_fold_predictions_dpv1.3.1.csv` (1.3.1's folds, frozen) | `e27ae48b…561b` |
+| `dpv1_pp_reranker.pkl`, `dpv1_classctx_reranker.pkl` | unchanged |
+
+Full hashes: `_stretch/promotion_hashes.txt`. DB backup before the feature
+rebuild: `racing_full.db.pre-stretch132.bak` (sha256 `3ad2c089…f881`).
+
+**Smoke test.** `card_picks.py --track DED --date 2026-10-21 --pp-file
+ded1021y.pdf --save` into a scratch outdir and `--log-file`, first with
+`--model _stretch/dpv1_s1_install.pkl`, then with the installed default:
+8 races, 73 rows, all tagged `dpv1.3.2-5track-stretch`, identical P(ITM)
+between the two runs, no warnings (R5 is the usual under-60% race). After
+the bridge: 51 horses with DB history have both columns; the 17 with no DB
+history have neither (the bridge changed 0 values); 5 with history are NULL
+because their previous race's calls were unreadable for the field. Live
+`predictions.jsonl` and `scored_predictions.jsonl` byte-identical before
+and after; `picks/` untouched.
+
+**Also changed.** `tracking/watch_people_tally.py` `LIVE_MODELS` includes
+1.3.2. `_stretch/train_arm.py` takes an optional version (the install build)
+and still asserts the live model is 1.3.1, so it will not rerun as-is now;
+it is a record of the ablation.
+
+**To roll back** (no DB change needed: 1.3.1 reads 94 of the table's
+columns and ignores the two stretch columns):
+
+    copy scripts_dpv1\dpv1_20261019_191513_retired.pkl scripts_dpv1\dpv1.pkl
+    copy scripts_dpv1\dpv1_fold_predictions_dpv1.3.1.csv scripts_dpv1\dpv1_fold_predictions.csv
 
 ### Follow-ups, not started
 
