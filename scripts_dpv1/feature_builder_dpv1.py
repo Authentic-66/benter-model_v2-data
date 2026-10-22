@@ -361,6 +361,17 @@ def build_features(conn: sqlite3.Connection, cfg: dict) -> pd.DataFrame:
         if len(result.columns) > 1:
             frames.append(result)
 
+    # Stretch run (dpv1.5.5): needs race-level call labels the raw frame does
+    # not carry, so it reads the DB through stretch_run.py, the definition
+    # the dpv1.3.2 ablation table was built from.
+    import stretch_run
+    t0 = time.perf_counter()
+    result = stretch_run.compute_for_builder(conn, active)
+    if len(result.columns) > 1:
+        log.info("  [dpv1 stretch_run] %d cols in %.1fs",
+                 len(result.columns) - 1, time.perf_counter() - t0)
+        frames.append(result)
+
     # Phase 3C builders, gated by the DPv1 config's "active" flags.
     for b, fn in V1_BUCKETS.items():
         if not any(cfg["features"][k]["bucket"] == b for k in active

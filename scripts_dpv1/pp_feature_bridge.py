@@ -256,6 +256,12 @@ BRIDGEABLE: tuple[str, ...] = (
     "surface_change_from_last_race",
 )
 
+# Never filled from a PP line (Doug 2026-10-21). A PP line gives the stretch
+# gain but never the field rank; in training both are NULL together for a
+# horse with no previous charted race, so a shipper keeps both NULL here.
+NEVER_BRIDGED: tuple[str, ...] = ("last_str_gain", "last_str_gain_rank_pct")
+assert not set(NEVER_BRIDGED) & set(BRIDGEABLE), "stretch columns must not be bridged"
+
 
 # ---------------------------------------------------------------------------
 # Applying it to a frame

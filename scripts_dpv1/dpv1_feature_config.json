@@ -1,5 +1,5 @@
 {
-  "version": "dpv1.5.4",
+  "version": "dpv1.5.5",
   "generated": "2026-08-03",
   "generated_by": "scripts_dpv1/build_dpv1_config.py + scripts_dpv1/add_pp_bucket9.py",
   "source_ranking": "DPv1_Feature_Ranking.xlsx",
@@ -25,7 +25,8 @@
     "pp_ml_decimal is bucket 9, not bucket 7, and anchor=false. The v1",
     "  model's log_ml anchor (~40% of the prediction) is NOT ported.",
     "dpv1.4.0 (2026-09-12): adds 8 class-context features from Phase 6D Gaps #10/#11 (new_features/class_context_features.py).",
-    "dpv1.5.4 (2026-09-18): expected_pace_shape deactivated as a duplicate of pace_pressure_in_race (Gap #2). 123 active. Config 5.3 is skipped because 'dpv1.5.3-4track-g4fix' already names a model built on config 5.2."
+    "dpv1.5.4 (2026-09-18): expected_pace_shape deactivated as a duplicate of pace_pressure_in_race (Gap #2). 123 active. Config 5.3 is skipped because 'dpv1.5.3-4track-g4fix' already names a model built on config 5.2.",
+    "dpv1.5.5 (2026-10-21): adds last_str_gain and last_str_gain_rank_pct (stretch_run.py), for model dpv1.3.2-5track-stretch. 125 active."
   ],
   "activation_policy": {
     "rank_1": "active",
@@ -49,7 +50,7 @@
       "5": 2
     },
     "dpv1_additions": 14,
-    "active_total": 121,
+    "active_total": 125,
     "blocked_rank_1_2": [
       "recent_bullet_workout"
     ],
@@ -3490,6 +3491,30 @@
       "phase3c_status": "NEW",
       "v2_active": "NO",
       "implemented": true
+    },
+    "last_str_gain": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "doug_rank": 1,
+      "doug_notes": "Doug 2026-10-21: stretch-run idea; ablation _stretch/ (C1 PASS), approved for dpv1.3.2. Computed by scripts_dpv1/stretch_run.py from charts; never bridged from PP.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true,
+      "description": "Lengths gained (+) or lost (-) from the stretch call to the finish in the previous corpus race, clipped +-15. NULL with no previous charted race."
+    },
+    "last_str_gain_rank_pct": {
+      "active": true,
+      "bucket": 3,
+      "bucket_name": "Recent Form",
+      "type": "numeric",
+      "doug_rank": 1,
+      "doug_notes": "Doug 2026-10-21: stretch-run idea; ablation _stretch/ (C1 PASS), approved for dpv1.3.2. Computed by scripts_dpv1/stretch_run.py from charts; never bridged from PP.",
+      "phase3c_status": "NEW",
+      "v2_active": "NO",
+      "implemented": true,
+      "description": "Rank of that stretch gain in its field, (rank-1)/(n-1): 0 = best stretch run, 1 = worst. NULL as above."
     }
   }
 }

@@ -289,6 +289,21 @@ def last_race_features(conn) -> pd.DataFrame:
     return f
 
 
+# Columns the live model uses (dpv1.3.2-5track-stretch). The padj pair stays
+# research-only. Never bridged from a PP line (Doug 2026-10-21): a horse with
+# no previous charted race keeps both NULL, exactly as in training.
+LIVE_FEATURES = ["last_str_gain", "last_str_gain_rank_pct"]
+
+
+def compute_for_builder(conn, active: set) -> pd.DataFrame:
+    """feature_builder_dpv1 hook: entry_id + the active stretch columns,
+    from the same last_race_features() that built the ablation table."""
+    cols = [c for c in FEATURES if c in active]
+    if not cols:
+        return pd.DataFrame(columns=["entry_id"])
+    return last_race_features(conn)[["entry_id"] + cols]
+
+
 # ---------------------------------------------------------------------------
 # PP side
 # ---------------------------------------------------------------------------

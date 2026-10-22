@@ -112,6 +112,8 @@ PLAIN_LABELS: dict[str, str] = {
     # The old "closeness to winner" label read backwards (PHASE_6E #9/#10).
     "last_race_beaten_lengths": "margin over next finisher (last race)",
     "last_race_finish_pos": "finish placement (last race)",
+    "last_str_gain": "stretch run last race (lengths gained)",
+    "last_str_gain_rank_pct": "stretch-run rank last race",
     "last_race_won": "won last race",
     "last_3_avg_finish": "avg finish placement (last 3)",
     "last_race_troubled_trip": "trouble in last trip",
