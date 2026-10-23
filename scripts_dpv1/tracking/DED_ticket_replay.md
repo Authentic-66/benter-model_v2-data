@@ -13,6 +13,8 @@
 source × card × bet). Re-run it after each card; it picks up every logged
 DED card with results. Re-run 2026-10-22 (evening) after the corpus Pick backfill:
 identical (the meet cards had been backfilled earlier the same day).
+Re-run 2026-10-23 with a new model line, **Win (top P(win))**: all 165 earlier
+rows unchanged.
 
 Pick 3/4/5 tickets use the pools each card actually ran: a Pick N is
 graded only where the chart has a Pick N ending in that race (DED: Pick 3
@@ -49,7 +51,10 @@ from R3 on; Pick 4 and Pick 5 ending in R5 and the last race).
 * **Model record runs:** 10/10 and 10/14 were logged before the 10/15 PP
   fixes; 10/14 R1–R4 were logged after post. 1.3.0 ran 10/10–10/17, 1.3.1
   10/21, 1.3.2 10/22.
-* Rankings are by P(ITM), not P(win): the win bet is the P(ITM) #1.
+* Rankings are by P(ITM), not P(win): the win bet is the P(ITM) #1. Since
+  2026-10-23 the model also has a **Win (top P(win))** line (see below). It is
+  an alternative to the Win line, not an extra bet, so it is left out of the
+  model's "all" totals.
 * The 10/22 late Pick 4/5 rows exist only since the parser fix (`1c9fe65`).
 
 ## By source (each over its own cards)
@@ -59,6 +64,7 @@ from R3 on; Pick 4 and Pick 5 ending in R5 and the last race).
 | bet | tickets | hits | cost | return | ROI |
 |---|---|---|---|---|---|
 | Win | 60 | 18 | $120.00 | $116.00 | -3.3% |
+| Win (top P(win)) *alt* | 60 | 19 | $120.00 | $122.00 | +1.7% |
 | Exacta box 2 | 60 | 6 | $120.00 | $76.70 | -36.1% |
 | Trifecta box 3 | 60 | 3 | $180.00 | $53.10 | -70.5% |
 | Superfecta box 4 | 60 | 2 | $144.00 | $10.28 | -92.9% |
@@ -104,6 +110,20 @@ from R3 on; Pick 4 and Pick 5 ending in R5 and the last race).
 | Pick 5 (a) top 1 | 4 | 0 | $2.00 | $0.00 | -100.0% |
 | Pick 5 (b) top 2 | 4 | 0 | $48.00 | $0.00 | -100.0% |
 | **all** | 113 | 8 | $306.00 | $75.58 | -75.3% |
+
+## Win bet: top P(ITM) vs top P(win) (model, added 2026-10-23)
+
+The model's top P(win) horse was the same as its top P(ITM) horse in **59 of
+60 races**. The only difference was 10/15 R4: #3 Piastri P(ITM) 45.5% / P(win)
+15.8% vs #6 Easy Like Breezy 45.2% / 15.9%. Easy Like Breezy won ($6.00),
+Piastri ran 2nd. That one race is the whole gap (+1 hit, +$6.00; -3.3% →
++1.7% on 60 bets; 10/14–10/22 vs Don: 15/51, +0.2%).
+
+So the replay does **not** show that betting the most likely winner beats
+betting the top P(ITM): the two are nearly always the same horse, because
+P(win) and P(ITM) come out of the same model and rank almost identically. One
+race separated by 0.1pp of P(win) is a coin flip, not evidence. (DED 10/23:
+the same horse leads both in all 9 races.)
 
 ## Head to head on the same cards
 

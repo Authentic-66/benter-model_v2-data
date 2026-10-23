@@ -61,13 +61,16 @@ def model_picks():
         if k not in best or g > best[k][0]:
             best[k] = (g, {})
         if g == best[k][0]:
-            best[k][1][r["pgm"]] = r["p_itm"]
+            best[k][1][r["pgm"]] = (r["p_itm"], r["p_win"])
     out, unranked = {}, 0
     for k, (g, ps) in best.items():
         ran = runners.get(k, [])
-        ranked = sorted([p for p in ran if p in ps], key=lambda p: -ps[p])
+        ranked = sorted([p for p in ran if p in ps], key=lambda p: -ps[p][0])
         unranked += len([p for p in ran if p not in ps])
         out[k] = ranked
+        # Win bet on the most likely winner among horses that ran (ties: P(ITM) order).
+        if ranked:
+            TOP_PWIN[k] = max(ranked, key=lambda p: ps[p][1])
     return out, unranked, {k: v[0] for k, v in best.items()}
 
 def csv_picks(path, use_alt):
@@ -86,6 +89,7 @@ def csv_picks(path, use_alt):
         out[k] = keep
     return out
 
+TOP_PWIN = {}   # (date, race) -> model's top-P(win) pgm
 mp, unranked, runs = model_picks()
 SOURCES = {"Model": mp,
            "Don": csv_picks(f"{ROOT}/scripts_dpv1/tracking/don_picks.csv", True),
@@ -136,6 +140,10 @@ for src, P in SOURCES.items():
                 a = acc["Win"]; a[0] += 1; a[2] += 2.0
                 wp = win_pay.get((d, rn, top[0]), 0.0)
                 a[1] += wp > 0; a[3] += wp
+            if src == "Model" and (d, rn) in TOP_PWIN:
+                a = acc["Win (top P(win))"]; a[0] += 1; a[2] += 2.0
+                wp = win_pay.get((d, rn, TOP_PWIN[(d, rn)]), 0.0)
+                a[1] += wp > 0; a[3] += wp
             for name, n, w in (("Exacta box 2", 2, "Exacta"), ("Trifecta box 3", 3, "Trifecta"), ("Superfecta box 4", 4, "Superfecta")):
                 if len(top) < n or len(ran) < n:
                     skipped[(src, name)] += 1; continue
@@ -175,3 +183,5 @@ print("cards:", CARDS)
 print("record runs:", {k: v for k, v in sorted(runs.items()) if k[1] == 1})
 print("runners not in the model's log (ranked last, excluded):", unranked)
 print("skipped tickets:", dict(skipped))
+diff = sorted(k for k in TOP_PWIN if mp.get(k) and TOP_PWIN[k] != mp[k][0])
+print(f"model races where top P(win) != top P(ITM): {len(diff)}/{len(TOP_PWIN)}", diff)

@@ -1,5 +1,6 @@
 source,date,bet,tickets,hits,cost,ret
 Model,2026-10-10,Win,9,4,18.0,19.8
+Model,2026-10-10,Win (top P(win)),9,4,18.0,19.8
 Model,2026-10-10,Exacta box 2,9,2,18.0,33.1
 Model,2026-10-10,Trifecta box 3,9,0,27.0,0.0
 Model,2026-10-10,Superfecta box 4,9,1,21.6,9.34
@@ -11,6 +12,7 @@ Model,2026-10-10,Pick 4 (b) top 2,2,0,16.0,0.0
 Model,2026-10-10,Pick 5 (a) top 1,2,0,1.0,0.0
 Model,2026-10-10,Pick 5 (b) top 2,2,0,32.0,0.0
 Model,2026-10-14,Win,8,1,16.0,18.2
+Model,2026-10-14,Win (top P(win)),8,1,16.0,18.2
 Model,2026-10-14,Exacta box 2,8,0,16.0,0.0
 Model,2026-10-14,Trifecta box 3,8,0,24.0,0.0
 Model,2026-10-14,Superfecta box 4,8,0,19.2,0.0
@@ -22,6 +24,7 @@ Model,2026-10-14,Pick 4 (b) top 2,2,0,16.0,0.0
 Model,2026-10-14,Pick 5 (a) top 1,2,0,1.0,0.0
 Model,2026-10-14,Pick 5 (b) top 2,2,0,32.0,0.0
 Model,2026-10-15,Win,8,3,16.0,22.8
+Model,2026-10-15,Win (top P(win)),8,4,16.0,28.8
 Model,2026-10-15,Exacta box 2,8,2,16.0,24.5
 Model,2026-10-15,Trifecta box 3,8,0,24.0,0.0
 Model,2026-10-15,Superfecta box 4,8,0,19.2,0.0
@@ -33,6 +36,7 @@ Model,2026-10-15,Pick 4 (b) top 2,2,0,16.0,0.0
 Model,2026-10-15,Pick 5 (a) top 1,2,0,1.0,0.0
 Model,2026-10-15,Pick 5 (b) top 2,2,0,32.0,0.0
 Model,2026-10-16,Win,9,2,18.0,10.2
+Model,2026-10-16,Win (top P(win)),9,2,18.0,10.2
 Model,2026-10-16,Exacta box 2,9,0,18.0,0.0
 Model,2026-10-16,Trifecta box 3,9,0,27.0,0.0
 Model,2026-10-16,Superfecta box 4,9,0,21.6,0.0
@@ -44,6 +48,7 @@ Model,2026-10-16,Pick 4 (b) top 2,2,0,16.0,0.0
 Model,2026-10-16,Pick 5 (a) top 1,2,0,1.0,0.0
 Model,2026-10-16,Pick 5 (b) top 2,2,0,32.0,0.0
 Model,2026-10-17,Win,10,5,20.0,30.2
+Model,2026-10-17,Win (top P(win)),10,5,20.0,30.2
 Model,2026-10-17,Exacta box 2,10,1,20.0,12.0
 Model,2026-10-17,Trifecta box 3,10,1,30.0,19.25
 Model,2026-10-17,Superfecta box 4,10,1,24.0,0.94
@@ -55,6 +60,7 @@ Model,2026-10-17,Pick 4 (b) top 2,2,0,16.0,0.0
 Model,2026-10-17,Pick 5 (a) top 1,2,0,1.0,0.0
 Model,2026-10-17,Pick 5 (b) top 2,2,0,32.0,0.0
 Model,2026-10-21,Win,8,2,16.0,9.6
+Model,2026-10-21,Win (top P(win)),8,2,16.0,9.6
 Model,2026-10-21,Exacta box 2,8,1,16.0,7.1
 Model,2026-10-21,Trifecta box 3,8,1,24.0,20.4
 Model,2026-10-21,Superfecta box 4,8,0,19.2,0.0
@@ -66,6 +72,7 @@ Model,2026-10-21,Pick 4 (b) top 2,2,0,16.0,0.0
 Model,2026-10-21,Pick 5 (a) top 1,2,0,1.0,0.0
 Model,2026-10-21,Pick 5 (b) top 2,2,0,32.0,0.0
 Model,2026-10-22,Win,8,1,16.0,5.2
+Model,2026-10-22,Win (top P(win)),8,1,16.0,5.2
 Model,2026-10-22,Exacta box 2,8,0,16.0,0.0
 Model,2026-10-22,Trifecta box 3,8,1,24.0,13.45
 Model,2026-10-22,Superfecta box 4,8,0,19.2,0.0
