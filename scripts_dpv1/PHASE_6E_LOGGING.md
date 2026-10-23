@@ -1418,6 +1418,47 @@ columns and ignores the two stretch columns):
     copy scripts_dpv1\dpv1_20261019_191513_retired.pkl scripts_dpv1\dpv1.pkl
     copy scripts_dpv1\dpv1_fold_predictions_dpv1.3.1.csv scripts_dpv1\dpv1_fold_predictions.csv
 
+### Pick 3/4/5/6 payouts with scratch substitutes, fixed 2026-10-22
+
+**Symptom.** A multi-race payout whose leg lists alternatives (a scratch
+substitute, e.g. the DED 10/22 R8 Pick 4 `2-9-5/7-9`: 5 or 7 counted after
+#7 scratched) never reached `exotic_payouts`. First noticed on DED 10/15 and
+10/16; read by hand from the chart on 10/21 and 10/22.
+
+**Cause.** In `equibase_pdf_parser._parse_payouts` the line splitter
+already allowed `/`, but the exotic regex's `nums` group was
+`[\d\-A-Za-z()]`, so the whole row failed to match and was dropped without
+a warning. A second, smaller fault: a long ticket wraps its `(Ncorrect)`
+onto the next line (`...-5(4` + `correct)`, or `...-6/11` + `(5correct)`),
+which left `(5` on the numbers and no qualifier.
+
+**Fix.** `/` added to `nums`; the wrapped qualifier is rejoined from the
+next line. Before/after re-parse of 54 charts (all 38 DED 2026 charts, CT
+10/1-10/17, GP 4/10 and 10/1-10/18): 143 rows recovered, 1 existing row
+repaired (DED 1/24 R2 Pick 5 `3-6-ALL-ALL-ALL(5` -> qualifier `5correct`),
+0 rows lost, 0 differences outside the payout rows. Left as printed: GP's
+`$1 Place Pick8` numbers, which the chart itself cuts off (`...-4/`); the
+payoff and pool are right.
+
+**DB backfill (DED fall meet only).** Backup
+`scripts/racing_full.db.pre-pick4fix.bak` (sha256 `01466787…9a7f`, verified
+like the others). 24 rows inserted, insert-only, for 7 of the 8 meet cards
+(10/9, 10/10, 10/14, 10/15, 10/16, 10/21, 10/22; 10/17 had no
+substitutes); every existing row on those cards already equalled the new
+parse. `scripts/ct_cache/DED10*26USA.json` refreshed (the loader reuses a
+cached parse whenever the PDF hash matches, so a stale cache would undo the
+fix on a reload).
+
+**No model effect.** Pick rows are read by nothing that trains or grades:
+`payout_model` and `dpv1_metrics` filter to the ordered wagers, and the
+official-finish logic (#14 C) uses only Exacta/Trifecta/Superfecta/SHF.
+
+**Not done (Doug's call).** The rest of the corpus still lacks these rows
+(about 2-3 per affected card in the sample, across DED, CT and GP back
+years), and the other ~2,480 `ct_cache` files hold the old parse. Either
+re-parse those charts and insert the missing rows the same way, or leave
+them: no model input depends on them.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

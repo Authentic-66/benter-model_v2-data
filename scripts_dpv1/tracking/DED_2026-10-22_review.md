@@ -23,6 +23,9 @@ pre-race, bridged, 75 rows, commit `9522300`.
 * Pick 4s: the R5 Pick 4 (R2–R5) parsed, `1-1-6-2` $3,959.55. The R8 Pick 4
   (R5–R8) did not (scratch substitute `5/7` in R7): `2-9-5/7-9` paid $205.15
   per $0.50, taken from the chart text.
+  *Fixed 2026-10-22: the parser now reads these rows and they are
+  backfilled in the DB (PHASE_6E, "Pick 3/4/5/6 payouts with scratch
+  substitutes").*
 * The chart calls R5 a STARTER ALLOWANCE; the PP loader had it as
   ALLOWANCE ("Alw 5000s"). Not chased.
 * `score_predictions.py --track DED --date 2026-10-22`, official figures:

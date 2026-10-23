@@ -22,6 +22,9 @@ commit `66a94c9`, after the PP purse fix). It supersedes the 09:35 run.
 * **Pick 4 rows did not parse** (the known scratch-substitute gap): R5
   `5-5/6-1-2/4/8` paid $287.55 and R8 `2/4/8-7-1-1` paid $115.10 (both per
   $0.50). Taken from the chart text by hand below.
+  *Fixed 2026-10-22: the parser now reads these rows and they are
+  backfilled in the DB (PHASE_6E, "Pick 3/4/5/6 payouts with scratch
+  substitutes").*
 * `score_predictions.py --track DED --date 2026-10-21`, official figures:
   * The logged top pick was ITM in 4 of 8 and won 2 of 8.
   * Top-pick show ROI was −8.1% ($14.70 back on $16).

@@ -1023,7 +1023,8 @@ def _parse_payouts_block(text: str) -> tuple[list[dict[str, Any]], list[dict[str
     money_columns = m.group("cols").split()
     block = m.group("block")
 
-    for raw_line in block.splitlines():
+    block_lines = block.splitlines()
+    for li, raw_line in enumerate(block_lines):
         line = raw_line.strip()
         if not line:
             continue
@@ -1066,8 +1067,10 @@ def _parse_payouts_block(text: str) -> tuple[list[dict[str, Any]], list[dict[str
 
         if right:
             # Right-side exotic: `$<base><Name> <numbers> <payoff> <pool> [carryover]`
+            # `/` in the numbers = alternatives in one leg, e.g. a Pick 4
+            # `2-9-5/7-9` where a scratch substitute made 5 or 7 count.
             rm = re.match(
-                r"\$(?P<base>[\d.]+)(?P<name>[A-Za-z][A-Za-z0-9\-\s/]*?)\s+(?P<nums>[\d\-A-Za-z()]+?)\s+(?P<payoff>[\d,]+(?:\.\d+)?)(?:\s+(?P<pool>[\d,]+))?(?:\s+(?P<carry>[\d,]+))?\s*$",
+                r"\$(?P<base>[\d.]+)(?P<name>[A-Za-z][A-Za-z0-9\-\s/]*?)\s+(?P<nums>[\d\-A-Za-z()/]+?)\s+(?P<payoff>[\d,]+(?:\.\d+)?)(?:\s+(?P<pool>[\d,]+))?(?:\s+(?P<carry>[\d,]+))?\s*$",
                 right,
             )
             if rm:
@@ -1079,6 +1082,19 @@ def _parse_payouts_block(text: str) -> tuple[list[dict[str, Any]], list[dict[str
                 if qual_match:
                     qualifier = qual_match.group(1)
                     nums_raw = nums_raw[: qual_match.start()]
+                else:
+                    # A long ticket wraps its "(Ncorrect)" onto the next
+                    # line: either "...-5(4" + "correct)" or "...-6/11" +
+                    # "(5correct)".
+                    nxt = block_lines[li + 1].strip() if li + 1 < len(block_lines) else ""
+                    open_m = re.search(r"\((\d+)$", nums_raw)
+                    if open_m and re.fullmatch(r"correct\)", nxt):
+                        qualifier = open_m.group(1) + "correct"
+                        nums_raw = nums_raw[: open_m.start()]
+                    elif not open_m:
+                        whole = re.fullmatch(r"\((\d+correct)\)", nxt)
+                        if whole:
+                            qualifier = whole.group(1)
                 wager_name_clean = insert_spaces(name_raw.replace("-", " ")).strip() or name_raw
                 exotics.append(
                     {
