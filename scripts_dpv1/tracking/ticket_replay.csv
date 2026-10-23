@@ -1,0 +1,166 @@
+source,date,bet,tickets,hits,cost,ret
+Model,2026-10-10,Win,9,4,18.0,19.8
+Model,2026-10-10,Exacta box 2,9,2,18.0,33.1
+Model,2026-10-10,Trifecta box 3,9,0,27.0,0.0
+Model,2026-10-10,Superfecta box 4,9,1,21.6,9.34
+Model,2026-10-10,Super wheel 3/3/3/ALL,9,0,29.4,0.0
+Model,2026-10-10,Pick 3 (a) top 1,7,0,3.5,0.0
+Model,2026-10-10,Pick 3 (b) top 2,7,0,28.0,0.0
+Model,2026-10-10,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-10,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-10,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-10,Pick 5 (b) top 2,2,0,32.0,0.0
+Model,2026-10-14,Win,8,1,16.0,18.2
+Model,2026-10-14,Exacta box 2,8,0,16.0,0.0
+Model,2026-10-14,Trifecta box 3,8,0,24.0,0.0
+Model,2026-10-14,Superfecta box 4,8,0,19.2,0.0
+Model,2026-10-14,Super wheel 3/3/3/ALL,8,0,28.2,0.0
+Model,2026-10-14,Pick 3 (a) top 1,6,0,3.0,0.0
+Model,2026-10-14,Pick 3 (b) top 2,6,0,24.0,0.0
+Model,2026-10-14,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-14,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-14,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-14,Pick 5 (b) top 2,2,0,32.0,0.0
+Model,2026-10-15,Win,8,3,16.0,22.8
+Model,2026-10-15,Exacta box 2,8,2,16.0,24.5
+Model,2026-10-15,Trifecta box 3,8,0,24.0,0.0
+Model,2026-10-15,Superfecta box 4,8,0,19.2,0.0
+Model,2026-10-15,Super wheel 3/3/3/ALL,8,0,31.2,0.0
+Model,2026-10-15,Pick 3 (a) top 1,6,0,3.0,0.0
+Model,2026-10-15,Pick 3 (b) top 2,6,0,24.0,0.0
+Model,2026-10-15,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-15,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-15,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-15,Pick 5 (b) top 2,2,0,32.0,0.0
+Model,2026-10-16,Win,9,2,18.0,10.2
+Model,2026-10-16,Exacta box 2,9,0,18.0,0.0
+Model,2026-10-16,Trifecta box 3,9,0,27.0,0.0
+Model,2026-10-16,Superfecta box 4,9,0,21.6,0.0
+Model,2026-10-16,Super wheel 3/3/3/ALL,9,0,33.0,0.0
+Model,2026-10-16,Pick 3 (a) top 1,7,0,3.5,0.0
+Model,2026-10-16,Pick 3 (b) top 2,7,0,28.0,0.0
+Model,2026-10-16,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-16,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-16,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-16,Pick 5 (b) top 2,2,0,32.0,0.0
+Model,2026-10-17,Win,10,5,20.0,30.2
+Model,2026-10-17,Exacta box 2,10,1,20.0,12.0
+Model,2026-10-17,Trifecta box 3,10,1,30.0,19.25
+Model,2026-10-17,Superfecta box 4,10,1,24.0,0.94
+Model,2026-10-17,Super wheel 3/3/3/ALL,10,1,32.4,9.86
+Model,2026-10-17,Pick 3 (a) top 1,8,0,4.0,0.0
+Model,2026-10-17,Pick 3 (b) top 2,8,3,32.0,129.95
+Model,2026-10-17,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-17,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-17,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-17,Pick 5 (b) top 2,2,0,32.0,0.0
+Model,2026-10-21,Win,8,2,16.0,9.6
+Model,2026-10-21,Exacta box 2,8,1,16.0,7.1
+Model,2026-10-21,Trifecta box 3,8,1,24.0,20.4
+Model,2026-10-21,Superfecta box 4,8,0,19.2,0.0
+Model,2026-10-21,Super wheel 3/3/3/ALL,8,1,22.8,47.13
+Model,2026-10-21,Pick 3 (a) top 1,6,0,3.0,0.0
+Model,2026-10-21,Pick 3 (b) top 2,6,0,24.0,0.0
+Model,2026-10-21,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-21,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-21,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-21,Pick 5 (b) top 2,2,0,32.0,0.0
+Model,2026-10-22,Win,8,1,16.0,5.2
+Model,2026-10-22,Exacta box 2,8,0,16.0,0.0
+Model,2026-10-22,Trifecta box 3,8,1,24.0,13.45
+Model,2026-10-22,Superfecta box 4,8,0,19.2,0.0
+Model,2026-10-22,Super wheel 3/3/3/ALL,8,1,25.2,5.05
+Model,2026-10-22,Pick 3 (a) top 1,6,0,3.0,0.0
+Model,2026-10-22,Pick 3 (b) top 2,6,0,24.0,0.0
+Model,2026-10-22,Pick 4 (a) top 1,2,0,1.0,0.0
+Model,2026-10-22,Pick 4 (b) top 2,2,0,16.0,0.0
+Model,2026-10-22,Pick 5 (a) top 1,2,0,1.0,0.0
+Model,2026-10-22,Pick 5 (b) top 2,2,0,32.0,0.0
+Don,2026-10-14,Win,8,1,16.0,7.6
+Don,2026-10-14,Exacta box 2,8,1,16.0,26.2
+Don,2026-10-14,Trifecta box 3,8,0,24.0,0.0
+Don,2026-10-14,Superfecta box 4,8,0,19.2,0.0
+Don,2026-10-14,Super wheel 3/3/3/ALL,8,0,28.2,0.0
+Don,2026-10-14,Pick 3 (a) top 1,6,0,3.0,0.0
+Don,2026-10-14,Pick 3 (b) top 2,6,0,24.0,0.0
+Don,2026-10-14,Pick 4 (a) top 1,2,0,1.0,0.0
+Don,2026-10-14,Pick 4 (b) top 2,2,0,16.0,0.0
+Don,2026-10-14,Pick 5 (a) top 1,2,0,1.0,0.0
+Don,2026-10-14,Pick 5 (b) top 2,2,0,32.0,0.0
+Don,2026-10-15,Win,8,3,16.0,22.4
+Don,2026-10-15,Exacta box 2,8,1,16.0,8.5
+Don,2026-10-15,Trifecta box 3,8,0,24.0,0.0
+Don,2026-10-15,Superfecta box 4,8,0,19.2,0.0
+Don,2026-10-15,Super wheel 3/3/3/ALL,8,0,31.2,0.0
+Don,2026-10-15,Pick 3 (a) top 1,6,0,3.0,0.0
+Don,2026-10-15,Pick 3 (b) top 2,6,0,24.0,0.0
+Don,2026-10-15,Pick 4 (a) top 1,2,0,1.0,0.0
+Don,2026-10-15,Pick 4 (b) top 2,2,0,16.0,0.0
+Don,2026-10-15,Pick 5 (a) top 1,2,0,1.0,0.0
+Don,2026-10-15,Pick 5 (b) top 2,2,0,32.0,0.0
+Don,2026-10-16,Win,9,4,18.0,19.8
+Don,2026-10-16,Exacta box 2,9,2,18.0,28.5
+Don,2026-10-16,Trifecta box 3,9,1,27.0,16.7
+Don,2026-10-16,Superfecta box 4,8,1,19.2,11.29
+Don,2026-10-16,Super wheel 3/3/3/ALL,9,1,33.0,8.67
+Don,2026-10-16,Pick 3 (a) top 1,7,0,3.5,0.0
+Don,2026-10-16,Pick 3 (b) top 2,7,0,28.0,0.0
+Don,2026-10-16,Pick 4 (a) top 1,2,0,1.0,0.0
+Don,2026-10-16,Pick 4 (b) top 2,2,0,16.0,0.0
+Don,2026-10-16,Pick 5 (a) top 1,2,0,1.0,0.0
+Don,2026-10-16,Pick 5 (b) top 2,2,0,32.0,0.0
+Don,2026-10-17,Win,10,4,20.0,18.6
+Don,2026-10-17,Exacta box 2,10,3,20.0,28.8
+Don,2026-10-17,Trifecta box 3,10,0,30.0,0.0
+Don,2026-10-17,Superfecta box 4,10,1,24.0,0.94
+Don,2026-10-17,Super wheel 3/3/3/ALL,10,0,32.4,0.0
+Don,2026-10-17,Pick 3 (a) top 1,8,1,4.0,6.35
+Don,2026-10-17,Pick 3 (b) top 2,8,2,32.0,24.85
+Don,2026-10-17,Pick 4 (a) top 1,2,0,1.0,0.0
+Don,2026-10-17,Pick 4 (b) top 2,2,0,16.0,0.0
+Don,2026-10-17,Pick 5 (a) top 1,2,0,1.0,0.0
+Don,2026-10-17,Pick 5 (b) top 2,2,0,32.0,0.0
+Don,2026-10-21,Win,8,3,16.0,18.2
+Don,2026-10-21,Exacta box 2,8,3,16.0,52.6
+Don,2026-10-21,Trifecta box 3,8,0,24.0,0.0
+Don,2026-10-21,Superfecta box 4,7,2,16.8,25.79
+Don,2026-10-21,Super wheel 3/3/3/ALL,8,0,22.8,0.0
+Don,2026-10-21,Pick 3 (a) top 1,6,0,3.0,0.0
+Don,2026-10-21,Pick 3 (b) top 2,6,0,24.0,0.0
+Don,2026-10-21,Pick 4 (a) top 1,2,0,1.0,0.0
+Don,2026-10-21,Pick 4 (b) top 2,2,0,16.0,0.0
+Don,2026-10-21,Pick 5 (a) top 1,2,0,1.0,0.0
+Don,2026-10-21,Pick 5 (b) top 2,2,0,32.0,0.0
+Don,2026-10-22,Win,8,2,16.0,9.0
+Don,2026-10-22,Exacta box 2,8,2,16.0,21.4
+Don,2026-10-22,Trifecta box 3,8,0,24.0,0.0
+Don,2026-10-22,Superfecta box 4,8,1,19.2,31.55
+Don,2026-10-22,Super wheel 3/3/3/ALL,8,0,25.2,0.0
+Don,2026-10-22,Pick 3 (a) top 1,6,0,3.0,0.0
+Don,2026-10-22,Pick 3 (b) top 2,6,3,24.0,92.45
+Don,2026-10-22,Pick 4 (a) top 1,2,0,1.0,0.0
+Don,2026-10-22,Pick 4 (b) top 2,2,1,16.0,205.15
+Don,2026-10-22,Pick 5 (a) top 1,2,0,1.0,0.0
+Don,2026-10-22,Pick 5 (b) top 2,2,1,32.0,328.8
+Doug,2026-10-21,Win,8,3,16.0,19.0
+Doug,2026-10-21,Exacta box 2,7,1,14.0,12.0
+Doug,2026-10-21,Trifecta box 3,7,0,21.0,0.0
+Doug,2026-10-21,Superfecta box 4,5,0,12.0,0.0
+Doug,2026-10-21,Super wheel 3/3/3/ALL,7,0,21.0,0.0
+Doug,2026-10-21,Pick 3 (a) top 1,6,0,3.0,0.0
+Doug,2026-10-21,Pick 3 (b) top 2,6,1,18.0,17.5
+Doug,2026-10-21,Pick 4 (a) top 1,2,0,1.0,0.0
+Doug,2026-10-21,Pick 4 (b) top 2,2,0,8.0,0.0
+Doug,2026-10-21,Pick 5 (a) top 1,2,0,1.0,0.0
+Doug,2026-10-21,Pick 5 (b) top 2,2,0,16.0,0.0
+Doug,2026-10-22,Win,8,2,16.0,9.0
+Doug,2026-10-22,Exacta box 2,8,0,16.0,0.0
+Doug,2026-10-22,Trifecta box 3,8,0,24.0,0.0
+Doug,2026-10-22,Superfecta box 4,7,1,16.8,18.08
+Doug,2026-10-22,Super wheel 3/3/3/ALL,8,0,25.2,0.0
+Doug,2026-10-22,Pick 3 (a) top 1,6,0,3.0,0.0
+Doug,2026-10-22,Pick 3 (b) top 2,6,0,24.0,0.0
+Doug,2026-10-22,Pick 4 (a) top 1,2,0,1.0,0.0
+Doug,2026-10-22,Pick 4 (b) top 2,2,0,16.0,0.0
+Doug,2026-10-22,Pick 5 (a) top 1,2,0,1.0,0.0
+Doug,2026-10-22,Pick 5 (b) top 2,2,0,32.0,0.0
