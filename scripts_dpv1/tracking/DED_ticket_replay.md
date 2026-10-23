@@ -1,8 +1,22 @@
 # DED meet ticket replay — model, Don, Doug (through 2026-10-22)
 
+> **⚠ Read this before choosing a bet from these tables.** Every number
+> here is in-sample: the results were known when the bets were compared.
+> Any strategy picked *because* it looks good below (for example "box Don's
+> top two" or "the model's top-two Pick 3") has to be tested on **future
+> cards, decided in advance**, before it is trusted with money. With 16–60
+> races per source, one ticket can swing an ROI by tens of points, and
+> picking the best of 11 bet types × 3 sources after the fact will find a
+> "winner" by chance alone.
+
 `tracking/ticket_replay.py` → `tracking/ticket_replay.csv` (one row per
 source × card × bet). Re-run it after each card; it picks up every logged
-DED card with results.
+DED card with results. Re-run 2026-10-22 (evening) after the corpus Pick backfill:
+identical (the meet cards had been backfilled earlier the same day).
+
+Pick 3/4/5 tickets use the pools each card actually ran: a Pick N is
+graded only where the chart has a Pick N ending in that race (DED: Pick 3
+from R3 on; Pick 4 and Pick 5 ending in R5 and the last race).
 
 ## How it is scored
 

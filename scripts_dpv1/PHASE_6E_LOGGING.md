@@ -1459,6 +1459,54 @@ years), and the other ~2,480 `ct_cache` files hold the old parse. Either
 re-parse those charts and insert the missing rows the same way, or leave
 them: no model input depends on them.
 
+### Corpus backfill of Pick 3/4/5 rows, 2026-10-22 (evening)
+
+Doug approved an add-only backfill for every loaded DED, CT and GP chart
+(MNR, ELP, EVD, FG and LAD were not in scope). Scripts:
+`scripts_dpv1/_pickbackfill/reparse_all.py` (re-parse, read-only, 6
+workers, 829 s) and `backfill_compare.py` (report; `--insert` writes).
+
+* **Charts:** 2,918 re-parsed (deduplicated by sha256, then by card):
+  GP 1,528, CT 968, DED 422. 0 parse errors. One loaded DED chart file is
+  gone from disk (`ded-results-2024/20240426-usa-ded-a-d.standard.pdf`) and
+  was skipped.
+* **Backup:** `scripts/racing_full.db.pre-pickcorpus.bak` (sha256
+  `2d6a79af…622a`), verified: same hash as the live DB, `integrity_check`
+  ok on both, same counts in six tables.
+* **Added: 10,406 rows** (exotic_payouts 236,568 -> 246,974), every one a
+  Pick 3/4/5 with a `/` leg:
+
+  | track | Pick 3 | Pick 4 | Pick 5 | total |
+  |---|---|---|---|---|
+  | GP | 1,615 | 2,135 | 3,843 | 7,593 |
+  | CT | 10 | 1,038 | 773 | 1,821 |
+  | DED | 2 | 463 | 527 | 992 |
+
+  No missing Pick 3/4/5 row lacked a `/`. None of the added rows had the
+  same payoff and pool already present under another wager name (old
+  parses sometimes folded the numbers into the name).
+* **Existing rows unchanged:** a sha256 fingerprint of all 236,568
+  pre-existing rows (ordered by id) is identical before and after
+  (`c0c71b5e…`); integrity ok. A second report run finds 0 rows to add.
+* **Left as they are (add-only), for Doug to decide:**
+  * 60 existing rows differ from the new parse only in a wrap problem: 52
+    carry a dangling `(N` with no qualifier (GP 45, DED 6, CT 1), 7 have
+    the right numbers but a NULL qualifier (GP "TROPICALTURF..." Pick 3s,
+    one CT `(RACES5-8)` Pick 4), and 1 GP 2020-01-18 Super High Five row
+    has its numbers folded into the wager name.
+  * Missing non-Pick-3/4/5 rows that the fix would also recover: Pick 6
+    Jackpot (GP 1,171, CT 712), Consolation (GP 20, CT 15, DED 8), Place
+    Pick 8 / Pick 8 (GP 18), Super High Five variants (GP 26), Daily Double
+    (CT 1, DED 1), Roulette (GP 1).
+  * **Parse cache:** `scripts/ct_cache/*.json` (git-ignored, 2,493 files)
+    still holds the old parse for every chart except the DED fall meet.
+    `retrain_pipeline.load_charts` reuses a cached parse whenever the PDF
+    hash matches, so **reloading an old chart would drop its Pick rows
+    again**. Fix options: delete the stale cache files (they are rebuilt on
+    demand) or key the cache on parser version too.
+* **No model effect** (as for the meet backfill): nothing that trains,
+  scores or grades reads Pick rows. The DED ticket replay re-ran identical.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
