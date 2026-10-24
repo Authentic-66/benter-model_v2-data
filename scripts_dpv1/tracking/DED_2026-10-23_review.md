@@ -137,9 +137,9 @@ Re-ranked around scratches as before (Don's alt moves up; Doug has no alt).
 * Don, R3: #6 scratched, alt #5 moves up. R4: #3 scratched, alt #5 moves up.
   R6: #9 scratched and his alt #12 scratched too, so 3 picks. R7: #11
   scratched, alt #4 moves up.
-* Doug: no scratched picks. **R3 and R5 were PASS** (logged in
-  `doug_picks.csv` with blank picks, note "PASS"), so Doug's figures are over
-  7 races. R9 4th = "Pick 'em" (blank).
+* Doug: no scratched picks. **R3 and R5 were PASS** (`doug_picks.csv`
+  `pass_flag = 1`, blank picks), so they stay out of Doug's win/ITM/ROI
+  totals and his figures are over 7 races. R9 4th = "Pick 'em" (blank).
 
 Doug's picks were made on race day with scratches and odds known.
 
@@ -163,6 +163,10 @@ Doug's picks were made on race day with scratches and odds known.
 
 * On Doug's 7 races the model's #1 was ITM 2/7 and Don's 2/7 (Don's two
   winners came in R3 and R5, Doug's PASS races).
+* **In the races Doug passed (R3, R5):** model #1 0 W, 0/2 ITM (5th, 4th),
+  $0 back on $4, overlap 1/6; Don #1 2 W, 2/2 ITM (Fearless Maximus $7.40,
+  Merlot $5.60), $13.00 back on $4 (+225%), overlap 3/6. Both were the card's
+  low-coverage races (54% and 48%).
 * Don and the model shared #1 in 5 races: R1 Look At Me Nah (5th), R2 Double
   Salty (2nd, Doug's #1 too), R6 Wordsof Wisdom (8th), R7 She's No Angel
   (4th), R9 Tarkington Sunrise (6th).

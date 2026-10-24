@@ -78,6 +78,8 @@ def csv_picks(path, use_alt):
     for r in csv.DictReader(open(path)):
         if r["track"] != "DED" or r["race_date"] not in CARDS:
             continue
+        if (r.get("pass_flag") or "0").strip() == "1":   # source passed the race: no tickets
+            continue
         k = (r["race_date"], int(r["race_num"]))
         ran = set(runners.get(k, []))
         picks = [r[f"pick{i}"].strip() for i in range(1, 5) if r[f"pick{i}"].strip()]
