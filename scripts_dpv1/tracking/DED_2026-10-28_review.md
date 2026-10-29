@@ -311,9 +311,20 @@ split by the same dates. Doug has no picks before 10/21.
 |---|---|---|---|---|---|
 | DED | 2–4 | Pick 3, $0.50 | 3 / 9 / 3,7,9 (3 combos) | $1.50 | **won**: 3-9-7, **$7.65** |
 | DED | 2–5 | Pick 4, $0.50 | 3 / 9 / 7 / 1,4,9 (3 combos) | $1.50 | lost in R5 (#5 at 45.2-1) |
+| DED | 7 | win, $2 | #10 Miracle Mula | $2.00 | lost (4th; 9-1-6-10) |
 
-Night total: **$3.00 wagered, $7.65 returned**. Both are DED bets and qualify
-Doug for the DED PP rebate.
+Night total: **$5.00 wagered, $7.65 returned, +$2.65** (Doug's figures,
+using his $7.60 Pick 3 price: $7.60 returned, +$2.60). All three are DED
+bets and qualify Doug for the DED PP rebate.
+
+* **R7 win bet, tagged `consensus_top1`.** Doug bet Miracle Mula because the
+  model, Don and he all had him #1 (he was also Don's POD). He went off the
+  1.9-1 favourite with Kevin Roman up for Thornton and ran 4th. New `tag`
+  column in `doug_bets.csv` (blank on earlier rows) so bets on three-way
+  consensus #1s can be tracked separately.
+* All three sources had the same #1 (after scratches) in 3 races tonight:
+  R2 Donegal Freedom (won, $3.40), R3 Forty Three Cents (won, $4.40) and R7
+  Miracle Mula (4th). A $2 win on each would have returned $7.80 on $6.
 
 * **Payout:** Doug reported $7.60; the chart (and the parse) print $7.65 per
   $0.50 for the R2–R4 Pick 3. Logged at $7.65, with a note on the row. Worth

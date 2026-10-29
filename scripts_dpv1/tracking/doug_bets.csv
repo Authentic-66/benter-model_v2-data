@@ -1,20 +1,21 @@
-track,race_date,race_num,bet,base,ticket,combos,cost,result,returned,finish,note
-DED,2026-10-16,8,superfecta part wheel,0.10,5-6/5-6/9-8-2-10/9-8-2-10,24,2.40,lost,0,6-10-5-1,
-DED,2026-10-16,9,exacta box,1.00,3-8,2,2.00,won,14.00,8-3-10-4,
-DED,2026-10-17,8,win,2.00,3,1,2.00,won,6.00,3-7-4-6,#3 Call My Banker; payout from chart ($2 win 6.00)
-CT,2026-10-17,6,superfecta wheel,0.10,2-3-5/2-3-5/2-3-5/ALL,24,2.40,won,11.73,3-5-2-7,personal bet only: CT 10/17 was not a logged model card. Payout as reported by Doug; chart $1 super = 117.80 (11.78 per $0.10)
-DED,2026-10-21,2,win,2.00,2,1,2.00,lost,0,5-4-1-3,#2 Top Notch Protocol (4.3-1): eased; did not finish
-DED,2026-10-21,8,unknown,,8,,,lost,0,1-5-10-4,#8 Peanutbutter Peggy (79.3-1) finished 10th of 10. Bet type and amount unknown: fill from TwinSpires history if Doug adds it
-DED,2026-10-22,1,superfecta part wheel,0.10,1-2/1-2/7-8-9/7-8-9,12,1.20,lost,0,5-8-9-2,
-DED,2026-10-22,4,superfecta part wheel,0.10,4-6-9/4-6-9/4-6-9/2-3-4-6-7-8-9-10,30,3.00,lost,0,6-10-7-4,TwinSpires 4th leg '2-4 6-10'
-CT,2026-10-22,1,superfecta part wheel,0.10,1-3/1-3/1-2-3-4-5/1-2-3-4-5,12,1.20,lost,0,1-2-3-4,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23 (CT102226USA.pdf): lost
-CT,2026-10-22,2,superfecta part wheel,0.10,1-5-6/1-5-6/1-5-6/1-2-3-4-5-6,18,1.80,lost,0,2-3-1-4,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23 (CT102226USA.pdf): lost
-CT,2026-10-22,3,superfecta part wheel,0.10,6-7/6-7/1-4-5/1-2-3-4-5-6-7,24,2.40,lost,0,7-1-5-4,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23 (CT102226USA.pdf): lost
-CT,2026-10-22,6,exacta box,1.00,1-4,2,2.00,won,10.30,1-4-7-6,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23: exacta 1-4 paid $10.30 per $1
-DED,2026-10-23,1,superfecta wheel,0.10,1-3-6/1-3-6/1-3-6/1-2-3-4-5-6-7,24,2.40,lost,0,1-3-7-5,4th leg ALL (1-7). One of 2 DED 10/23 bets; card $4.00 wagered / $0 returned; qualifies for PP rebate ($3.85)
-DED,2026-10-23,2,superfecta part wheel,0.10,3-6/3-6/1-2/1-2-3-4-5-6-7,16,1.60,lost,0,3-6-7-1,4th leg ALL (1-7). One of 2 DED 10/23 bets; card $4.00 wagered / $0 returned; qualifies for PP rebate ($3.85)
-DED,2026-10-24,5,superfecta part wheel,0.10,5/1-9/1-2-9/1-2-3-4-5-6-7-8-9,24,2.40,lost,0,5-3-1-9,"4th leg ALL (1-9). #2 in the 3rd leg was a mis-tap; intended 5/1-9/1-3-9/ALL, which also loses (3 ran 2nd). Only DED 10/24 bet; qualifies for the DED PP rebate. Night total incl. CT: $5.60 wagered / $0 returned"
-CT,2026-10-24,5,exacta box,1.00,3-9,2,2.00,lost,0,7-6-3-1,personal bet only (CT 10/24 not a logged model card). Graded from Doug's reported finish; CT102426USA.pdf not on disk
-CT,2026-10-24,7,superfecta part wheel,0.10,6/4-7/2-4-6-7/1-2-4-5-6-7,12,1.20,lost,0,4-1-6-5,personal bet only (CT 10/24 not a logged model card). Graded from Doug's reported finish; CT102426USA.pdf not on disk
-DED,2026-10-28,2,Pick 3 (R2-R4),0.50,3/9/3-7-9,3,1.50,won,7.65,3-9-7,"Won: 3-9-7 paid $7.65 per $0.50 on the chart (Doug reported $7.60). One of 2 DED 10/28 bets; card $3.00 wagered / $7.65 returned; qualifies for the DED PP rebate"
-DED,2026-10-28,2,Pick 4 (R2-R5),0.50,3/9/7/1-4-9,3,1.50,lost,0,3-9-7-5,"Lost in R5: #5 Tarkington Girl won at 45.2-1. Official 3-5/9/11/12-4/5/7-5 paid $659.75. One of 2 DED 10/28 bets; card $3.00 wagered / $7.65 returned; qualifies for the DED PP rebate"
+track,race_date,race_num,bet,base,ticket,combos,cost,result,returned,finish,note,tag
+DED,2026-10-16,8,superfecta part wheel,0.10,5-6/5-6/9-8-2-10/9-8-2-10,24,2.40,lost,0,6-10-5-1,,
+DED,2026-10-16,9,exacta box,1.00,3-8,2,2.00,won,14.00,8-3-10-4,,
+DED,2026-10-17,8,win,2.00,3,1,2.00,won,6.00,3-7-4-6,#3 Call My Banker; payout from chart ($2 win 6.00),
+CT,2026-10-17,6,superfecta wheel,0.10,2-3-5/2-3-5/2-3-5/ALL,24,2.40,won,11.73,3-5-2-7,personal bet only: CT 10/17 was not a logged model card. Payout as reported by Doug; chart $1 super = 117.80 (11.78 per $0.10),
+DED,2026-10-21,2,win,2.00,2,1,2.00,lost,0,5-4-1-3,#2 Top Notch Protocol (4.3-1): eased; did not finish,
+DED,2026-10-21,8,unknown,,8,,,lost,0,1-5-10-4,#8 Peanutbutter Peggy (79.3-1) finished 10th of 10. Bet type and amount unknown: fill from TwinSpires history if Doug adds it,
+DED,2026-10-22,1,superfecta part wheel,0.10,1-2/1-2/7-8-9/7-8-9,12,1.20,lost,0,5-8-9-2,,
+DED,2026-10-22,4,superfecta part wheel,0.10,4-6-9/4-6-9/4-6-9/2-3-4-6-7-8-9-10,30,3.00,lost,0,6-10-7-4,TwinSpires 4th leg '2-4 6-10',
+CT,2026-10-22,1,superfecta part wheel,0.10,1-3/1-3/1-2-3-4-5/1-2-3-4-5,12,1.20,lost,0,1-2-3-4,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23 (CT102226USA.pdf): lost,
+CT,2026-10-22,2,superfecta part wheel,0.10,1-5-6/1-5-6/1-5-6/1-2-3-4-5-6,18,1.80,lost,0,2-3-1-4,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23 (CT102226USA.pdf): lost,
+CT,2026-10-22,3,superfecta part wheel,0.10,6-7/6-7/1-4-5/1-2-3-4-5-6-7,24,2.40,lost,0,7-1-5-4,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23 (CT102226USA.pdf): lost,
+CT,2026-10-22,6,exacta box,1.00,1-4,2,2.00,won,10.30,1-4-7-6,personal bet only (CT 10/22 not a logged model card). Chart-graded 2026-10-23: exacta 1-4 paid $10.30 per $1,
+DED,2026-10-23,1,superfecta wheel,0.10,1-3-6/1-3-6/1-3-6/1-2-3-4-5-6-7,24,2.40,lost,0,1-3-7-5,4th leg ALL (1-7). One of 2 DED 10/23 bets; card $4.00 wagered / $0 returned; qualifies for PP rebate ($3.85),
+DED,2026-10-23,2,superfecta part wheel,0.10,3-6/3-6/1-2/1-2-3-4-5-6-7,16,1.60,lost,0,3-6-7-1,4th leg ALL (1-7). One of 2 DED 10/23 bets; card $4.00 wagered / $0 returned; qualifies for PP rebate ($3.85),
+DED,2026-10-24,5,superfecta part wheel,0.10,5/1-9/1-2-9/1-2-3-4-5-6-7-8-9,24,2.40,lost,0,5-3-1-9,"4th leg ALL (1-9). #2 in the 3rd leg was a mis-tap; intended 5/1-9/1-3-9/ALL, which also loses (3 ran 2nd). Only DED 10/24 bet; qualifies for the DED PP rebate. Night total incl. CT: $5.60 wagered / $0 returned",
+CT,2026-10-24,5,exacta box,1.00,3-9,2,2.00,lost,0,7-6-3-1,personal bet only (CT 10/24 not a logged model card). Graded from Doug's reported finish; CT102426USA.pdf not on disk,
+CT,2026-10-24,7,superfecta part wheel,0.10,6/4-7/2-4-6-7/1-2-4-5-6-7,12,1.20,lost,0,4-1-6-5,personal bet only (CT 10/24 not a logged model card). Graded from Doug's reported finish; CT102426USA.pdf not on disk,
+DED,2026-10-28,2,Pick 3 (R2-R4),0.50,3/9/3-7-9,3,1.50,won,7.65,3-9-7,Won: 3-9-7 paid $7.65 per $0.50 on the chart (Doug reported $7.60). One of 3 DED 10/28 bets; card $5.00 wagered / $7.65 returned (+$2.65); qualifies for the DED PP rebate,
+DED,2026-10-28,2,Pick 4 (R2-R5),0.50,3/9/7/1-4-9,3,1.50,lost,0,3-9-7-5,Lost in R5: #5 Tarkington Girl won at 45.2-1. Official 3-5/9/11/12-4/5/7-5 paid $659.75. One of 3 DED 10/28 bets; card $5.00 wagered / $7.65 returned (+$2.65); qualifies for the DED PP rebate,
+DED,2026-10-28,7,win,2.00,10,1,2.00,lost,0,9-1-6-10,"#10 Miracle Mula ran 4th (1.9-1 fav; Thornton off, Kevin Roman up). Bet because the model, Don and Doug all had him #1 (also Don's POD). One of 3 DED 10/28 bets; card $5.00 wagered / $7.65 returned (+$2.65)",consensus_top1
