@@ -34,7 +34,8 @@ pre-race DB) is kept for Saturday's paired comparison.
   | R4 $0.50 Pick 3 (R2–R4) 3-9-7 | 7.60 | **7.65** | **differs** |
 
   The chart prints "$0.50Pick3 3-9-7(3correct) 7.65 4,860", and the parser
-  reads the same. Doug's bet is logged at $7.65 (see Doug's bets).
+  reads the same. TwinSpires paid Doug $7.60 (he verified it on 10/29), so his
+  bet is logged at $7.60. The DB and the ticket replay keep the chart's $7.65.
 * **One dead heat:** R2, 5th place, #6 Critical Threat and #10 Warren L
   (out of the money; no ITM effect). **No DQs** (crossing order =
   `official_finish_pos` in all 8 races), **no non-betting starters**.
@@ -309,12 +310,11 @@ split by the same dates. Doug has no picks before 10/21.
 
 | track | R | bet | ticket | cost | result |
 |---|---|---|---|---|---|
-| DED | 2–4 | Pick 3, $0.50 | 3 / 9 / 3,7,9 (3 combos) | $1.50 | **won**: 3-9-7, **$7.65** |
+| DED | 2–4 | Pick 3, $0.50 | 3 / 9 / 3,7,9 (3 combos) | $1.50 | **won**: 3-9-7, **$7.60** (TwinSpires) |
 | DED | 2–5 | Pick 4, $0.50 | 3 / 9 / 7 / 1,4,9 (3 combos) | $1.50 | lost in R5 (#5 at 45.2-1) |
 | DED | 7 | win, $2 | #10 Miracle Mula | $2.00 | lost (4th; 9-1-6-10) |
 
-Night total: **$5.00 wagered, $7.65 returned, +$2.65** (Doug's figures,
-using his $7.60 Pick 3 price: $7.60 returned, +$2.60). All three are DED
+Night total: **$5.00 wagered, $7.60 returned, +$2.60**. All three are DED
 bets and qualify Doug for the DED PP rebate.
 
 * **R7 win bet, tagged `consensus_top1`.** Doug bet Miracle Mula because the
@@ -326,9 +326,10 @@ bets and qualify Doug for the DED PP rebate.
   R2 Donegal Freedom (won, $3.40), R3 Forty Three Cents (won, $4.40) and R7
   Miracle Mula (4th). A $2 win on each would have returned $7.80 on $6.
 
-* **Payout:** Doug reported $7.60; the chart (and the parse) print $7.65 per
-  $0.50 for the R2–R4 Pick 3. Logged at $7.65, with a note on the row. Worth
-  checking against the TwinSpires statement.
+* **Payout:** TwinSpires paid $7.60 on the R2–R4 Pick 3 (Doug verified it
+  on 10/29); the chart (and the parse) print $7.65 per $0.50. The bet is
+  logged at what TwinSpires paid; the chart figure is kept in the row's note
+  and in the DB.
 * The Pick 4's R5 leg (1, 4, 9): #9 Whata Hangover ran 2nd, #4 Alyse
   Parker 4th, #1 Exploding Circle 6th.
 
