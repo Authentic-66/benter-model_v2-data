@@ -1507,6 +1507,53 @@ workers, 829 s) and `backfill_compare.py` (report; `--insert` writes).
 * **No model effect** (as for the meet backfill): nothing that trains,
   scores or grades reads Pick rows. The DED ticket replay re-ran identical.
 
+### Results load, 2026-11-01 (DED 10/31 + GP/CT catch-up)
+
+* **Backup:** `scripts/racing_full.db.pre-charts1101.bak`, verified: same
+  sha256 as the live DB (8d191ea2…), `integrity_check` ok on both, same
+  counts in races, entries, horses, exotic_payouts, entry_features_dpv1
+  and parsed_files.
+* **Loaded 14 charts** with `retrain_pipeline.load_charts` (standard
+  pdfplumber chart parser), after a dry parse: every race count matched
+  the chart header and every race had one official winner.
+  * DED 10/31: **results only.** No card was run or logged that night, so
+    there were no pre-race entries, no `predictions.jsonl` rows and nothing
+    to score.
+  * GP 10/23, 10/24, 10/25, 10/30, 10/31.
+  * CT 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 10/31. (CT 10/21
+    and 10/22 had been on disk since 10/22-10/23 but were never loaded.)
+  * Totals: 123 races, 865 starters, 654 exotic rows, 0 errors, 0 purged.
+
+  | chart | races | starters | DH | DQ | scratches | DNF | warnings |
+  |---|---|---|---|---|---|---|---|
+  | DED 10/31 | 9 | 74 | 0 | 0 | 9 | R1 #1 | 0 |
+  | GP 10/23 | 9 | 61 | 0 | 0 | 12 | R5 #2 | 0 |
+  | GP 10/24 | 10 | 89 | 0 | 0 | 10 | R3 #3, R8 #8 | 0 |
+  | GP 10/25 | 10 | 73 | 0 | 0 | 8 | — | 0 |
+  | GP 10/30 | 10 | 79 | 0 | 0 | 6 | — | 0 |
+  | GP 10/31 | 11 | 67 | 0 | R7 (#3 1st→2nd, #9 up) | 22 | — | 2 (DQ) |
+  | CT 10/21 | 8 | 54 | 0 | 0 | 8 | R1 #4 | 0 |
+  | CT 10/22 | 8 | 49 | 0 | R7 (#3 1st→2nd, #7 up) | 7 | — | 2 (DQ) |
+  | CT 10/23 | 8 | 52 | 0 | 0 | 6 | — | 0 |
+  | CT 10/24 | 8 | 64 | 0 | 0 | 4 | — | 0 |
+  | CT 10/28 | 8 | 49 | 0 | 0 | 7 | — | 0 |
+  | CT 10/29 | 8 | 55 | 0 | 0 | 2 | — | 0 |
+  | CT 10/30 | 8 | 53 | 0 | 0 | 4 | — | 0 |
+  | CT 10/31 | 8 | 46 | 0 | 0 | 5 | — | 0 |
+
+  The only parser warnings are the two standard DQ markers per DQ race
+  (`disqualified:pgm=3`, `official:1of1_applied:tote`). No non-betting
+  starters. Doug's CT 10/22 bets were already graded from the chart on
+  10/23 (`456c8e3`). His CT 10/24 (R5, R7) and 10/29 (R2) personal bets
+  had been graded from his report; the charts now confirm them (official
+  7-6-3-1, 4-1-6-5, 3-1-2-4; all three lost as logged). `doug_bets.csv`
+  not edited (its CT 10/29 `finish` cell is still blank).
+* **After:** integrity ok; races 43,005, entries 320,087 (+865), horses
+  49,310, exotic_payouts 247,851, parsed_files 4,905. **Features NOT
+  rebuilt** (entry_features_dpv1 still 319,136); the next card's routine
+  speed-figure + feature rebuild picks these rows up. No model, reranker or
+  scoring change.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
