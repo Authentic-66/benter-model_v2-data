@@ -1554,6 +1554,24 @@ workers, 829 s) and `backfill_compare.py` (report; `--insert` writes).
   speed-figure + feature rebuild picks these rows up. No model, reranker or
   scoring change.
 
+### DED paired comparison, 2026-11-01 (pointer)
+
+Write-up: `tracking/DED_paired_comparison_2026-11-01.md` (`da2ea23`). The
+decision and the reranker review rule are in PHASE_6D_ROADMAP.md, last
+section (`735671e`). Two things learned that matter for any future re-score:
+
+* **A `.dedMMDD-run.bak` is the DB from just *before* that card's PP load.**
+  It does not contain the card. To re-score, copy it and re-run
+  `load_pp_card.py load <pdf> --db <copy>`, `speed_figures_dpv1.py compute
+  --db <copy>` and `feature_builder_dpv1.py build --db <copy>`. That
+  reproduced the logged record run row for row on all five cards.
+* **Never reset `card_picks._RERANKER` between runs in one process.**
+  `get_reranker` caches behind `_RERANKER_TRIED`, so after a reset it
+  returns None, and the run silently falls back to base only. This was a
+  harness-only trap (one run per process, as `card_picks.py` normally runs,
+  is fine). A checker in a harness should assert that `reranker_pp_delta`
+  is populated on "+reranker" runs.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
