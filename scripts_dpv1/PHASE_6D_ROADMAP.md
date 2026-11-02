@@ -5269,6 +5269,10 @@ cannot separate configurations a percentage point apart. `model_health.py`'s
 base-only vs with-reranker arms, at ~50-100 scored live races, remain the only
 untainted instrument.
 
+> **Update 2026-11-01:** live stays Config Y after the DED paired comparison;
+> the pre-registered reranker review rule is in "Live configuration after the
+> DED paired comparison (2026-11-01)" at the end of this file.
+
 ### Shadow-logged Arms: Reconstruction Discipline
 
 Applies to every arm Piece 3 reconstructs rather than ran. As of 2026-09-13
@@ -7094,3 +7098,63 @@ separately pre-registered arm.
 (PHASE_6E promotion record); arm (b) HELD.** The over-corrected big-drop
 bucket is the next step: a pre-registered arm (b2) with an asymmetric cap
 (PHASE_6E follow-up #16). P2 stays deferred.
+
+## Live configuration after the DED paired comparison (2026-11-01)
+
+### Decision (Doug, 2026-11-01)
+
+**Keep `dpv1.3.2-5track-stretch` with `pp-reranker-1.0` live (Config Y). No
+rollback to `dpv1.3.0-5track`.** Nothing about the models, rerankers or code
+changed.
+
+Evidence: `tracking/DED_paired_comparison_2026-11-01.md` (commit `da2ea23`).
+Five DED cards on 1.3.2 (10/23-10/30, 43 races, 370 starters), four arms
+(1.3.0 / 1.3.2, each with and without the reranker), two scratch methods, and
+the logged 1.3.2 record run reproduced row for row on every card. In short:
+
+* 1.3.0 and 1.3.2 base models pick the same #1 in 41-43 of 43 races. 1.3.2 is
+  slightly better calibrated on P(ITM). 1.3.0 with the reranker (as it ran
+  live) was the weakest arm under both methods. No case for rollback.
+* The reranker changed the #1 in 9 of 43 races: +1/-1 ITM, one winner either
+  way. Its win-ROI deficit is the net of two races (10/24 R4 and R5). It
+  lowered P(ITM) log loss by about 0.004 per starter on both base models and
+  left P(win) calibration unchanged. Every interval crosses zero: too small
+  to act on in either direction.
+
+### Reranker review rule (written 2026-11-01, before seeing more data)
+
+* **What counts.** A *qualifying race* is a scored DED race on
+  `dpv1.3.2-5track-stretch` + `pp-reranker-1.0` where the reranked #1 differs
+  from the base #1, both taken among the horses that ran (the nightly re-rank
+  method). Counting starts with the **first card scored after DED 10/30**.
+  The 15 changed races through 10/30 (the meet reranker tally in the nightly
+  reviews) and the paired comparison have already been looked at, so they
+  are excluded.
+* **What is logged.** Nothing new is needed: `logs/scored_predictions.jsonl`
+  already carries `base_p_itm`, `final_p_itm`, `rank` and the official
+  finish for every scored horse. For each qualifying race, record the base
+  #1 and reranked #1 (program, odds, official finish), and the race's P(ITM)
+  log loss under base and under reranked, summed over starters.
+* **When.** Revisit after **40 qualifying races** (about 200 scored races at
+  the current rate of one change in five).
+* **Judge on** #1 in-the-money rate and P(ITM) log loss. **Not on win ROI.**
+* **Turn the reranker off only if both hold** over those 40 races: the
+  reranked #1 is **clearly behind** the base #1 on in-the-money finishes,
+  **and** P(ITM) log loss is no better than base.
+* **"Clearly behind": NOT YET SET.** Doug writes the numbers here, before
+  the 40th qualifying race is scored and before anyone tallies the
+  qualifying races. (For example: a minimum ITM deficit in races, or a
+  McNemar p-value threshold on the discordant races, plus how "no better" on
+  log loss is measured.) Until it is written, the rule cannot be applied.
+
+### Queued after this (not started)
+
+1. **Late jockey changes.** Thornton came off all his mounts on 10/28, 10/29
+   and 10/30 (and Colby Hernandez off two on 10/29), after the pre-race run
+   was logged with them listed. Investigate read-only how the listed-jockey
+   features move these horses' predictions, and options for handling likely
+   jockey changes.
+2. **Purse fix (b2):** the asymmetric drop cap, PHASE_6E follow-up #16.
+3. **Shippers investigation** (read-only). Background is Gap #1 above; its
+   diagnosis was reversed (the model over-rates unseen horses rather than
+   burying them).
