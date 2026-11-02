@@ -1,0 +1,77 @@
+{
+ "date": "2026-10-28",
+ "backup": "racing_full.db.ded1028-run.bak",
+ "backup_sha256": "bd038ec0c092b5d0f10a1f5beac93521850c4bb2fbdb412bd840ef4a6578c982",
+ "pp_file": "ded1028y.pdf",
+ "rebuilt_feature_rows": 319080,
+ "record_run": "2026-10-28T14:33:40",
+ "reproduction": {
+  "logged_rows": 82,
+  "rerun_rows": 82,
+  "unmatched": 0,
+  "max_d_p_itm": 1.1102230246251565e-16,
+  "max_d_p_win": 0.0,
+  "max_d_base": 5.551115123125783e-17,
+  "rank_mismatches": 0
+ },
+ "races": 8,
+ "starters": 71,
+ "scratched": {
+  "1": [
+   "#1 The Big Ben",
+   "#11 Imperial Cruiser"
+  ],
+  "3": [
+   "#5 Apollo's Fury",
+   "#11 Buster Scruggs",
+   "#12 Wildly Wicked"
+  ],
+  "4": [
+   "#4 Clearly Colossal",
+   "#5 Cookn Wit Catman"
+  ],
+  "5": [
+   "#10 Betsy Louise"
+  ],
+  "8": [
+   "#2 Ocean Voyager",
+   "#11 Mo'z Star Sailor",
+   "#12 Quikonthetrigger"
+  ]
+ },
+ "exacta": {
+  "1": {
+   "numbers": "7-10",
+   "per_dollar": 6.9
+  },
+  "2": {
+   "numbers": "3-5",
+   "per_dollar": 6.7
+  },
+  "3": {
+   "numbers": "9-2",
+   "per_dollar": 36.2
+  },
+  "4": {
+   "numbers": "7-6",
+   "per_dollar": 7.9
+  },
+  "5": {
+   "numbers": "5-9",
+   "per_dollar": 229.1
+  },
+  "6": {
+   "numbers": "1-6",
+   "per_dollar": 56.3
+  },
+  "7": {
+   "numbers": "9-1",
+   "per_dollar": 90.3
+  },
+  "8": {
+   "numbers": "9-5",
+   "per_dollar": 15.5
+  }
+ },
+ "live_db_sha_unchanged": true
+}

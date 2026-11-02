@@ -1,0 +1,74 @@
+{
+ "date": "2026-10-29",
+ "backup": "racing_full.db.ded1029-run.bak",
+ "backup_sha256": "101d5aa471bd33d7d7228c30c96aec1361d94a1b9ddab2b513a80da04ca57d37",
+ "pp_file": "ded1029y.pdf",
+ "rebuilt_feature_rows": 319144,
+ "record_run": "2026-10-29T15:06:13",
+ "reproduction": {
+  "logged_rows": 75,
+  "rerun_rows": 75,
+  "unmatched": 0,
+  "max_d_p_itm": 1.1102230246251565e-16,
+  "max_d_p_win": 0.0,
+  "max_d_base": 1.1102230246251565e-16,
+  "rank_mismatches": 0
+ },
+ "races": 8,
+ "starters": 67,
+ "scratched": {
+  "1": [
+   "#10 Creole Lady",
+   "#11 Call Sadie",
+   "#12 Myspittinimage"
+  ],
+  "2": [
+   "#7 Yockey's Drivethru"
+  ],
+  "3": [
+   "#11 Just Sailing Along"
+  ],
+  "4": [
+   "#9 Great Fortune"
+  ],
+  "8": [
+   "#3 Thunder Kiss",
+   "#12 Stormcatholic Spot"
+  ]
+ },
+ "exacta": {
+  "1": {
+   "numbers": "8-1",
+   "per_dollar": 24.3
+  },
+  "2": {
+   "numbers": "5-1",
+   "per_dollar": 22.1
+  },
+  "3": {
+   "numbers": "10-3",
+   "per_dollar": 29.7
+  },
+  "4": {
+   "numbers": "2-1",
+   "per_dollar": 90.8
+  },
+  "5": {
+   "numbers": "7-2",
+   "per_dollar": 29.4
+  },
+  "6": {
+   "numbers": "2-1",
+   "per_dollar": 22.1
+  },
+  "7": {
+   "numbers": "5-4",
+   "per_dollar": 18.7
+  },
+  "8": {
+   "numbers": "5-11",
+   "per_dollar": 18.6
+  }
+ },
+ "live_db_sha_unchanged": true
+}

@@ -1,0 +1,78 @@
+{
+ "date": "2026-10-24",
+ "backup": "racing_full.db.ded1024-run.bak",
+ "backup_sha256": "311a8078c27af51340b571f5e8c42c827fd10e9a1a2478c6fffd0e0c12bf35c9",
+ "pp_file": "ded1024y.pdf",
+ "rebuilt_feature_rows": 319006,
+ "record_run": "2026-10-23T22:30:26",
+ "reproduction": {
+  "logged_rows": 79,
+  "rerun_rows": 79,
+  "unmatched": 0,
+  "max_d_p_itm": 1.1102230246251565e-16,
+  "max_d_p_win": 0.0,
+  "max_d_base": 5.551115123125783e-17,
+  "rank_mismatches": 0
+ },
+ "races": 9,
+ "starters": 71,
+ "scratched": {
+  "1": [
+   "#3 Cajun Catalina"
+  ],
+  "2": [
+   "#1 Run Bambi Run"
+  ],
+  "6": [
+   "#11 Runforjustice",
+   "#12 Clearly Majestic"
+  ],
+  "7": [
+   "#1 Sir Tristan",
+   "#5 Cajun Cyclone"
+  ],
+  "9": [
+   "#1 Peppermint Stripe",
+   "#8 Miss T"
+  ]
+ },
+ "exacta": {
+  "1": {
+   "numbers": "4-1",
+   "per_dollar": 40.6
+  },
+  "2": {
+   "numbers": "5-3",
+   "per_dollar": 39.1
+  },
+  "3": {
+   "numbers": "2-4",
+   "per_dollar": 34.7
+  },
+  "4": {
+   "numbers": "5-10",
+   "per_dollar": 22.2
+  },
+  "5": {
+   "numbers": "5-3",
+   "per_dollar": 23.8
+  },
+  "6": {
+   "numbers": "4-5",
+   "per_dollar": 13.7
+  },
+  "7": {
+   "numbers": "3-4",
+   "per_dollar": 19.6
+  },
+  "8": {
+   "numbers": "5-6",
+   "per_dollar": 30.4
+  },
+  "9": {
+   "numbers": "5-3",
+   "per_dollar": 19.1
+  }
+ },
+ "live_db_sha_unchanged": true
+}

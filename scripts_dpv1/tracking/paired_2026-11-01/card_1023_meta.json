@@ -1,0 +1,77 @@
+{
+ "date": "2026-10-23",
+ "backup": "racing_full.db.ded1023-run.bak",
+ "backup_sha256": "452684120cb47f604473df19f26839a6f471cede72ca87a399447f9106dcca41",
+ "pp_file": "ded1023y.pdf",
+ "rebuilt_feature_rows": 318934,
+ "record_run": "2026-10-23T09:29:50",
+ "reproduction": {
+  "logged_rows": 82,
+  "rerun_rows": 82,
+  "unmatched": 0,
+  "max_d_p_itm": 1.1102230246251565e-16,
+  "max_d_p_win": 0.0,
+  "max_d_base": 1.1102230246251565e-16,
+  "rank_mismatches": 0
+ },
+ "races": 9,
+ "starters": 75,
+ "scratched": {
+  "3": [
+   "#6 Something Wild"
+  ],
+  "4": [
+   "#3 D'busker"
+  ],
+  "5": [
+   "#1 Autism Authentic"
+  ],
+  "6": [
+   "#9 Twofexusnexus",
+   "#11 The Boss Soss",
+   "#12 Gasoline"
+  ],
+  "7": [
+   "#11 East Shore"
+  ]
+ },
+ "exacta": {
+  "1": {
+   "numbers": "1-3",
+   "per_dollar": 16.7
+  },
+  "2": {
+   "numbers": "3-6",
+   "per_dollar": 11.7
+  },
+  "3": {
+   "numbers": "4-5",
+   "per_dollar": 17.3
+  },
+  "4": {
+   "numbers": "1-9",
+   "per_dollar": 10.9
+  },
+  "5": {
+   "numbers": "8-6",
+   "per_dollar": 12.7
+  },
+  "6": {
+   "numbers": "7-5",
+   "per_dollar": 14.2
+  },
+  "7": {
+   "numbers": "10-2",
+   "per_dollar": 64.8
+  },
+  "8": {
+   "numbers": "9-8",
+   "per_dollar": 9.5
+  },
+  "9": {
+   "numbers": "9-10",
+   "per_dollar": 34.3
+  }
+ },
+ "live_db_sha_unchanged": true
+}

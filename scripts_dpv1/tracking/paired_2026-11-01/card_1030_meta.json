@@ -1,0 +1,88 @@
+{
+ "date": "2026-10-30",
+ "backup": "racing_full.db.ded1030-run.bak",
+ "backup_sha256": "7b6e165f0d7d36ba1233f89b4c3873c8b2980526d4bd28e8ab66c3e9a1f6e2bf",
+ "pp_file": "ded1030y.pdf",
+ "rebuilt_feature_rows": 319236,
+ "record_run": "2026-10-30T14:47:18",
+ "reproduction": {
+  "logged_rows": 100,
+  "rerun_rows": 100,
+  "unmatched": 0,
+  "max_d_p_itm": 5.551115123125783e-17,
+  "max_d_p_win": 0.0,
+  "max_d_base": 5.551115123125783e-17,
+  "rank_mismatches": 0
+ },
+ "races": 9,
+ "starters": 86,
+ "scratched": {
+  "2": [
+   "#3 Wickedly Royal",
+   "#11 Lee Circle"
+  ],
+  "3": [
+   "#11 Making Noise",
+   "#12 One Grand Slam"
+  ],
+  "4": [
+   "#11 Drewmazing",
+   "#12 West Island"
+  ],
+  "5": [
+   "#11 Piastri",
+   "#12 After Party"
+  ],
+  "6": [
+   "#11 Cajun Coaster",
+   "#12 Misdeal"
+  ],
+  "7": [
+   "#9 Fiesty Fist"
+  ],
+  "8": [
+   "#6 Copper Key",
+   "#11 Louisiana Sis",
+   "#12 Pink Angel"
+  ]
+ },
+ "exacta": {
+  "1": {
+   "numbers": "1-9",
+   "per_dollar": 12.9
+  },
+  "2": {
+   "numbers": "6-7",
+   "per_dollar": 228.7
+  },
+  "3": {
+   "numbers": "2-3",
+   "per_dollar": 152.5
+  },
+  "4": {
+   "numbers": "5-1",
+   "per_dollar": 145.7
+  },
+  "5": {
+   "numbers": "3-10",
+   "per_dollar": 33.0
+  },
+  "6": {
+   "numbers": "7-5",
+   "per_dollar": 81.2
+  },
+  "7": {
+   "numbers": "8-1",
+   "per_dollar": 41.7
+  },
+  "8": {
+   "numbers": "5-7",
+   "per_dollar": 10.1
+  },
+  "9": {
+   "numbers": "5-10",
+   "per_dollar": 19.5
+  }
+ },
+ "live_db_sha_unchanged": true
+}
