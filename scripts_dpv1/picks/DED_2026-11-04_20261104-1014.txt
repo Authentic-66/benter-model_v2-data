@@ -1,0 +1,575 @@
+========================================================================
+ DPv1 dpv1.3.2-5track-stretch — DED 2026-11-04
+ generated 2026-11-04 10:09
+========================================================================
+ P(ITM) is the model's own opinion, formed without odds.
+ ML is the morning line, shown for comparison only — it is not a model input.
+ cov is how much of the 96-feature set was available; low cov means a
+ near-prior guess, not a real assessment.
+ PP text reader: bridge pdfplumber; staged rows pdfplumber
+
+--- Race 1  (12 horses)  CLAIMING  1430  Dirt  $14,000
+    feature coverage 88%
+ rank pgm              horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   7    Sarah's Rolling    50.7  49.5    18.8   92  3/1    111.5     
+        ↑ finish placement (last race)     +0.32
+        ↑ career ITM%                      +0.12
+        ↑ speed figure last race           +0.09
+        ↓ career win%                      -0.08
+        ↓ shipping in today                -0.07
+        ↓ at jockey's home track           -0.06
+    2   1      Miss Landlock    48.6  46.1    17.7   95  7/2    102.7 +2.4
+        ↑ finish placement (last race)     +0.23
+        ↑ last race was maiden             +0.18
+        ↑ jockey win% on surface           +0.14
+        ↓ moving up in class               -0.11
+        ↓ distance change vs last          -0.07
+        ↓ no data: trainer win% off layoff -0.06
+    3   4            Faye L.    36.8  34.0    12.8   86  5/1     99.6 +2.8
+        ↑ career ITM%                      +0.25
+        ↑ finish placement (last race)     +0.23
+        ↑ last race was maiden             +0.18
+        ↓ moving up in class               -0.11
+        ↓ speed figure last race           -0.06
+        ↓ no data: trainer win% off layoff -0.06
+    4   2 Jade's Wicked Doll    24.8  24.8     7.9   88 10/1     94.6     
+        ↑ post position                    +0.09
+        ↑ speed figure last race           +0.06
+        ↑ career ITM%                      +0.05
+        ↓ last race field size             -0.19
+        ↓ career win%                      -0.08
+        ↓ weight (lbs)                     -0.08
+    5   9       Hallof Cards    22.7  26.9     7.1   83  8/1     98.6 -4.2
+        ↑ avg finish placement (last 3)    +0.16
+        ↑ finish placement (last race)     +0.13
+        ↑ career win% on surface           +0.12
+        ↓ career win%                      -0.23
+        ↓ last race field size             -0.19
+        ↓ post position                    -0.05
+    6   3       Custom Value    19.6  17.4     6.0   86 20/1     91.0 +2.2
+        ↑ avg finish placement (last 3)    +0.11
+        ↑ career win%                      +0.07
+        ↑ post position                    +0.07
+        ↓ last race field size             -0.19
+        ↓ speed figure last race           -0.09
+        ↓ career ITM%                      -0.08
+    7  10      She'sa Target    19.6  16.2     6.0   85 12/1     93.6 +3.4
+        ↑ margin over next finisher (last race) +0.10
+        ↑ distance change vs last          +0.06
+        ↓ speed figure last race           -0.19
+        ↓ career ITM%                      -0.18
+        ↓ stretch run last race (lengths gained) -0.08
+    8   8           Provoker    18.0  20.5     5.6   86  6/1     98.2 -2.5
+        ↑ speed figure last race           +0.14
+        ↓ shipping in today                -0.07
+        ↓ career ITM%                      -0.06
+        ↓ finish placement (last race)     -0.06
+    9   6        Mary Claire    17.0  20.1     5.5   84  8/1    100.2 -3.0
+        ↑ speed figure last race           +0.13
+        ↑ career ITM%                      +0.06
+        ↓ finish placement (last race)     -0.16
+        ↓ closer last race                 -0.09
+        ↓ stretch-run rank last race       -0.09
+   10  12     One Fancy Lady    15.7  16.5     4.5   91  4/1    101.5     
+        ↑ last race field size             +0.11
+        ↑ stretch run last race (lengths gained) +0.06
+        ↑ distance change vs last          +0.06
+        ↓ finish placement (last race)     -0.16
+        ↓ avg finish placement (last 3)    -0.16
+        ↓ post position                    -0.11
+   11  11          Call Fern    14.6  15.0     4.5   85 20/1     93.9     
+        ↑ last race field size             +0.11
+        ↑ career win%                      +0.09
+        ↑ stretch run last race (lengths gained) +0.06
+        ↓ career ITM%                      -0.16
+        ↓ post position                    -0.09
+        ↓ closer last race                 -0.09
+   12   5       Magical Deal    11.9  12.9     3.6   91 20/1     89.1     
+        ↑ last race field size             +0.19
+        ↑ career win%                      +0.07
+        ↑ stretch run last race (lengths gained) +0.06
+        ↓ finish placement (last race)     -0.36
+        ↓ avg finish placement (last 3)    -0.20
+        ↓ career starts                    -0.12
+
+--- Race 2  (10 horses)  MAIDENCLAIMING  1760  Dirt  $16,000
+    feature coverage 87%
+ rank pgm             horse  P(ITM)  base  P(win)  cov   ML PrimePwr   +/-
+    1   8     Candy Dreamin    47.9  51.2    16.7   86  4/1    102.9  -3.3
+        ↑ finish placement (last race)     +0.19
+        ↑ speed figure last race           +0.19
+        ↑ jockey win% on surface           +0.14
+        ↓ margin over next finisher (last race) -0.14
+        ↓ speed trend (last 3)             -0.12
+        ↓ at jockey's home track           -0.05
+    2   4            Fulton    42.7  40.7    15.1   85  6/1     97.2  +2.0
+        ↑ speed figure last race           +0.18
+        ↑ jockey win% on surface           +0.15
+        ↑ purse change vs last             +0.07
+        ↓ margin over next finisher (last race) -0.13
+        ↓ avg finish placement (last 3)    -0.10
+        ↓ finish placement (last race)     -0.10
+    3   1       Whatdidwedo    34.8  23.7    11.7   91 15/1     82.5 +11.1
+        ↑ margin over next finisher (last race) +1.09
+        ↑ career win%                      +0.19
+        ↑ speed trend (last 3)             +0.17
+        ↓ speed figure last race           -1.11
+        ↓ career starts                    -0.21
+        ↓ stretch run last race (lengths gained) -0.15
+    4   2          Howiewin    31.3  30.7    10.5   89 15/1     88.1      
+        ↑ speed figure last race           +0.10
+        ↑ post position                    +0.07
+        ↑ closer last race                 +0.06
+        ↓ margin over next finisher (last race) -0.14
+        ↓ purse change vs last             -0.10
+        ↓ finish placement (last race)     -0.10
+    5   5    Perfect Timing    29.4  35.6     9.9   88  7/2     98.6  -6.2
+        ↑ speed figure last race           +0.20
+        ↑ purse change vs last             +0.17
+        ↑ closer last race                 +0.06
+        ↓ margin over next finisher (last race) -0.11
+        ↓ career win%                      -0.08
+        ↓ jockey home track = DED          -0.05
+    6  10    Take This City    28.4  27.2     9.2   85  9/2     95.9      
+        ↑ finish placement (last race)     +0.19
+        ↑ avg finish placement (last 3)    +0.12
+        ↑ speed figure last race           +0.12
+        ↓ margin over next finisher (last race) -0.17
+        ↓ jockey win% on surface           -0.12
+        ↓ purse change vs last             -0.10
+    7   6      Rescue Squad    27.9  25.7     9.5   83 20/1     90.1  +2.2
+        ↑ speed figure last race           +0.29
+        ↑ purse change vs last             +0.11
+        ↑ finish placement (last race)     +0.10
+        ↓ last race field size             -0.17
+        ↓ margin over next finisher (last race) -0.17
+        ↓ career ITM%                      -0.16
+    8   9 Justicefor Johnny    24.6  25.8     8.0   86  5/1     93.4      
+        ↑ trainer home track = EVD         +0.09
+        ↑ margin over next finisher (last race) +0.06
+        ↑ closer last race                 +0.06
+        ↓ purse change vs last             -0.10
+        ↓ speed figure last race           -0.08
+        ↓ post position                    -0.07
+    9   7         Magnifier    21.9  24.1     6.4   84 10/1     93.6  -2.2
+        ↑ purse change vs last             +0.07
+        ↑ last race field size             +0.05
+        ↓ finish placement (last race)     -0.19
+        ↓ margin over next finisher (last race) -0.15
+        ↓ closer last race                 -0.06
+   10   3      Uncle Eugene    11.1  15.3     3.2   89 10/1     83.9  -4.3
+        ↑ speed figure last race           +0.09
+        ↑ trainer win% at track            +0.06
+        ↑ career starts                    +0.05
+        ↓ margin over next finisher (last race) -0.14
+        ↓ weight (lbs)                     -0.11
+        ↓ jockey win% on surface           -0.11
+
+--- Race 3  (9 horses)  MAIDENCLAIMING  1540  Dirt  $27,000
+    ⚠ MAIDEN with underraced horses — high variance, model recommends handicapping directly
+      (6 of 9 = 67% have under 3 career starts)
+    feature coverage 74%
+ rank pgm              horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   1      Running Faith    53.3  47.0    19.8   90  5/2    108.7 +6.4
+        ↑ purse change vs last             +0.11
+        ↑ last race field size             +0.11
+        ↑ last race was maiden             +0.10
+        ↓ avg finish placement (last 3)    -0.08
+        ↓ finish placement (last race)     -0.08
+        ↓ jockey home track = DED          -0.07
+    2   9    Princess Deeana    49.3  44.4    18.1   90  6/1    106.2 +4.9
+        ↑ margin over next finisher (last race) +0.25
+        ↑ jockey win% on surface           +0.14
+        ↑ purse change vs last             +0.11
+        ↓ finish placement (last race)     -0.27
+        ↓ speed figure last race           -0.19
+        ↓ closer last race                 -0.11
+    3   6 Daddy's Last Sweet    39.4  37.1    12.6   88  7/2     96.6 +2.3
+        ↑ finish placement (last race)     +0.12
+        ↑ last race was maiden             +0.10
+        ↑ no data: won last race           +0.08
+        ↓ last race field size             -0.19
+        ↓ trainer home track = LAD         -0.18
+    4   7      Onedayatatime    38.4  31.1    13.1   91 12/1     93.8 +7.3
+        ↑ finish placement (last race)     +0.22
+        ↑ career win%                      +0.10
+        ↑ last race was maiden             +0.10
+        ↓ purse change vs last             -0.25
+        ↓ moving up in class               -0.10
+        ↓ no data: trainer win% off layoff -0.08
+    5   2    She Exaggerates    30.2  35.2     9.6   54 15/1          -5.0
+        ↑ speed figure last race           +0.08
+        ↑ trainer win% on surface          +0.08
+        ↑ trainer win% at track            +0.07
+        ↓ last race was maiden             -0.12
+        ↓ no data: won last race           -0.10
+        ↓ no data: finish placement (last race) -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    6   8   Our Castle Queen    26.8  30.4     8.5   81  9/2     93.8 -3.6
+        ↑ last race was maiden             +0.10
+        ↑ no data: won last race           +0.08
+        ↑ no data: finish placement (last race) +0.08
+        ↓ last race field size             -0.19
+        ↓ career ITM%                      -0.08
+        ↓ finish placement (last race)     -0.08
+    7   3          She Sails    22.9  27.5     7.2   46 15/1          -4.6
+        ↑ speed figure last race           +0.08
+        ↓ last race was maiden             -0.12
+        ↓ no data: won last race           -0.10
+        ↓ no data: finish placement (last race) -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    8   5        Royal Coast    20.9  26.3     5.8   60  6/1     87.9 -5.4
+        ↓ last race was maiden             -0.12
+        ↓ no data: won last race           -0.10
+        ↓ no data: finish placement (last race) -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    9   4       Queenofpoker    18.7  21.0     5.4   67 12/1     97.3 -2.3
+        ↑ speed figure last race           +0.05
+        ↓ last race was maiden             -0.12
+        ↓ no data: won last race           -0.10
+        ↓ no data: finish placement (last race) -0.10
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+
+--- Race 4  (9 horses)  CLAIMING  1430  Dirt  $13,000
+    feature coverage 82%
+ rank pgm             horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   6     Cutting Class    53.0  53.6    19.1   84  4/1    111.5     
+        ↑ speed figure last race           +0.20
+        ↑ last race field size             +0.16
+        ↑ career starts                    +0.09
+        ↓ blinkers change                  -0.06
+        ↓ jockey home track = DED          -0.06
+        ↓ margin over next finisher (last race) -0.06
+    2   3      Time to Tell    45.6  39.2    15.8   65  7/2    105.2 +6.3
+        ↑ trainer home track = FG          +0.10
+        ↑ career starts                    +0.10
+        ↑ career win% on surface           +0.07
+        ↓ no data: won last race           -0.14
+        ↓ no data: finish placement (last race) -0.14
+        ↓ no data: avg finish placement (last 3) -0.07
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    3   2 Midnight Mischief    39.8  37.4    13.6   85  6/1    105.1 +2.5
+        ↑ speed figure last race           +0.11
+        ↑ avg finish placement (last 3)    +0.10
+        ↑ shipping in today                +0.08
+        ↓ career win%                      -0.10
+        ↓ stretch run last race (lengths gained) -0.10
+        ↓ closer last race                 -0.09
+    4   1      Phila Street    33.4  33.7    11.2   61  5/2    108.4     
+        ↑ career starts                    +0.10
+        ↑ post position                    +0.08
+        ↑ pace type last race    MISSING =  +0.06
+        ↓ no data: won last race           -0.14
+        ↓ no data: finish placement (last race) -0.14
+        ↓ margin over next finisher (last race) -0.07
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    5   8        Bagof Gold    30.2  31.6     9.9   88  6/1    103.6     
+        ↑ career win%                      +0.08
+        ↑ first-time blinkers              +0.06
+        ↑ stretch run last race (lengths gained) +0.06
+        ↓ finish placement (last race)     -0.15
+        ↓ jockey home track = LAD          -0.09
+        ↓ blinkers change                  -0.06
+    6   7          EZ Words    28.7  25.2     9.3   90 15/1     98.1 +3.5
+        ↑ finish placement (last race)     +0.24
+        ↑ blinkers change                  +0.22
+        ↑ last race was maiden             +0.20
+        ↓ first-time blinkers              -0.21
+        ↓ purse change vs last             -0.17
+        ↓ trainer home track = LAD         -0.16
+    7   4    Garnet Jubilee    24.8  29.9     7.5   89 10/1    100.2 -5.1
+        ↑ margin over next finisher (last race) +0.37
+        ↑ first-time blinkers              +0.06
+        ↓ speed figure last race           -0.30
+        ↓ finish placement (last race)     -0.25
+        ↓ career starts                    -0.11
+    8   5      Girlie's Max    23.7  23.9     7.1   88 20/1     93.3     
+        ↑ blinkers change                  +0.22
+        ↑ shipping in today                +0.08
+        ↑ trainer win% at distance         +0.07
+        ↓ last race field size             -0.22
+        ↓ first-time blinkers              -0.21
+        ↓ trainer home track = LAD         -0.16
+    9   9 Baby's Last Dance    20.7  25.6     6.5   93 15/1    100.0 -4.9
+        ↑ finish placement (last race)     +0.14
+        ↑ career win%                      +0.14
+        ↑ stretch-run rank last race       +0.13
+        ↓ career starts                    -0.29
+        ↓ avg finish placement (last 3)    -0.14
+        ↓ career ITM%                      -0.10
+
+--- Race 5  (9 horses)  CLAIMING  1650  Dirt  $11,000
+    feature coverage 89%
+ rank pgm         horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   2        Grazed    53.5  48.8    19.0   88  9/5    117.4 +4.7
+        ↑ career starts                    +0.16
+        ↑ trainer win% on surface          +0.13
+        ↑ speed figure last race           +0.12
+        ↓ trainer home track = LAD         -0.13
+        ↓ career ITM%                      -0.09
+        ↓ stretch-run rank last race       -0.08
+    2   5 Vodka Martini    48.1  48.0    16.9   94  5/1    114.6     
+        ↑ finish placement (last race)     +0.42
+        ↑ career win% on surface           +0.26
+        ↑ avg finish placement (last 3)    +0.20
+        ↓ career win%                      -0.47
+        ↓ won last race                    -0.21
+        ↓ jockey win% on surface           -0.12
+    3   1   Feelthebeat    42.3  42.6    14.9   94  8/1    111.0     
+        ↑ career win%                      +0.25
+        ↑ jockey starts at other tracks    +0.10
+        ↑ trainer win% on surface          +0.08
+        ↓ career ITM%                      -0.15
+        ↓ career win% on surface           -0.10
+        ↓ jockey home track = LAD          -0.09
+    4   6      Red Road    40.2  42.9    12.8   86  4/1    107.6 -2.7
+        ↑ finish placement (last race)     +0.32
+        ↑ avg finish placement (last 3)    +0.17
+        ↑ career ITM%                      +0.17
+        ↓ career win% on surface           -0.11
+        ↓ trainer win% on surface          -0.06
+        ↓ speed figure last race           -0.06
+    5   3  My Pal Sweet    40.0  41.5    13.0   89  6/1    108.6     
+        ↑ finish placement (last race)     +0.32
+        ↑ trainer home track = EVD         +0.09
+        ↑ shipping in today                +0.08
+        ↓ last race field size             -0.18
+        ↓ career starts                    -0.09
+        ↓ no data: trainer win% off layoff -0.07
+    6   7  Track Ranger    27.4  21.2     8.8   86 15/1    106.9 +6.1
+        ↑ career win%                      +0.14
+        ↑ career starts                    +0.14
+        ↑ trainer home track = LAD         +0.07
+        ↓ finish placement (last race)     -0.16
+        ↓ career ITM%                      -0.15
+        ↓ jockey home track = DED          -0.09
+    7   9       Ampitup    23.1  23.6     7.2   85  6/1    111.7     
+        ↑ purse change vs last             +0.16
+        ↑ class rating change vs last      +0.09
+        ↑ career win% on surface           +0.09
+        ↓ finish placement (last race)     -0.36
+        ↓ career win%                      -0.12
+        ↓ stretch-run rank last race       -0.08
+    8   8  All Together    15.0  20.7     4.6   92 20/1     99.4 -5.7
+        ↑ jockey win% on surface           +0.12
+        ↑ wins at this track               +0.09
+        ↑ stretch run last race (lengths gained) +0.09
+        ↓ career starts                    -0.26
+        ↓ trainer home track = LAD         -0.13
+        ↓ closer last race                 -0.11
+    9   4 Tapto Connect    10.3  10.7     2.8   86 20/1    101.6     
+        ↓ finish placement (last race)     -0.45
+        ↓ avg finish placement (last 3)    -0.22
+        ↓ speed figure last race           -0.16
+
+--- Race 6  (9 horses)  CLAIMING  1430  Dirt  $13,000
+    feature coverage 87%
+ rank pgm            horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   9   Blue Chair Bay    49.5  51.0    18.2   94  2/1    108.9     
+        ↑ speed figure last race           +0.27
+        ↑ finish placement (last race)     +0.26
+        ↑ jockey win% on surface           +0.14
+        ↓ career win%                      -0.19
+        ↓ speed trend (last 3)             -0.12
+        ↓ purse change vs last             -0.10
+    2   4 Mr.Brad's Cowboy    40.9  46.3    13.6   91 12/1     99.6 -5.3
+        ↑ finish placement (last race)     +0.26
+        ↑ shipping in today                +0.09
+        ↑ avg finish placement (last 3)    +0.09
+        ↓ last race field size             -0.11
+        ↓ jockey home track = LAD          -0.08
+        ↓ career starts                    -0.07
+    3   3           Asaasy    40.1  35.4    13.6   89  5/1    104.4 +4.6
+        ↑ trouble in last trip             +0.08
+        ↑ trainer home track = EVD         +0.08
+        ↑ distance change vs last          +0.07
+        ↓ finish placement (last race)     -0.13
+    4   1      Last Attack    37.1  36.5    12.7   89  3/1    111.4     
+        ↑ speed figure last race           +0.18
+        ↑ last race field size             +0.12
+        ↑ career win%                      +0.11
+        ↓ finish placement (last race)     -0.13
+        ↓ avg finish placement (last 3)    -0.10
+        ↓ closer last race                 -0.09
+    5   6    Lovea Fighter    34.1  32.1    11.0   92 15/1     97.5     
+        ↑ finish placement (last race)     +0.36
+        ↑ stretch-run rank last race       +0.12
+        ↑ last race field size             +0.12
+        ↓ won last race                    -0.21
+        ↓ career ITM%                      -0.11
+        ↓ jockey win% on surface           -0.11
+    6   5      After Party    28.9  25.9     9.0   84  6/1    110.8 +3.0
+        ↑ career win% on surface           +0.12
+        ↑ last race field size             +0.12
+        ↑ career starts                    +0.09
+        ↓ finish placement (last race)     -0.32
+        ↓ career win%                      -0.17
+        ↓ speed figure last race           -0.11
+    7   8        Midshakin    28.3  27.5     9.3   61 15/1    100.4     
+        ↑ career starts                    +0.13
+        ↑ pace type last race    MISSING =  +0.07
+        ↑ finish placement (last race)     +0.06
+        ↓ no data: won last race           -0.16
+        ↓ no data: finish placement (last race) -0.16
+        ↓ speed figure last race           -0.09
+        ⚠ SHIPPER — check PP directly, model may be blind to prior form
+    8   2       Butchy Boy    20.7  25.6     6.6   93  8/1     99.8 -4.9
+        ↑ career win%                      +0.22
+        ↑ jockey starts at other tracks    +0.10
+        ↑ distance change vs last          +0.07
+        ↓ finish placement (last race)     -0.32
+        ↓ career starts                    -0.13
+        ↓ career win% on surface           -0.11
+    9   7          Cut Day    20.5  19.6     6.0   92 20/1    100.5     
+        ↑ purse change vs last             +0.18
+        ↑ class rating change vs last      +0.11
+        ↑ no data: trainer win% dropping class +0.09
+        ↓ last race field size             -0.26
+        ↓ stretch run last race (lengths gained) -0.19
+        ↓ career win%                      -0.17
+
+--- Race 7  (9 horses)  ALLOWANCE  1100  Dirt  $28,000
+    feature coverage 89%
+ rank pgm            horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   4          Stovall    53.0  47.0    19.0   89  6/1    117.6 +6.0
+        ↑ finish placement (last race)     +0.16
+        ↑ last race field size             +0.16
+        ↑ trainer win% at track            +0.09
+        ↓ career ITM%                      -0.06
+    2   9 Prado's Priority    47.2  45.5    16.9   94  2/1    116.0     
+        ↑ career win% on surface           +0.37
+        ↑ career ITM%                      +0.36
+        ↑ career wins                      +0.24
+        ↓ career win%                      -0.64
+        ↓ purse change vs last             -0.37
+        ↓ last race field size             -0.22
+    3   3   A Lotta Shance    39.4  40.8    13.0   83  8/1    116.9     
+        ↑ purse change vs last             +0.21
+        ↑ career starts                    +0.20
+        ↑ career win%                      +0.10
+        ↓ career ITM%                      -0.12
+        ↓ weight (lbs)                     -0.10
+        ↓ career wins                      -0.10
+    4   8         Petitfor    32.2  32.8    10.8   86 15/1    110.9     
+        ↑ purse change vs last             +0.20
+        ↑ last race field size             +0.16
+        ↑ moving up in class               +0.10
+        ↓ avg finish placement (last 3)    -0.18
+        ↓ finish placement (last race)     -0.13
+        ↓ career win% on surface           -0.10
+    5   7    The Boss Soss    31.3  32.4    10.1   85 15/1    110.6     
+        ↑ blinkers change                  +0.25
+        ↑ career win%                      +0.15
+        ↑ distance change vs last          +0.11
+        ↓ career starts                    -0.15
+        ↓ last race field size             -0.14
+        ↓ stretch run last race (lengths gained) -0.08
+    6   2           El Dan    29.7  30.3     9.6   94 10/1    111.5     
+        ↑ career starts                    +0.16
+        ↑ trainer home track = EVD         +0.09
+        ↑ last race field size             +0.08
+        ↓ avg finish placement (last 3)    -0.18
+        ↓ career ITM%                      -0.15
+        ↓ career win%                      -0.12
+    7   5       Bind Faith    23.9  27.0     7.3   93 12/1    111.0 -3.1
+        ↑ career win%                      +0.23
+        ↑ last race field size             +0.16
+        ↓ career starts                    -0.29
+        ↓ career win% on surface           -0.12
+        ↓ jockey home track = DED          -0.07
+    8   6     Daddy's Code    23.1  24.8     6.9   89  4/1    117.8     
+        ↑ finish placement (last race)     +0.16
+        ↑ career win%                      +0.10
+        ↑ speed figure last race           +0.09
+        ↓ trainer home track = LAD         -0.16
+        ↓ career ITM%                      -0.09
+        ↓ trainer win% at track            -0.08
+    9   1      Avery's Gem    20.3  19.6     6.4   91  5/1    114.3     
+        ↑ post position                    +0.08
+        ↑ career ITM%                      +0.07
+        ↑ purse change vs last             +0.05
+        ↓ finish placement (last race)     -0.23
+        ↓ jockey win% on surface           -0.12
+        ↓ speed figure last race           -0.12
+
+--- Race 8  (10 horses)  CLAIMING  1760  Dirt  $13,000
+    feature coverage 87%
+ rank pgm            horse  P(ITM)  base  P(win)  cov   ML PrimePwr  +/-
+    1   2           Paired    53.3  54.4    19.3   84  6/1    103.7     
+        ↑ finish placement (last race)     +0.26
+        ↑ speed figure last race           +0.22
+        ↑ avg finish placement (last 3)    +0.14
+        ↓ career win%                      -0.16
+        ↓ closer last race                 -0.06
+        ↓ speed trend (last 3)             -0.05
+    2   1         El Chavo    43.6  46.4    15.2   88  7/2    105.6 -2.8
+        ↑ finish placement (last race)     +0.46
+        ↑ avg finish placement (last 3)    +0.22
+        ↑ last race was maiden             +0.20
+        ↓ won last race                    -0.21
+        ↓ career win%                      -0.13
+        ↓ moving up in class               -0.12
+    3   3             Doss    42.6  40.8    14.2   86 12/1     96.1     
+        ↑ career ITM%                      +0.10
+        ↑ speed figure last race           +0.08
+        ↑ finish placement (last race)     +0.07
+        ↓ jockey home track = DED          -0.05
+    4   6       Prinsipito    37.4  36.8    12.4   88  5/1    101.3     
+        ↑ margin over next finisher (last race) +0.17
+        ↑ finish placement (last race)     +0.16
+        ↑ career win%                      +0.12
+        ↓ career ITM%                      -0.15
+        ↓ jockey win% on surface           -0.08
+        ↓ career win% on surface           -0.06
+    5  10       Heats Hero    36.2  35.3    12.1   85  2/1    100.3     
+        ↑ trainer win% at track            +0.11
+        ↑ trainer win% on surface          +0.11
+        ↑ shipping in today                +0.08
+        ↓ last race field size             -0.14
+        ↓ post position                    -0.09
+        ↓ purse change vs last             -0.07
+    6   5    SD's Takeover    25.0  24.5     8.0   90 15/1     93.4     
+        ↑ last race field size             +0.17
+        ↑ purse change vs last             +0.15
+        ↑ no data: trainer win% dropping class +0.09
+        ↓ finish placement (last race)     -0.42
+        ↓ jockey win% on surface           -0.08
+        ↓ stretch-run rank last race       -0.06
+    7   7  Mucho Macho Cam    21.6  21.1     6.5   93 15/1     88.5     
+        ↑ finish placement (last race)     +0.26
+        ↑ jockey starts at other tracks    +0.11
+        ↑ shipping in today                +0.08
+        ↓ speed figure last race           -0.22
+        ↓ trainer home track = LAD         -0.16
+        ↓ purse change vs last             -0.16
+    8   4 Here Comes Trump    17.0  18.4     5.2   91 20/1     95.5     
+        ↑ trouble in last trip             +0.08
+        ↑ closer last race                 +0.06
+        ↓ finish placement (last race)     -0.22
+        ↓ avg finish placement (last 3)    -0.10
+        ↓ stretch-run rank last race       -0.08
+    9   9      Grey Street    14.8  13.8     4.6   79  8/1     97.1     
+        ↑ career starts                    +0.07
+        ↑ jockey home track = DED          +0.05
+        ↓ finish placement (last race)     -0.32
+        ↓ avg finish placement (last 3)    -0.27
+        ↓ stretch run last race (lengths gained) -0.14
+   10   8       All Saints     8.6   8.5     2.5   88 20/1     92.5     
+        ↑ career win%                      +0.14
+        ↑ jockey home track = DED          +0.05
+        ↓ finish placement (last race)     -0.32
+        ↓ trainer home track = LAD         -0.16
+        ↓ career starts                    -0.13
+
+========================================================================
+ CARD SUMMARY — top pick per race
+========================================================================
+ R           top pick  P(ITM)%  ML  cov%
+ 1 #7 Sarah's Rolling     50.7 3/1    88
+ 2   #8 Candy Dreamin     47.9 4/1    87
+ 3   #1 Running Faith     53.3 5/2    74
+ 4   #6 Cutting Class     53.0 4/1    82
+ 5          #2 Grazed     53.5 9/5    89
+ 6  #9 Blue Chair Bay     49.5 2/1    87
+ 7         #4 Stovall     53.0 6/1    89
+ 8          #2 Paired     53.3 6/1    87
