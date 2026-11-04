@@ -56,7 +56,7 @@ from pathlib import Path
 from collections import defaultdict
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import name_match  # noqa: E402  (BENTER_NAME_MATCH switch, OFF by default)
+import name_match  # noqa: E402  (per-card switch: name_match_config.json)
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -2345,6 +2345,9 @@ def parse_pp_file(filepath, track_code: str | None = None) -> dict:
     if race_date is None:
         out["error"] = "could not determine race date"
         return out
+    # Name-matching switch is per card (name_match_config.json); set it
+    # before any name is read.
+    name_match.set_card(track, race_date)
 
     try:
         boxes = extract_header_boxes(path) if reader == "pdfplumber" else None

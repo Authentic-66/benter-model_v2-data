@@ -1,8 +1,11 @@
-"""Jockey / trainer name matching for PP-loaded cards (OFF by default).
+"""Jockey / trainer name matching for PP-loaded cards.
 
-Switch: set the environment variable ``BENTER_NAME_MATCH=1`` to turn it on.
-When it is off (unset, empty, or anything other than 1/on/true/yes), the PP
-parser and ``load_pp_card`` behave exactly as before this module existed.
+Switch: ``name_match_config.json`` turns it ON for DED cards dated
+2026-11-05 onward (approved by Doug 2026-11-04; PHASE_6E). Earlier cards,
+other tracks, and any parse with no card date are OFF. For a comparison run,
+``BENTER_NAME_MATCH=0`` forces it OFF and ``BENTER_NAME_MATCH=1`` forces it
+ON, for any card. When it is off, the PP parser and ``load_pp_card`` behave
+exactly as before this module existed.
 
 Why: a Brisnet PP spells people "Barrera Elio J" or "RAMIREZ, JR. JULIO",
 while the result charts spell them "Barrera, Elio" and "Ramirez, Jr., Julio".
@@ -41,11 +44,89 @@ ENV = "BENTER_NAME_MATCH"
 LOG_ENV = "BENTER_NAME_MATCH_LOG"
 DEFAULT_LOG = Path(__file__).resolve().parent / "logs" / "name_matches.jsonl"
 ALIAS_FILE = Path(__file__).resolve().parent / "name_aliases.csv"
+CONFIG_FILE = Path(__file__).resolve().parent / "name_match_config.json"
 SUFFIXES = {"jr", "sr", "ii", "iii", "iv"}
 
 
+ON_VALUES = {"1", "on", "true", "yes"}
+OFF_VALUES = {"0", "off", "false", "no"}
+_CARD: dict = {"track": None, "date": None}
+
+
+def set_card(track: str | None, card_date) -> None:
+    """Tell the switch which card is being parsed / loaded / scored.
+    ``parse_pp_file`` calls this as soon as it knows the track and date, and
+    ``card_picks`` at start-up, so every caller in the process agrees."""
+    _CARD["track"] = (track or "").upper() or None
+    _CARD["date"] = str(card_date)[:10] if card_date else None
+
+
+def load_config(path: Path = CONFIG_FILE) -> dict:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def state(track: str | None = None, card_date=None) -> tuple[bool, str]:
+    """``(on, why)`` for a card. Precedence:
+
+    1. ``BENTER_NAME_MATCH`` set to 1/on/true/yes or 0/off/false/no: that,
+       for any card (the comparison override);
+    2. otherwise ``name_match_config.json``: ON for cards on the listed
+       tracks dated on or after ``on_from_card_date``, OFF before it;
+    3. no card known yet, or no config: OFF.
+    """
+    raw = os.environ.get(ENV, "").strip().lower()
+    if raw in ON_VALUES:
+        return True, f"override {ENV}={raw}"
+    if raw in OFF_VALUES:
+        return False, f"override {ENV}={raw}"
+    track = (track or _CARD["track"] or "").upper()
+    d = str(card_date)[:10] if card_date else _CARD["date"]
+    cfg = load_config()
+    start = cfg.get("on_from_card_date")
+    tracks = {t.upper() for t in cfg.get("tracks", [])}
+    if not start:
+        return False, "no config"
+    if not d:
+        return False, "card date not known"
+    if tracks and track not in tracks:
+        return False, f"config: {track or '?'} not in {sorted(tracks)}"
+    if d >= start:
+        return True, f"config: ON from {start}"
+    return False, f"config: card before {start}"
+
+
 def enabled() -> bool:
-    return os.environ.get(ENV, "").strip().lower() in {"1", "on", "true", "yes"}
+    return state()[0]
+
+
+def card_counts(track: str, card_date: str, path: Path | None = None) -> dict | None:
+    """Method counts from the LATEST load of this card in the match log
+    (``{"alias": n, "new": n, ...}``), or None if the card has no log
+    lines (it was loaded with matching OFF)."""
+    path = Path(path or os.environ.get(LOG_ENV) or DEFAULT_LOG)
+    if not path.exists():
+        return None
+    recs = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            if r.get("track") == track.upper() and r.get("race_date") == card_date:
+                recs.append(r)
+    if not recs:
+        return None
+    last = max(r.get("logged_at", "") for r in recs)
+    counts: dict = {}
+    for r in recs:
+        if r.get("logged_at", "") == last:
+            counts[r["method"]] = counts.get(r["method"], 0) + 1
+    return counts
 
 
 def corpus_key(name: str) -> str:

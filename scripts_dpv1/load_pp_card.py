@@ -77,7 +77,7 @@ sys.path.insert(0, str(DPV1_DIR_))
 sys.path.insert(0, str(DPV1_DIR_.parent / "scripts"))
 
 import db_loader  # noqa: E402
-import name_match  # noqa: E402  (BENTER_NAME_MATCH switch, OFF by default)
+import name_match  # noqa: E402  (per-card switch: name_match_config.json)
 from equibase_pdf_parser import normalize_name  # noqa: E402
 
 from brisnet_pp_parser import (  # noqa: E402
@@ -555,9 +555,12 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
         race_day_id = int(cur.lastrowid)
 
         n_races = n_entries = 0
-        # BENTER_NAME_MATCH=1 only (OFF by default): match PP jockey/trainer
-        # spellings to charted people; see name_match.py.
-        nm_on = name_match.enabled()
+        # Match PP jockey/trainer spellings to charted people when the switch
+        # is on for this card (name_match_config.json, or the
+        # BENTER_NAME_MATCH override); see name_match.py.
+        name_match.set_card(track, race_date)
+        nm_on, nm_why = name_match.state()
+        counts: dict = {}
         nm_log: list[dict] = []
         if nm_on:
             name_match.reset_cache()
@@ -623,7 +626,6 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
         conn.commit()
         if nm_on:
             p = name_match.write_log(nm_log)
-            counts: dict = {}
             for rec in nm_log:
                 counts[rec["method"]] = counts.get(rec["method"], 0) + 1
             log.info("name matching ON: %s (log %s)", counts, p)
@@ -631,7 +633,9 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
         conn.close()
 
     return {"track": card["track"], "race_date": card["race_date"],
-            "races": n_races, "entries": n_entries, "pp_staged": n_staged}
+            "races": n_races, "entries": n_entries, "pp_staged": n_staged,
+            "name_matching": "ON" if nm_on else "OFF",
+            "name_matching_why": nm_why, "name_match_counts": counts}
 
 
 def _to_int(v):
@@ -768,6 +772,12 @@ def _cli() -> int:
         summary = load_card(args.db, card)
         print(f"\nloaded: {summary['races']} races, {summary['entries']} "
               f"entries into {args.db}")
+        nmc = summary["name_match_counts"]
+        print(f"name matching: {summary['name_matching']} "
+              f"({summary['name_matching_why']})"
+              + (f"; alias matches {nmc.get('alias', 0)}, new-person rows "
+                 f"{nmc.get('new', 0)}, ambiguous {nmc.get('ambiguous', 0)}"
+                 if summary["name_matching"] == "ON" else ""))
         print("\nNext: rebuild features so the card gets scored on the full "
               "feature set:")
         print("  python scripts_dpv1/speed_figures_dpv1.py compute")

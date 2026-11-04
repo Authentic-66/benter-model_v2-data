@@ -85,6 +85,7 @@ from dpv1_runtime import (  # noqa: E402
 from pp_feature_bridge import apply_to_card, pp_index  # noqa: E402
 from brisnet_pp_parser import PPReaderError, pp_reader  # noqa: E402
 from simulate_race import simulate_prediction  # noqa: E402
+import name_match  # noqa: E402  (per-card switch: name_match_config.json)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Human-readable feature labels for the "reasons" block.
@@ -1120,7 +1121,8 @@ def _round(v, nd: int):
 
 def prediction_rows(results: list[dict], *, track: str, race_date: str,
                     model, model_pkl: str, picks_file: str,
-                    generated_at: datetime, stamp: str) -> list[dict]:
+                    generated_at: datetime, stamp: str,
+                    name_matching: str | None = None) -> list[dict]:
     """Build one JSONL row per horse per race for a single --save run.
 
     ``prediction_id`` carries ``stamp``, so re-running a card produces a
@@ -1203,6 +1205,10 @@ def prediction_rows(results: list[dict], *, track: str, race_date: str,
                 "shipper_flag": bool(h.get("_shipper", False)),
                 "maiden_flag": maiden,   # race-level, repeated on each row
                 "underraced_share": maiden_share,
+                # PP jockey/trainer name matching ("on"/"off") for this run,
+                # PHASE_6E 2026-11-04. Rows logged before it have no key:
+                # read a missing value as "off".
+                "name_matching": name_matching,
             })
     return rows
 
@@ -1261,6 +1267,12 @@ def _cli() -> int:
 
     logging.basicConfig(level=logging.WARNING,
                         format="%(asctime)s [%(levelname)s] %(message)s")
+
+    # Name matching is decided per card before the bridge parses anything,
+    # so the bridge parse and the header agree (name_match.state()).
+    name_match.set_card(args.track, args.date)
+    nm_on, nm_why = name_match.state()
+    nm_counts = name_match.card_counts(args.track, args.date)
 
     model = load_model(args.model)
     nums = [args.race] if args.race else race_numbers(args.db, args.track,
@@ -1332,6 +1344,20 @@ def _cli() -> int:
                   "text. Re-stage the card")
             print(f"          (load_pp_card.py stage <pdf>) under the "
                   f"{bridge_reader} reader before relying on this run.")
+        if nm_on and nm_counts is not None:
+            print(f" name matching: ON ({nm_why}); alias matches "
+                  f"{nm_counts.get('alias', 0)}, new-person rows "
+                  f"{nm_counts.get('new', 0)} at load")
+        elif nm_on:
+            print(f" name matching: ON ({nm_why}); no match log for this card")
+            print(" WARNING: the card was loaded with name matching OFF. Reload "
+                  "it (load_pp_card.py load,")
+            print("          speed figures, features) before relying on this run.")
+        else:
+            print(f" name matching: OFF ({nm_why})")
+            if nm_counts is not None:
+                print(" WARNING: the card was loaded with name matching ON but "
+                      "this run has it OFF.")
         trained = tuple(model.hyperparameters.get("tracks", ("GP", "CT", "MNR")))
         if args.track.upper() not in trained:
             print(f" NOTE: this model was trained on {'/'.join(trained)}. "
@@ -1430,7 +1456,8 @@ def _cli() -> int:
                 results, track=args.track, race_date=args.date,
                 model=model, model_pkl=Path(args.model).name,
                 picks_file=picks_rel, generated_at=generated_at,
-                stamp=generated_at.strftime('%Y%m%d-%H%M%S'))
+                stamp=generated_at.strftime('%Y%m%d-%H%M%S'),
+                name_matching="on" if nm_on else "off")
         except Exception as exc:  # noqa: BLE001 -- picks come first
             log.warning('prediction log rows not built: %s', exc)
             rows = []

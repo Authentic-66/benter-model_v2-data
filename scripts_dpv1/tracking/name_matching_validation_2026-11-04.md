@@ -1,7 +1,11 @@
 # Jockey / trainer name matching: build and validation, 2026-11-04
 
-**Status: built, OFF by default, NOT live.** Nothing about live card scoring
-changes until Doug approves. The live model (`dpv1.pkl`, sha 33bfb329…a918),
+**Status (updated 2026-11-04 evening): APPROVED by Doug, ON from the next
+DED card (first card dated 2026-11-05 or later) via
+`name_match_config.json`; 11/04 stays OFF as logged. Recorded in
+PHASE_6E_LOGGING.md ("Input change, 2026-11-04").** The text below is the
+validation as written before approval ("default OFF" there means the
+original env-only switch). The live model (`dpv1.pkl`, sha 33bfb329…a918),
 the reranker (`dpv1_pp_reranker.pkl`, cd4a5c79…29ea) and the protected Piece
 1-4 code (`card_picks.py`, `score_predictions.py`, `model_health.py`,
 `retrain_pipeline.py`) are untouched; the hashes were checked on every run.

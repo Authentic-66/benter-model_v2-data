@@ -48,7 +48,9 @@ if ARM == "on":
     os.environ["BENTER_NAME_MATCH"] = "1"
     os.environ["BENTER_NAME_MATCH_LOG"] = str(MATCH_LOG)
 else:
-    os.environ.pop("BENTER_NAME_MATCH", None)
+    # Explicit OFF: since 2026-11-04 the config turns matching ON for DED
+    # cards from 2026-11-05, so "unset" is no longer OFF for later cards.
+    os.environ["BENTER_NAME_MATCH"] = "0"
     os.environ.pop("BENTER_NAME_MATCH_LOG", None)
 
 sys.path.insert(0, str(DPV1)); sys.path.insert(0, str(REPO / "scripts"))

@@ -1572,6 +1572,69 @@ section (`735671e`). Two things learned that matter for any future re-score:
   is fine). A checker in a harness should assert that `reranker_pp_delta`
   is populated on "+reranker" runs.
 
+### Input change, 2026-11-04: PP name matching ON from the next DED card
+
+**Approved by Doug 2026-11-04, after the DED 11/04 card had run. Treated
+like a model change. First card: the next DED card, i.e. the first DED card
+dated on or after 2026-11-05. DED 11/04 stays OFF as logged (record run
+`picks/DED_2026-11-04_20261104-1014.*`).** The model (`dpv1.pkl`,
+`33bfb329…a918`) and the rerankers are unchanged, so `model_version` and
+`reranker_version` do not change; the split is the new per-row field below.
+Validation and the decision basis: `tracking/name_matching_validation_2026-11-04.md`
+(`07db5b0`, follow-up `f4da612`).
+
+**What changes.** On PP-loaded cards, jockey and trainer names are matched to
+the charted person instead of creating an empty row when the spelling
+differs ("Barrera Elio J" vs "Barrera, Elio", "Ramirez, Jr. Julio",
+"Nava-Marin Jose", "Calhoun W. Bret" vs "Calhoun, W."). Before this, about
+58% of PP-card horses were scored with jockey/trainer priors and
+`new_trainer_flag = 1`, which never happens in the chart rows the model was
+trained on; Ward, Devin Magnon and Calhoun were unmatched on every DED PP
+card this meet. On 10/23-11/04 it moves P(ITM) 2.5pp per horse on average and
+changed the #1 in 12 of 43 races; log loss 0.6007 -> 0.5985, Brier
+0.2070 -> 0.2062 (within noise; Doug's condition was "not worse").
+
+**Mechanism.**
+
+* `scripts_dpv1/name_match_config.json`: `on_from_card_date` 2026-11-05,
+  `tracks` ["DED"]. `name_match.state(track, date)` reads it; the PP parser
+  calls `name_match.set_card` as soon as it knows the card's track and date,
+  `load_pp_card` and `card_picks` do the same at start, so the loader, the
+  PP bridge parse and the header always agree. No environment variable is
+  needed for live runs.
+* Comparison override: `BENTER_NAME_MATCH=0` forces OFF, `=1` forces ON, for
+  any card (the header says "override"). Other tracks stay OFF until added
+  to `tracks`.
+* Matching rule, Jr./Sr. tie-break and the alias table
+  (`scripts_dpv1/name_aliases.csv`): `name_match.py` docstring. Every
+  resolution is appended to `scripts_dpv1/logs/name_matches.jsonl`.
+* `load_pp_card.py load` prints `name matching: ON|OFF (reason)` and, when
+  on, the alias / new-person / ambiguous counts.
+* `card_picks.py` (Piece 1, additive only; Doug asked for both) prints
+  `name matching: ON|OFF (reason)` in the header and, when on, the alias
+  matches and new-person rows from the card's latest load. It warns if the
+  card was loaded in the other state. Every logged row now carries
+  **`name_matching`: "on" / "off"**; rows logged before 2026-11-04 17:00 have
+  no key and mean "off". `score_predictions` copies the field into
+  `scored_predictions.jsonl` (it copies whole rows), so analyses can split
+  on it. `model_health` does not group by it yet.
+
+**Verification.** Re-running DED 11/04 with the new code (config, no
+override) into a scratch log reproduced the logged record run on all 77
+rows and every field, plus `name_matching: "off"`; the live DB and
+`predictions.jsonl` were byte-identical before and after. Header and loader
+lines checked in all states (config OFF, override ON with and without a
+match log) on scratch copies. Validation harness OFF arm now sets
+`BENTER_NAME_MATCH=0` explicitly.
+
+**After each load, while it beds in:** skim the `new` and `ambiguous` lines
+for the card in `logs/name_matches.jsonl`; a person the rule cannot link
+goes into `name_aliases.csv`.
+
+**To turn it off:** set `on_from_card_date` to a later date (or empty) in
+`name_match_config.json`, or run with `BENTER_NAME_MATCH=0`. Cards already
+loaded ON keep their linked ids until reloaded.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

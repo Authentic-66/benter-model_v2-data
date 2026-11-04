@@ -7146,6 +7146,11 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
   qualifying races. (For example: a minimum ITM deficit in races, or a
   McNemar p-value threshold on the discordant races, plus how "no better" on
   log loss is measured.) Until it is written, the rule cannot be applied.
+* **Input change inside the window (2026-11-04):** PP name matching is ON
+  from the first DED card dated 2026-11-05 (PHASE_6E_LOGGING.md, "Input
+  change, 2026-11-04"). Rows carry `name_matching` "on"/"off"; when the
+  qualifying races are tallied, report the two parts separately as well as
+  pooled.
 
 ### Queued after this (not started)
 
