@@ -77,6 +77,7 @@ sys.path.insert(0, str(DPV1_DIR_))
 sys.path.insert(0, str(DPV1_DIR_.parent / "scripts"))
 
 import db_loader  # noqa: E402
+import name_match  # noqa: E402  (BENTER_NAME_MATCH switch, OFF by default)
 from equibase_pdf_parser import normalize_name  # noqa: E402
 
 from brisnet_pp_parser import (  # noqa: E402
@@ -554,6 +555,25 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
         race_day_id = int(cur.lastrowid)
 
         n_races = n_entries = 0
+        # BENTER_NAME_MATCH=1 only (OFF by default): match PP jockey/trainer
+        # spellings to charted people; see name_match.py.
+        nm_on = name_match.enabled()
+        nm_log: list[dict] = []
+        if nm_on:
+            name_match.reset_cache()
+
+        def person(table, name, h, rn):
+            if nm_on:
+                pid, rec = name_match.resolve_person(
+                    conn, table, name,
+                    {"track": track, "race_date": race_date, "race_num": rn,
+                     "program_num": str(h.get("program_num")),
+                     "horse_name": h.get("horse_name")})
+                nm_log.append(rec)
+                if pid is not None:
+                    return pid
+            return _get_or_create(conn, table, name)
+
         for r in card["races"]:
             if not r["horses"]:
                 continue
@@ -589,8 +609,8 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
                     """,
                     (race_id,
                      _horse_id(conn, h.get("horse_name")),
-                     _get_or_create(conn, "trainers", h.get("trainer")),
-                     _get_or_create(conn, "jockeys", h.get("jockey")),
+                     person("trainers", h.get("trainer"), h, r["race_num"]),
+                     person("jockeys", h.get("jockey"), h, r["race_num"]),
                      str(h.get("program_num")),
                      _to_int(h.get("program_num")),
                      _flag(h.get("pp_today_lasix")),
@@ -601,6 +621,12 @@ def load_card(db: str | Path, card: dict, replace: bool = True) -> dict:
         # queryable, or neither.
         n_staged = stage_pp_entries(conn, card)
         conn.commit()
+        if nm_on:
+            p = name_match.write_log(nm_log)
+            counts: dict = {}
+            for rec in nm_log:
+                counts[rec["method"]] = counts.get(rec["method"], 0) + 1
+            log.info("name matching ON: %s (log %s)", counts, p)
     finally:
         conn.close()
 

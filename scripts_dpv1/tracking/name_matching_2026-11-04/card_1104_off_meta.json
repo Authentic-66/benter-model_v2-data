@@ -1,0 +1,18 @@
+{
+ "date": "2026-11-04",
+ "arm": "off",
+ "backup": "racing_full.db.ded1104-run.bak",
+ "backup_sha256": "48475fdea49355be8b3b2b7e64e380f05467ad0f483876dd25c42e205cab7021",
+ "rows": 77,
+ "jockey_hist": 46,
+ "trainer_hist": 45,
+ "live_db_unchanged": true,
+ "reproduction": {
+  "logged_rows": 77,
+  "rerun_rows": 77,
+  "unmatched": 0,
+  "max_d_p_itm": 1.1102230246251565e-16,
+  "max_d_base": 5.551115123125783e-17,
+  "rank_mismatches": 0
+ }
+}

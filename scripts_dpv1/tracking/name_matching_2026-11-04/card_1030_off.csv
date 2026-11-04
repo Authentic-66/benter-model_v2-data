@@ -1,0 +1,101 @@
+race,pgm,horse,p_itm,p_win,base_itm,cov,rank,n_pp,jockey,trainer,jockey_hist,trainer_hist,date,arm
+1,6,The Get Out,0.46820000000000006,0.1698,0.3911,0.8645833333333334,1,10,"Perez, Carlos",Sanchez Juan C,1,0,2026-10-30,off
+1,9,Madoria,0.394,0.1329,0.4163,0.8958333333333334,2,10,"Melancon, Jansen","Leonard, Kirby",1,1,2026-10-30,off
+1,3,Mediator,0.3839,0.1242,0.41879999999999995,0.90625,3,10,"Castillo, Isaac","JournetJr., Albert",1,1,2026-10-30,off
+1,1,Liberty Simone,0.3724,0.1267,0.2878,0.9375,4,10,"Inirio, Junior","Bernard, John",1,1,2026-10-30,off
+1,10,Flora Bound,0.371,0.1254,0.35309999999999997,0.8854166666666666,5,10,Del Cid Erick,"Averett, Ronnie",1,1,2026-10-30,off
+1,2,North Lake Kate,0.34500000000000003,0.1155,0.3062,0.7916666666666666,6,10,Ramos Adrian B,Hibdon Mark N,0,0,2026-10-30,off
+1,8,Just Sailing Along,0.2157,0.067,0.2147,0.8229166666666666,7,10,Rosier Chris R,Woodley Carl J,0,0,2026-10-30,off
+1,5,Little Miss Jess,0.1769,0.0574,0.2454,0.6145833333333334,8,10,"Birzer, Alex","Breaux, Samuel",1,1,2026-10-30,off
+1,4,Saucy Diem,0.1447,0.0419,0.20579999999999998,0.6458333333333334,9,10,"Arana, Kelvin","Breaux, Samuel",1,1,2026-10-30,off
+1,7,Nayakim,0.1282,0.0392,0.1608,0.6458333333333334,10,10,"Santiago, Edward","Melancon, Donald",1,1,2026-10-30,off
+2,9,Allons Betta Lee,0.4484,0.1635,0.4644,0.9375,1,11,"Melancon, Jansen","Klanfer, Alan",1,1,2026-10-30,off
+2,10,Miss Super Mo,0.3704,0.1231,0.3433,0.875,2,11,"Thornton, Timothy",Calhoun W. Bret,1,0,2026-10-30,off
+2,7,Tensas Lu Lu,0.3429,0.1225,0.3447,0.9166666666666666,3,11,"Fusilier, Casey","Landry, Allen",1,1,2026-10-30,off
+2,5,Boohaki,0.32589999999999997,0.1071,0.3217,0.8229166666666666,4,11,Pompell Thomas L,Brinkman Brett A,0,0,2026-10-30,off
+2,3,Wickedly Royal,0.28049999999999997,0.091,0.28669999999999995,0.9270833333333334,5,11,"Castillo, Isaac","Martinez, Sarah",1,1,2026-10-30,off
+2,2,Mika Ella Pika,0.2662,0.0835,0.2518,0.8645833333333334,6,11,Murray Erica M,"Ney, John",0,1,2026-10-30,off
+2,8,Pot's Paycheck,0.265,0.0839,0.22610000000000002,0.8333333333333334,7,11,Barrera Elio J,Ward Ronnie P,0,0,2026-10-30,off
+2,4,Basile,0.2535,0.0833,0.2427,0.8958333333333334,8,11,"Birzer, Alex","Solis-Guevara, Ismael",1,1,2026-10-30,off
+2,11,Lee Circle,0.1921,0.0632,0.24110000000000004,0.875,9,11,"Cardoso, David",Hibdon Mark N,1,0,2026-10-30,off
+2,1,What's Love,0.1884,0.0586,0.2087,0.8541666666666666,10,11,Hernandez Colby J,Calhoun W. Bret,0,0,2026-10-30,off
+2,6,My Other Half,0.0667,0.0203,0.0688,0.9166666666666666,11,11,Del Cid Erick,"Cormier, Cardel",1,1,2026-10-30,off
+3,5,Electric Man,0.4055,0.1464,0.44580000000000003,0.8541666666666666,1,12,"Castillo, Isaac",Thompson Kevin J,1,0,2026-10-30,off
+3,2,Dirty Deal,0.3494,0.1167,0.295,0.8333333333333334,2,12,Rodriguez Jose L,Gonzalez Isai V,0,0,2026-10-30,off
+3,1,Truvy's T Rex,0.331,0.1163,0.3611,0.8958333333333334,3,12,Hernandez Colby J,"Arey, Anthony",0,1,2026-10-30,off
+3,6,Minimus Maximus,0.3288,0.1086,0.3055,0.90625,4,12,"Arana, Kelvin",Ward Ronnie P,1,0,2026-10-30,off
+3,9,Money Drop,0.2622,0.085,0.2576,0.9270833333333334,5,12,Del Cid Erick,"Noel, Dane",1,1,2026-10-30,off
+3,4,Guitar Man,0.25680000000000003,0.086,0.2309,0.9166666666666666,6,12,"Roman, Kevin","Fogarty, Desmond",1,1,2026-10-30,off
+3,8,Ray Mefasolateedoe,0.236,0.0783,0.1987,0.90625,7,12,Pompell Thomas L,"Toups, Brent",0,1,2026-10-30,off
+3,12,One Grand Slam,0.22309999999999997,0.0716,0.19,0.9166666666666666,8,12,"Castillo, Alexander",Shamsie Austin,1,1,2026-10-30,off
+3,11,Making Noise,0.19179999999999997,0.0599,0.2545,0.6458333333333334,9,12,"Castillo, Isaac","Breaux, Samuel",1,1,2026-10-30,off
+3,3,Sailor Mike,0.1756,0.0573,0.1845,0.8854166666666666,10,12,"Inirio, Junior",Bruno Roland L,1,0,2026-10-30,off
+3,10,Catalina Classic,0.1487,0.0449,0.1854,0.6041666666666666,11,12,Magnon Devin H,"Fuselier, Jonah",0,1,2026-10-30,off
+3,7,He's Therealdeal,0.0911,0.029,0.091,0.8229166666666666,12,12,?,Celestine Charles R,0,0,2026-10-30,off
+4,11,Drewmazing,0.3941,0.1374,0.3441,0.9375,1,12,"Hernandez, Harry","Schwandt, Emile",1,1,2026-10-30,off
+4,7,Saint Peter's Bay,0.38410000000000005,0.1358,0.4053,0.8541666666666666,2,12,Rodriguez Jose L,Gonzalez Isai V,0,0,2026-10-30,off
+4,12,West Island,0.3257,0.1119,0.3063,0.8125,3,12,Ramos Adrian B,Hibdon Mark N,0,0,2026-10-30,off
+4,8,Stroller Boy,0.2962,0.1002,0.2608,0.9375,4,12,"Birzer, Alex","Guillory, Jr., Henry",1,1,2026-10-30,off
+4,1,Whiskeyand Easy,0.2826,0.0927,0.2702,0.9375,5,12,"Melancon, Jansen","Ward, Derrick",1,1,2026-10-30,off
+4,6,Luvto Win,0.2768,0.0934,0.259,0.90625,6,12,"Roman, Kevin","Ramirez-Rodriguez, Abel",1,1,2026-10-30,off
+4,4,Izzy's Baby Boy,0.2452,0.0818,0.2909,0.84375,7,12,?,Urbina Ruperto R,0,0,2026-10-30,off
+4,10,Flotation Station,0.2076,0.0652,0.19740000000000002,0.875,8,12,Barrera Elio J,"Morris, Rowdy",0,1,2026-10-30,off
+4,5,Huey Duey,0.1811,0.0555,0.1843,0.875,9,12,"Castillo, Alexander",Gomez David C,1,0,2026-10-30,off
+4,2,Blue Cheese,0.1739,0.0535,0.1966,0.90625,10,12,Del Cid Erick,"Averett, Ronnie",1,1,2026-10-30,off
+4,3,Order Up,0.14429999999999998,0.0454,0.15660000000000002,0.7916666666666666,11,12,"Perez, Carlos",Cano Juan M,1,0,2026-10-30,off
+4,9,Fast Verdict,0.08839999999999999,0.0272,0.1285,0.875,12,12,"Alvarez, Misael","Nelson, Jr. Eric D",1,0,2026-10-30,off
+5,10,Don'tstopthaspirit,0.4557,0.1656,0.4712,0.8854166666666666,1,12,"Castillo, Isaac","Martinez, Sarah",1,1,2026-10-30,off
+5,8,Beaudreaux,0.3497,0.1198,0.30279999999999996,0.8958333333333334,2,12,"Hernandez, Harry",Brinkman Brett A,1,0,2026-10-30,off
+5,6,Jungle Law,0.3267,0.1073,0.31679999999999997,0.9375,3,12,"Fusilier, Casey","Duhon, Paul",1,1,2026-10-30,off
+5,11,Piastri,0.3028,0.102,0.2976,0.9270833333333334,4,12,"Fusilier, Casey","Duhon, Paul",1,1,2026-10-30,off
+5,2,More Than Cute,0.2985,0.1006,0.27440000000000003,0.90625,5,12,Hernandez Javier A,"Govea, Cesar",0,1,2026-10-30,off
+5,7,Eligio,0.24580000000000002,0.0822,0.2244,0.8958333333333334,6,12,"Castillo, Alexander",Bryant George R,1,0,2026-10-30,off
+5,1,Syntagma,0.2329,0.0772,0.2369,0.8333333333333334,7,12,Hernandez Colby J,Bourgeois Keith G,0,0,2026-10-30,off
+5,3,Imperial Cruiser,0.22899999999999998,0.073,0.2697,0.8854166666666666,8,12,"Thornton, Timothy",Calhoun W. Bret,1,0,2026-10-30,off
+5,9,Saint Robert's Row,0.1966,0.0628,0.24450000000000002,0.6458333333333334,9,12,"Birzer, Alex","Berndt, Joel",1,1,2026-10-30,off
+5,5,Go Easy,0.1391,0.0435,0.1517,0.875,10,12,Rodriguez Jose L,"Thomas, Lee",0,1,2026-10-30,off
+5,12,After Party,0.13019999999999998,0.038,0.11779999999999999,0.84375,11,12,Barrera Elio J,Cano Juan M,0,0,2026-10-30,off
+5,4,Billy's Got Issues,0.093,0.028,0.0922,0.9375,12,12,"Perez, Carlos","Constantine, Carol",1,1,2026-10-30,off
+6,3,Letmikefigureitout,0.4887,0.1745,0.4829,0.8854166666666666,1,12,Magnon Devin H,"Klanfer, Alan",0,1,2026-10-30,off
+6,1,Goodand Stout,0.40449999999999997,0.1415,0.4082,0.9375,2,12,"Thornton, Timothy","Castille, Carrol",1,1,2026-10-30,off
+6,11,Cajun Coaster,0.36999999999999994,0.1255,0.31479999999999997,0.9375,3,12,"Fusilier, Casey","Landry, Allen",1,1,2026-10-30,off
+6,10,Macho Beanie,0.276,0.0918,0.3065,0.9375,4,12,"Melancon, Jansen","Landry, Allen",1,1,2026-10-30,off
+6,4,Sounds Like Power,0.2756,0.0935,0.2679,0.875,5,12,"Castillo, Isaac",Larrosa Juan A,1,0,2026-10-30,off
+6,8,Cajun Mitole,0.251,0.0779,0.2102,0.8854166666666666,6,12,"Birzer, Alex",Brinkman Brett A,1,0,2026-10-30,off
+6,6,Behemah Star,0.1894,0.0614,0.2257,0.9166666666666666,7,12,"Hernandez, Harry","Wilson, Shane",1,1,2026-10-30,off
+6,12,Misdeal,0.1861,0.0585,0.1842,0.8541666666666666,8,12,Barrera Elio J,"Martinez, Sarah",0,1,2026-10-30,off
+6,7,Saint Gabriel,0.15860000000000002,0.0517,0.1755,0.84375,9,12,Pompell Thomas L,Brinkman Brett A,0,0,2026-10-30,off
+6,5,Tdzshininluckystar,0.1483,0.0458,0.1618,0.875,10,12,Rosier Chris R,"Eschete, Nason",0,1,2026-10-30,off
+6,2,Randemonium,0.1259,0.0399,0.1336,0.9270833333333334,11,12,"Santiago, Edward","Chatters, Benard",1,1,2026-10-30,off
+6,9,Otra Cosa,0.12589999999999998,0.038,0.12869999999999998,0.90625,12,12,"Ramirez, Paulina","Wilson, Shane",1,1,2026-10-30,off
+7,4,Runnin Munnin,0.5604,0.2049,0.5416,0.9479166666666666,1,9,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-30,off
+7,1,Purple Heart,0.5224,0.1889,0.46549999999999997,0.8958333333333334,2,9,"Nieves, Emanuel",Urbina Ruperto R,1,0,2026-10-30,off
+7,6,Beach Blanket,0.49139999999999995,0.1654,0.47750000000000004,0.8541666666666666,3,9,Barrera Elio J,Urbina Ruperto R,0,0,2026-10-30,off
+7,3,Max Is G Money,0.35000000000000003,0.1107,0.3973,0.9375,4,9,"Thornton, Timothy","Alberto, Antonio",1,1,2026-10-30,off
+7,9,Fiesty Fist,0.2802,0.0884,0.3271,0.9270833333333334,5,9,"Hernandez, Harry","Gibson, Jonas",1,1,2026-10-30,off
+7,7,Yockey's Drivethru,0.22829999999999998,0.0686,0.2092,0.8854166666666666,6,9,Rodriguez Jose L,"Govea, Cesar",0,1,2026-10-30,off
+7,8,Essay,0.2244,0.0721,0.2529,0.8958333333333334,7,9,"Castillo, Alexander",Bryant George R,1,0,2026-10-30,off
+7,5,Solidify,0.19119999999999998,0.0546,0.18280000000000002,0.90625,8,9,"Perez, Carlos",Cano Juan M,1,0,2026-10-30,off
+7,2,Coboch,0.1517,0.0464,0.1461,0.9166666666666666,9,9,"Birzer, Alex","Dixon, Tim",1,1,2026-10-30,off
+8,5,Cajun Caviar,0.41910000000000003,0.1521,0.4323,0.65625,1,12,"Fusilier, Casey","Landry, Allen",1,1,2026-10-30,off
+8,4,Copy This,0.3131,0.1096,0.306,0.6354166666666666,2,12,"Melancon, Jansen","Diodoro, Robertino",1,1,2026-10-30,off
+8,1,Wicked No Mo,0.30720000000000003,0.1078,0.2928,0.84375,3,12,Rosier Chris R,"Courville, Ricky",0,1,2026-10-30,off
+8,2,Mo Cantharus,0.3032,0.0976,0.3422,0.6458333333333334,4,12,"Hernandez, Harry","Jeansonne, Justin",1,1,2026-10-30,off
+8,6,Copper Key,0.2459,0.0794,0.2651,0.59375,5,12,"Thornton, Timothy",Scherer Gary M,1,0,2026-10-30,off
+8,3,My Hintof Platinum,0.24430000000000002,0.0785,0.22139999999999999,0.5520833333333334,6,12,Barrera Elio J,Ward Ronnie P,0,0,2026-10-30,off
+8,10,Bar Car,0.23299999999999998,0.0759,0.24220000000000003,0.8958333333333334,7,12,"Castillo, Isaac","Diodoro, Robertino",1,1,2026-10-30,off
+8,9,Passion Strike,0.23249999999999998,0.0756,0.19640000000000002,0.8645833333333334,8,12,"Arana, Kelvin",Gelner Jayde J,1,0,2026-10-30,off
+8,12,Pink Angel,0.192,0.0595,0.20090000000000002,0.6145833333333334,9,12,"Nieves, Emanuel",Foster Joseph M,1,0,2026-10-30,off
+8,11,Louisiana Sis,0.1785,0.0583,0.1724,0.90625,10,12,"Roman, Kevin","Courville, Ricky",1,1,2026-10-30,off
+8,8,Last Two Dollars,0.1724,0.0539,0.14689999999999998,0.8229166666666666,11,12,Pompell Thomas L,"Johnson, Jr. Henry B",0,0,2026-10-30,off
+8,7,Romantic Rumor,0.1588,0.0518,0.1814,0.5520833333333334,12,12,Hernandez Colby J,Bourgeois Keith G,0,0,2026-10-30,off
+9,5,Lieutenant Charm,0.4647,0.17,0.45039999999999997,0.8958333333333334,1,10,"Thornton, Timothy","Berndt, Joel",1,1,2026-10-30,off
+9,2,Kama Can,0.37929999999999997,0.1319,0.4375,0.8958333333333334,2,10,"Fusilier, Casey","Landry, Allen",1,1,2026-10-30,off
+9,10,Captain Junuh,0.3771,0.1291,0.35019999999999996,0.875,3,10,Hernandez Colby J,"Ramirez-Rodriguez, Abel",0,1,2026-10-30,off
+9,3,Atmosphere,0.3142,0.1001,0.2747,0.90625,4,10,"Hernandez, Harry",Larrosa Juan A,1,0,2026-10-30,off
+9,4,Struck Out,0.2936,0.0952,0.25880000000000003,0.9479166666666666,5,10,"Mudd, Jamison","Schwandt, Emile",1,1,2026-10-30,off
+9,8,Global Heat Wave,0.2868,0.0923,0.28390000000000004,0.8958333333333334,6,10,"Castillo, Alexander",Jackson Richard D,1,0,2026-10-30,off
+9,7,Lick Skillet,0.26,0.0781,0.2562,0.8958333333333334,7,10,Pompell Thomas L,"Segura, Kearney",0,1,2026-10-30,off
+9,1,Downtown Motown,0.2197,0.072,0.232,0.9375,8,10,"Nieves, Emanuel","Dixon, Tim",1,1,2026-10-30,off
+9,9,Film At Eleven,0.2137,0.0676,0.2286,0.9166666666666666,9,10,"Roman, Kevin","Courville, Ricky",1,1,2026-10-30,off
+9,6,Moondoggie,0.19090000000000001,0.0637,0.2277,0.8854166666666666,10,10,"Lozada, Carlos",Dunn Henry R,1,0,2026-10-30,off

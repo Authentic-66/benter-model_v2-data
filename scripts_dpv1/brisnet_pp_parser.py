@@ -55,6 +55,9 @@ from datetime import date
 from pathlib import Path
 from collections import defaultdict
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import name_match  # noqa: E402  (BENTER_NAME_MATCH switch, OFF by default)
+
 try:
     sys.stdout.reconfigure(encoding="utf-8")
 except AttributeError:
@@ -757,6 +760,11 @@ def distance_surface_record_features(records: dict,
 _PP_JOCKEY_RE = re.compile(
     r"([A-Z][A-Za-z'.]{2,})[§¨©ª«¬\xad®¯°]{3}"
 )
+# BENTER_NAME_MATCH=1 only: also read hyphenated riders ("Nava-marinJ"),
+# whose race lines the pattern above skips.
+_PP_JOCKEY_RE_NM = re.compile(
+    r"([A-Z][A-Za-z'.\-]{2,})[§¨©ª«¬\xad®¯°]{3}"
+)
 
 
 def _normalize_jockey(name: str | None) -> str | None:
@@ -773,6 +781,9 @@ def _normalize_jockey(name: str | None) -> str | None:
     if not name:
         return None
     name = name.strip()
+    if name_match.enabled():
+        # "Ramirez, Jr. Julio" -> "Ramirez Jr. Julio" (race lines: RamirezJJ)
+        name = name.replace(',', ' ')
     if ' ' in name:
         parts = [p for p in name.split() if p]
         if not parts:
@@ -791,11 +802,12 @@ def extract_past_jockeys(block_lines) -> list[str]:
     deduped by race date."""
     seen_dates = set()
     out = []
+    jk_re = _PP_JOCKEY_RE_NM if name_match.enabled() else _PP_JOCKEY_RE
     for line in block_lines:
         d = _pp_line_date(line)
         if d is None or d in seen_dates:
             continue
-        m = _PP_JOCKEY_RE.search(line)
+        m = jk_re.search(line)
         if not m:
             continue
         norm = _normalize_jockey(m.group(1))
@@ -1855,6 +1867,13 @@ def parse_brisnet(text, track_code='GP', race_date=None, header_boxes=None):
                 # Jockey: "LASTNAME FIRSTNAME (N N-N-N N%)" or "(N/ N N%)"
                 if jockey == '?':
                     jm = re.search(r'^([A-Z]{2,}(?:\s+[A-Z]+){0,3})\s+\(\d+[\s/]', line)
+                    if not jm and name_match.enabled():
+                        # BENTER_NAME_MATCH=1: hyphens, apostrophes and a
+                        # Jr/Sr/II/III/IV suffix ("RAMIREZ, JR. JULIO",
+                        # "NAVA-MARIN JOSE").
+                        jm = re.search(
+                            r"^([A-Z][A-Z'\-]+(?:,?\s+(?:JR|SR|II|III|IV)\.?,?)?"
+                            r"(?:\s+[A-Z][A-Z'\-\.]*){0,4})\s+\(\d+[\s/]", line)
                     if jm:
                         jockey = jm.group(1).title()
 
