@@ -1,36 +1,38 @@
 History gains (PP entries whose jockey / trainer has a charted start before the card)
 card       horses  jky off jky on  trn off trn on  either gained  #1 changed (full field)
-2026-10-23     82       49     81       47     77             48    1 of 9
-2026-10-24     79       48     79       47     78             45    2 of 9
-2026-10-28     82       54     82       46     81             47    3 of 8
-2026-10-29     75       45     74       39     74             46    3 of 8
-2026-10-30    100       69    100       60     97             52    2 of 9
+2026-10-23     82       49     81       47     81             50    2 of 9
+2026-10-24     79       48     79       47     79             46    2 of 9
+2026-10-28     82       54     82       46     82             48    3 of 8
+2026-10-29     75       45     74       39     75             47    3 of 8
+2026-10-30    100       69    100       60    100             54    3 of 9
 2026-11-04     77       46     77       45     77             49    0 of 8
-all           495      311    493      284    484            287
+all           495      311    493      284    494            294
 
-mean |P(ITM) on - off| = 2.38pp, max 10.5pp; base model only: 2.39pp
+mean |P(ITM) on - off| = 2.55pp, max 14.4pp; base model only: 2.56pp
 
 Scored against results (starters only; #1 re-ranked among runners)
 card       races start | #1 W off/on #1 ITM off/on | LL/horse off      on | Brier/horse off      on
-2026-10-23     9    75 |     0/0           2/2     |       0.6642  0.6416 |          0.2331  0.2240
-2026-10-24     9    71 |     1/2           5/5     |       0.5684  0.5755 |          0.1954  0.1990
-2026-10-28     8    71 |     3/3           4/4     |       0.5872  0.5759 |          0.2034  0.1981
-2026-10-29     8    67 |     1/1           5/3     |       0.5707  0.5856 |          0.1961  0.2027
-2026-10-30     9    86 |     2/2           6/6     |       0.6064  0.6049 |          0.2050  0.2045
-all           43   370 |     7/8          22/20    |       0.6007  0.5977 |          0.2070  0.2058
-log loss: on - off = -0.0030 per starter, 95% race-bootstrap CI [-0.0114, +0.0053], races better/worse/tied = 22/21/0
-Brier: on - off = -0.0011 per starter, 95% race-bootstrap CI [-0.0045, +0.0023], races better/worse/tied = 21/22/0
+2026-10-23     9    75 |     0/0           2/2     |       0.6642  0.6403 |          0.2331  0.2233
+2026-10-24     9    71 |     1/2           5/5     |       0.5684  0.5773 |          0.1954  0.1999
+2026-10-28     8    71 |     3/3           4/4     |       0.5872  0.5762 |          0.2034  0.1982
+2026-10-29     8    67 |     1/1           5/3     |       0.5707  0.5899 |          0.1961  0.2047
+2026-10-30     9    86 |     2/2           6/6     |       0.6064  0.6046 |          0.2050  0.2044
+all           43   370 |     7/8          22/20    |       0.6007  0.5985 |          0.2070  0.2062
+log loss: on - off = -0.0022 per starter, 95% race-bootstrap CI [-0.0119, +0.0076], races better/worse/tied = 22/21/0
+Brier: on - off = -0.0007 per starter, 95% race-bootstrap CI [-0.0047, +0.0032], races better/worse/tied = 21/22/0
 
 Races where the #1 among runners differs (off -> on): finish of each
   2026-10-23 R3: off #1 Ella B Beautiful (45.6, fin 5) -> on #2 Leo's Chic (48.9, fin 4)
+  2026-10-23 R8: off #3 Warrior Richard (50.9, fin 3) -> on #8 Kenmore West (50.0, fin 2)
   2026-10-24 R3: off #7 My Priorities (41.7, fin nan) -> on #2 Lucky Spot (40.6, fin 1)
   2026-10-24 R4: off #10 Millie's Stardust (44.6, fin 2) -> on #3 Custom Punch (49.0, fin 6)
-  2026-10-28 R1: off #10 Ripple's Rocket (41.5, fin 2) -> on #3 King Jules (42.2, fin 3)
+  2026-10-28 R1: off #10 Ripple's Rocket (41.5, fin 2) -> on #3 King Jules (41.1, fin 3)
   2026-10-28 R4: off #3 Z's Guitar (44.4, fin 7) -> on #9 All West (48.7, fin 5)
   2026-10-28 R5: off #4 Alyse Parker (45.9, fin 4) -> on #1 Exploding Circle (49.4, fin 6)
   2026-10-29 R3: off #8 Iron Cutter (46.9, fin 3) -> on #10 Trupeg's Dynasty (47.9, fin 1)
   2026-10-29 R5: off #7 Highstakes Hustler (68.4, fin 1) -> on #3 Hedge (74.9, fin 5)
   2026-10-29 R6: off #4 Takethe Hint (54.4, fin 3) -> on #7 Bellastone Country (53.9, fin 4)
+  2026-10-30 R2: off #9 Allons Betta Lee (44.8, fin 8) -> on #10 Miss Super Mo (41.9, fin 6)
   2026-10-30 R3: off #5 Electric Man (40.6, fin 5) -> on #1 Truvy's T Rex (40.3, fin 6)
 
 11/04 (no results yet): races where #1 differs, full field

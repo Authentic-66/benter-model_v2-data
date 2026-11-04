@@ -5,6 +5,6 @@
  "backup_sha256": "452684120cb47f604473df19f26839a6f471cede72ca87a399447f9106dcca41",
  "rows": 82,
  "jockey_hist": 81,
- "trainer_hist": 77,
+ "trainer_hist": 81,
  "live_db_unchanged": true
 }

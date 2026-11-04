@@ -31,14 +31,14 @@ race,pgm,horse,p_itm,p_win,base_itm,cov,rank,n_pp,jockey,trainer,jockey_hist,tra
 4,6,Takeittothehouse,0.14400000000000002,0.0444,0.1236,0.9166666666666666,8,10,"Arana, Kelvin","Daigle, Walter",1,1,2026-10-23,on
 4,7,Little Z,0.11250000000000002,0.0318,0.1302,0.9166666666666666,9,10,"Nava-Marin, Jose","Nelson, Jr., Eric",1,1,2026-10-23,on
 4,4,Taken It,0.1084,0.0308,0.1167,0.9375,10,10,"Inirio, Junior","Bernard, John",1,1,2026-10-23,on
-5,2,Letsgowinthisthing,0.5064,0.1854,0.5064,0.5208333333333334,1,8,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
-5,1,Autism Authentic,0.49329999999999996,0.1761,0.49329999999999996,0.5208333333333334,2,8,"Hernandez, Harry","Wong, Jonathan",1,1,2026-10-23,on
-5,8,Merlot,0.39590000000000003,0.1302,0.39590000000000003,0.5208333333333334,3,8,"Pompell, Thomas","Brinkman, Brett",1,1,2026-10-23,on
-5,4,Bernaise,0.361,0.1156,0.361,0.5208333333333334,4,8,"Perez, Carlos","Brinkman, Brett",1,1,2026-10-23,on
-5,5,Twisted Zydeco,0.3589,0.116,0.3589,0.4791666666666667,5,8,"Thornton, Timothy",Calhoun W. Bret,1,0,2026-10-23,on
-5,7,Kipster,0.3268,0.1043,0.3268,0.5208333333333334,6,8,"Santiago, Edward","Chatters, Benard",1,1,2026-10-23,on
-5,6,Maximum Truth,0.3262,0.1026,0.3262,0.4791666666666667,7,8,"Hernandez, Colby",Calhoun W. Bret,1,0,2026-10-23,on
-5,3,Two Steppin Ray,0.23149999999999998,0.0698,0.23149999999999998,0.4791666666666667,8,8,Del Cid Erick,"Dixon, Tim",0,1,2026-10-23,on
+5,2,Letsgowinthisthing,0.4744999999999999,0.1657,0.4744999999999999,0.5208333333333334,1,8,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
+5,1,Autism Authentic,0.4565,0.16,0.4565,0.5208333333333334,2,8,"Hernandez, Harry","Wong, Jonathan",1,1,2026-10-23,on
+5,5,Twisted Zydeco,0.45519999999999994,0.156,0.45519999999999994,0.5208333333333334,3,8,"Thornton, Timothy","Calhoun, W.",1,1,2026-10-23,on
+5,6,Maximum Truth,0.4183,0.1392,0.4183,0.5208333333333334,4,8,"Hernandez, Colby","Calhoun, W.",1,1,2026-10-23,on
+5,8,Merlot,0.3618,0.1182,0.3618,0.5208333333333334,5,8,"Pompell, Thomas","Brinkman, Brett",1,1,2026-10-23,on
+5,4,Bernaise,0.3293,0.1063,0.3293,0.5208333333333334,6,8,"Perez, Carlos","Brinkman, Brett",1,1,2026-10-23,on
+5,7,Kipster,0.2968,0.0927,0.2968,0.5208333333333334,7,8,"Santiago, Edward","Chatters, Benard",1,1,2026-10-23,on
+5,3,Two Steppin Ray,0.2076,0.0619,0.2076,0.4791666666666667,8,8,Del Cid Erick,"Dixon, Tim",0,1,2026-10-23,on
 6,8,Wordsof Wisdom,0.40249999999999997,0.1424,0.43510000000000004,0.9375,1,12,"Thornton, Timothy","Berndt, Joel",1,1,2026-10-23,on
 6,7,Chupapi Munyayo,0.359,0.1265,0.30579999999999996,0.9166666666666666,2,12,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
 6,10,Wise Verdict,0.3046,0.1021,0.3314,0.9375,3,12,"Hernandez, Harry","Gibson, Jonas",1,1,2026-10-23,on
@@ -51,26 +51,26 @@ race,pgm,horse,p_itm,p_win,base_itm,cov,rank,n_pp,jockey,trainer,jockey_hist,tra
 6,2,Quaternion,0.18880000000000002,0.0587,0.2091,0.9375,10,12,"Lozada, Carlos","Lara, Jorge",1,1,2026-10-23,on
 6,6,Lost Da Vinci,0.1586,0.052,0.1871,0.9375,11,12,"Murray, Erica","Ashford, Tristan",1,1,2026-10-23,on
 6,5,Ironinthe Fire,0.1338,0.0409,0.1382,0.9479166666666666,12,12,"Roman, Kevin","Larrosa, Juan",1,1,2026-10-23,on
-7,7,She's No Angel,0.4753,0.1779,0.48749999999999993,0.9375,1,11,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
-7,11,East Shore,0.4721,0.1715,0.4003,0.9375,2,11,"Hernandez, Colby","Wong, Jonathan",1,1,2026-10-23,on
-7,10,Yuma's Shadow,0.385,0.128,0.404,0.9375,3,11,"Barrera, Elio","Gonzalez, Isai",1,1,2026-10-23,on
-7,4,The Girlin Red,0.3286,0.111,0.3598,0.8854166666666666,4,11,"Thornton, Timothy",Calhoun W. Bret,1,0,2026-10-23,on
-7,3,Lil Temptation,0.3028,0.0976,0.22660000000000002,0.9270833333333334,5,11,"Nieves, Emanuel","Modica, Oscar",1,1,2026-10-23,on
-7,5,Katies Factor,0.2352,0.0739,0.23169999999999996,0.9166666666666666,6,11,"Roman, Kevin","Gonzalez, Isai",1,1,2026-10-23,on
-7,6,Knocked Out,0.18359999999999999,0.0545,0.20550000000000002,0.9166666666666666,7,11,"Hernandez, Harry","Larrosa, Juan",1,1,2026-10-23,on
-7,2,Freckles Forever,0.1826,0.0548,0.21899999999999997,0.6666666666666666,8,11,"Cardoso, David","Hibdon, Mark",1,1,2026-10-23,on
-7,9,She'sa Bandit,0.1754,0.0562,0.1797,0.9375,9,11,"Melancon, Jansen","Mojica, Edith",1,1,2026-10-23,on
-7,1,Dayforthe Gray,0.1609,0.0473,0.17300000000000001,0.9375,10,11,"Hernandez, Javier","Govea, Cesar",1,1,2026-10-23,on
-7,8,Sienna Breeze,0.0985,0.0273,0.1129,0.9270833333333334,11,11,"Rosier, Chris","Rosier, Charlie",1,1,2026-10-23,on
-8,3,Warrior Richard,0.4858,0.1714,0.4163,0.90625,1,9,"Hernandez, Harry","Diodoro, Robertino",1,1,2026-10-23,on
-8,8,Kenmore West,0.4074,0.1455,0.3491,0.8854166666666666,2,9,"Hernandez, Colby",Calhoun W. Bret,1,0,2026-10-23,on
-8,7,Big Drinker,0.39130000000000004,0.1388,0.3736,0.9270833333333334,3,9,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
-8,9,Funnyflame,0.3613,0.1216,0.3875,0.9270833333333334,4,9,"Thornton, Timothy","Mocklin, Jr., Richard",1,1,2026-10-23,on
-8,6,Pacificislandtime,0.3556,0.1133,0.403,0.9270833333333334,5,9,"Rodriguez, Jose","Ramirez, Eduardo",1,1,2026-10-23,on
-8,1,Brock's Boy,0.28,0.0922,0.2666,0.9375,6,9,"Perez, Carlos","LeonardIII, George",1,1,2026-10-23,on
-8,2,Causeway Benny,0.2628,0.0823,0.31020000000000003,0.9166666666666666,7,9,"Hernandez, Javier","Ramaekers, Eric",1,1,2026-10-23,on
-8,4,Interlude,0.22949999999999998,0.0667,0.257,0.9270833333333334,8,9,"Vargas, Juan","Mojica, Edith",1,1,2026-10-23,on
-8,5,Don Pablo,0.2263,0.0682,0.2367,0.9375,9,9,"Barrera, Elio","Cormier, Cardel",1,1,2026-10-23,on
+7,7,She's No Angel,0.46249999999999997,0.172,0.4763,0.9375,1,11,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
+7,11,East Shore,0.4618,0.1656,0.3872,0.9375,2,11,"Hernandez, Colby","Wong, Jonathan",1,1,2026-10-23,on
+7,4,The Girlin Red,0.4133,0.1436,0.44789999999999996,0.9270833333333334,3,11,"Thornton, Timothy","Calhoun, W.",1,1,2026-10-23,on
+7,10,Yuma's Shadow,0.374,0.1232,0.3919,0.9375,4,11,"Barrera, Elio","Gonzalez, Isai",1,1,2026-10-23,on
+7,3,Lil Temptation,0.2924,0.0941,0.21859999999999996,0.9270833333333334,5,11,"Nieves, Emanuel","Modica, Oscar",1,1,2026-10-23,on
+7,5,Katies Factor,0.2267,0.0712,0.223,0.9166666666666666,6,11,"Roman, Kevin","Gonzalez, Isai",1,1,2026-10-23,on
+7,6,Knocked Out,0.1758,0.0515,0.1976,0.9166666666666666,7,11,"Hernandez, Harry","Larrosa, Juan",1,1,2026-10-23,on
+7,2,Freckles Forever,0.17570000000000002,0.0534,0.2111,0.6666666666666666,8,11,"Cardoso, David","Hibdon, Mark",1,1,2026-10-23,on
+7,9,She'sa Bandit,0.1698,0.054,0.1738,0.9375,9,11,"Melancon, Jansen","Mojica, Edith",1,1,2026-10-23,on
+7,1,Dayforthe Gray,0.1532,0.0455,0.1646,0.9375,10,11,"Hernandez, Javier","Govea, Cesar",1,1,2026-10-23,on
+7,8,Sienna Breeze,0.0948,0.0259,0.10800000000000001,0.9270833333333334,11,11,"Rosier, Chris","Rosier, Charlie",1,1,2026-10-23,on
+8,8,Kenmore West,0.4995,0.1855,0.4338,0.9270833333333334,1,9,"Hernandez, Colby","Calhoun, W.",1,1,2026-10-23,on
+8,3,Warrior Richard,0.47250000000000003,0.1641,0.40490000000000004,0.90625,2,9,"Hernandez, Harry","Diodoro, Robertino",1,1,2026-10-23,on
+8,7,Big Drinker,0.3791,0.1318,0.36319999999999997,0.9270833333333334,3,9,"Castillo, Isaac","Wong, Jonathan",1,1,2026-10-23,on
+8,9,Funnyflame,0.3489,0.1164,0.37729999999999997,0.9270833333333334,4,9,"Thornton, Timothy","Mocklin, Jr., Richard",1,1,2026-10-23,on
+8,6,Pacificislandtime,0.3407,0.1081,0.38880000000000003,0.9270833333333334,5,9,"Rodriguez, Jose","Ramirez, Eduardo",1,1,2026-10-23,on
+8,1,Brock's Boy,0.2713,0.0878,0.2572,0.9375,6,9,"Perez, Carlos","LeonardIII, George",1,1,2026-10-23,on
+8,2,Causeway Benny,0.2525,0.0782,0.2999,0.9166666666666666,7,9,"Hernandez, Javier","Ramaekers, Eric",1,1,2026-10-23,on
+8,4,Interlude,0.21900000000000003,0.0637,0.24769999999999998,0.9270833333333334,8,9,"Vargas, Juan","Mojica, Edith",1,1,2026-10-23,on
+8,5,Don Pablo,0.21649999999999997,0.0644,0.2272,0.9375,9,9,"Barrera, Elio","Cormier, Cardel",1,1,2026-10-23,on
 9,5,Tarkington Sunrise,0.563,0.2142,0.5660000000000001,0.9375,1,10,"Thornton, Timothy","Garcia, Miguel",1,1,2026-10-23,on
 9,2,Lassie Bee,0.38449999999999995,0.1285,0.3156,0.9166666666666666,2,10,"Arana, Kelvin","Ward, Ronnie",1,1,2026-10-23,on
 9,10,Chargethe Deal,0.37889999999999996,0.1275,0.3779,0.9270833333333334,3,10,"Vargas, Juan","Larrosa, Juan",1,1,2026-10-23,on

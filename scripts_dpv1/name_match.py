@@ -14,6 +14,8 @@ See tracking/name_matching_validation_2026-11-04.md.
 
 Matching rule (``resolve_person``):
  1. ``exact``: the corpus key already names someone with chart history.
+ 1b. ``alias``: the PP spelling is listed in ``name_aliases.csv`` and its
+    chart name has chart history (for names the rule below cannot link).
  2. Otherwise compare *core keys*: the name with single-letter initials and
     the suffixes Jr/Sr/II/III/IV removed, the rest joined in order
     ("Barrera Elio J" and "Barrera, Elio" are both ``barreraelio``).
@@ -27,6 +29,7 @@ default ``scripts_dpv1/logs/name_matches.jsonl``).
 """
 from __future__ import annotations
 
+import csv
 import json
 import os
 import re
@@ -37,6 +40,7 @@ from pathlib import Path
 ENV = "BENTER_NAME_MATCH"
 LOG_ENV = "BENTER_NAME_MATCH_LOG"
 DEFAULT_LOG = Path(__file__).resolve().parent / "logs" / "name_matches.jsonl"
+ALIAS_FILE = Path(__file__).resolve().parent / "name_aliases.csv"
 SUFFIXES = {"jr", "sr", "ii", "iii", "iv"}
 
 
@@ -72,11 +76,24 @@ def name_parts(name: str) -> tuple[str, str, str]:
 
 
 _HIST_CACHE: dict = {}
+_ALIASES: dict = {}
+
+
+def load_aliases(path: Path = ALIAS_FILE) -> dict:
+    """``{(table, pp corpus key): chart name}`` from name_aliases.csv, for
+    people the rule cannot link (the charts use a different first name or
+    initial, e.g. PP "Calhoun W. Bret" vs chart "Calhoun, W.")."""
+    if not _ALIASES and path.exists():
+        with open(path, newline="", encoding="utf-8") as fh:
+            for r in csv.DictReader(fh):
+                _ALIASES[(r["table"].strip(), corpus_key(r["pp_name"]))] = r["chart_name"].strip()
+    return _ALIASES
 
 
 def reset_cache() -> None:
     """Call at the start of each card load (the DB may have changed)."""
     _HIST_CACHE.clear()
+    _ALIASES.clear()
 
 
 def _charted_people(conn: sqlite3.Connection, table: str) -> dict:
@@ -117,6 +134,13 @@ def resolve_person(conn: sqlite3.Connection, table: str, name: str | None,
     if exact:
         rec.update(method="exact", matched_id=exact[0], matched_name=exact[1])
         return exact[0], rec
+    target = load_aliases().get((table, corpus_key(name)))
+    if target:
+        hit = by_key.get(corpus_key(target))
+        if hit:
+            rec.update(method="alias", matched_id=hit[0], matched_name=hit[1])
+            return hit[0], rec
+        rec["note"] = f"alias target '{target}' has no charted start; rule matching used"
     core, suf, ini = name_parts(name)
     cands = by_core.get(core, []) if core else []
     rec["candidates"] = [c[1] for c in cands]

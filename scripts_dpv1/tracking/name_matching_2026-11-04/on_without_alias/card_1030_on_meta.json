@@ -1,0 +1,10 @@
+{
+ "date": "2026-10-30",
+ "arm": "on",
+ "backup": "racing_full.db.ded1030-run.bak",
+ "backup_sha256": "7b6e165f0d7d36ba1233f89b4c3873c8b2980526d4bd28e8ab66c3e9a1f6e2bf",
+ "rows": 100,
+ "jockey_hist": 100,
+ "trainer_hist": 97,
+ "live_db_unchanged": true
+}
