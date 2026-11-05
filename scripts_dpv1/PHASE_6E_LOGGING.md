@@ -1635,6 +1635,59 @@ goes into `name_aliases.csv`.
 `name_match_config.json`, or run with `BENTER_NAME_MATCH=0`. Cards already
 loaded ON keep their linked ids until reloaded.
 
+### Results load, 2026-11-05 (EVD/LAD catch-up for the DED cards)
+
+* **Backup:** `scripts/racing_full.db.pre-charts1105.bak`, verified: same
+  sha256 as the live DB (d44e347f…), `integrity_check` ok on both, same
+  counts in races, entries, horses, exotic_payouts, entry_features_dpv1,
+  parsed_files, race_days and pp_entries_raw.
+* **Files.** The three chart folders (EVD 2025, EVD 2026, LAD 2026) hold 202
+  files, one per track/date: 158 already charted, 44 new. The 44 are exactly
+  the list in `tracking/missing_charts_2026-11-04.md`, all in the Equibase
+  standard name (`YYYYMMDD-usa-evd-a-d.standard.pdf`). No date exists under
+  both names (`EVD062526USA.pdf` style and standard).
+* **Dry parse first** (scratch; filename vs header track/date, races
+  numbered 1..N, one official winner per race or two on a dead heat for win,
+  field size = rows, odds on every betting row, every warning classified).
+  Four charts carried non-standard warnings. None is a silent fallback;
+  each was read against the chart text before loading:
+  * EVD 7/31 R6 #6 Alvarado Cat and LAD 9/23 R1 #6 My Lil Poker Face were
+    **declared non-starters** by the stewards (`no_odds_left_out`,
+    `field_size_from_trainers`). Left out, per the 2026-10-16 rule
+    (non-starters stay out, as scratches do). Positions keep the chart's
+    crossing order, so LAD 9/23 R1 has no 2nd: Parisi is 3rd (paid place)
+    and Hot Pink 4th (paid show, so ITM label 0 although she paid show).
+  * EVD 9/7 R3 (#8 Kathleen's Ace DQ 5th → 6th) and LAD 9/28 R4 (#9 Baby's
+    Last Dance DQ 1st → 4th, "placed fourth" in the ruling):
+    `official_tote_mismatch:1`. The official order agrees with the
+    stewards' text, the WPS payouts and the exacta/trifecta/superfecta.
+    The 1 is the `$0.50 Consolation Pick 3` line read as a WPS row (pgm
+    text, no matching horse); it is not loaded anywhere. Parser not changed.
+* **Loaded 44 charts** with `retrain_pipeline.load_charts`
+  (`PRAGMA foreign_keys = ON`): **372 races, 2,948 starters, 1,962 exotic
+  rows, 0 errors, 0 purged.** horses +78. Entries 320,156 → 323,104.
+  * Dead heats: EVD 7/18 R3 for **win** (#1 Army Running Bayou, #2 Starof
+    Bethlehem), EVD 7/24 R4 for 3rd (#4, #6), EVD 8/8 R6 for 8th (#6, #9).
+  * DQs: EVD 5/7 R8 #11 Shadow Dancer (commission ruling, medication, after
+    the race: wagering stood, kept 1st as run, `0of1_applied:tote`);
+    EVD 7/2 R5 #2 Precious Money 2nd → 3rd; EVD 8/14 R2 #5 Maxxus 5th → 7th;
+    EVD 9/7 R3 and LAD 9/28 R4 above.
+  * 14 DNFs (lost rider, pulled up, eased, fell, refused to break), all
+    with a matching trip comment: EVD 6/20 R3 #5, R8 #7; 6/26 R9 #12;
+    6/27 R6 #4; 7/4 R9 #1; 7/25 R4 #6; 8/20 R7 #2; 8/21 R4 #5;
+    8/22 R2 #4, #6; 8/27 R6 #4; 8/28 R9 #8, #9, #10.
+* **Missing-charts rerun** (same script as 11/04, DED cards 10/23-11/04):
+  stale last races **251 → 38**. All 213 EVD/LAD ones are fixed; the 38
+  left ran last at tracks not in the corpus. No corpus-track date is missing
+  on any PP line of those cards. Details appended to
+  `tracking/missing_charts_2026-11-04.md`.
+* Doug's `chart_download_log_20261105.csv` (left uncommitted) has 151 EVD
+  `HTTP 403` rows; 82 of those dates are not charted (April-August, many
+  probably dark days). No DED horse's PP line points at any of them.
+* Features rebuilt as part of the DED 11/05 card routine (323,173 rows =
+  323,104 + 69 PP entries). EVD 2026 now runs 4/3-9/7 (73 days), LAD
+  5/2-9/30 (56).
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

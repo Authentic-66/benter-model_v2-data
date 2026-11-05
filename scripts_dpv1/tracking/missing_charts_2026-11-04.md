@@ -80,3 +80,27 @@ after 2026-09-16.
 
 After loading: purge rule as usual (back up, `rp.load_charts`), then rebuild
 speed figures and features before the next card.
+
+## Rerun after the 2026-11-05 chart load
+
+All 44 charts above were loaded on 2026-11-05 (PHASE_6E_LOGGING.md
+"Results load, 2026-11-05"). Same script, same six DED cards:
+
+| card | horses | first-time starters | last race not in DB (11/04) | now |
+|---|---|---|---|---|
+| 10/23 | 82 | 17 | 45 | 6 |
+| 10/24 | 79 | 17 | 38 | 9 |
+| 10/28 | 82 | 2 | 48 | 8 |
+| 10/29 | 75 | 4 | 39 | 7 |
+| 10/30 | 100 | 0 | 58 | 5 |
+| 11/04 | 77 | 2 | 23 | 3 |
+| **all** | **495** | **42** | **251** | **38** |
+
+**213 of 251 fixed** (every EVD and LAD one). The 38 left all ran last at
+tracks not in the corpus: PRM 8, SWF 7, ATO 4, CBY 3, GIL 3, HCN 3, RP 3,
+LS 2, ARP 1, IND 1, LEG 1, OP 1, WO 1. No corpus-track date is missing on
+any PP line of these horses (any race, not only the last).
+
+DED 11/05 card (run the same way): 5 of 69 last races not in the DB. Four
+at non-corpus tracks (ARP 2, PRM 1, SWF 1) and one at **MNR 2026-10-05**
+(R7 #2 Wave Maker): MNR charts in the DB stop at 2026-07-29.
