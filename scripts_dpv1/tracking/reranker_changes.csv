@@ -1,0 +1,2 @@
+track,race_date,race_num,picks_file,base1_pgm,base1_horse,base1_base_p_itm,base1_final_p_itm,rr1_pgm,rr1_horse,rr1_base_p_itm,rr1_final_p_itm,base1_finish,rr1_finish,both_ran,note
+DED,2026-11-05,4,picks/DED_2026-11-05_20261105-0931.txt,3,Shining Away,0.5611,0.5281,6,Memory Maker,0.5195,0.5707,,,,"pre-race; fill finishes at scoring; counts for the review rule only if both run"
