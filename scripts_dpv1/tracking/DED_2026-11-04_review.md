@@ -267,6 +267,13 @@ but is not added**: Don's picks arrived after R1 had run. Rule (Doug,
 11/04): a race counts as consensus only when **all three picks were logged
 before post**.
 
+**Rule restated in full (Doug, 2026-11-05; supersedes the line above).** Use
+each source's #1 **after scratches**, from picks logged before post. A race
+counts only if all three post-scratch #1s are the same horse. A race where
+someone's #1 scratched still counts if the post-scratch #1s all match (as
+10/28 R3 did). First applied to DED 11/05: consensus R1 #3, R2 #2, R3 #7; R5
+does not count (model and Don #2, Doug #3 after #6 Brilliant Deal scratched).
+
 * **R3 #1 Running Faith**: **won** at 1.0-1 ($4.00). Led throughout.
 * **R4 #6 Cutting Class** (also Don's POD): 5th at 1.3-1. Off the board.
 * **R8 #2 Paired**: 3rd at 1.5-1, show $2.20. "Lacked early speed … was
