@@ -1,0 +1,9 @@
+track,race_date,race_num,pgm,horse,final_odds,finish,jockey_hist_missing,trainer_hist_missing,stale_last_race,pp_days_off,db_days_since,whatdidwedo_artifact,name_matching,note
+DED,2026-11-04,1,7,Sarah's Rolling,1.1,1,0,0,0,14,14,0,off,none
+DED,2026-11-04,2,8,Candy Dreamin,0.7,1,0,1,0,21,21,0,off,trainer Larrosa Juan A unmatched
+DED,2026-11-04,3,1,Running Faith,1.0,1,0,1,0,21,21,0,off,trainer Gelner Jayde J unmatched
+DED,2026-11-04,4,6,Cutting Class,1.3,5,0,1,0,20,20,0,off,trainer Hibdon Mark N unmatched
+DED,2026-11-04,5,5,Vodka Martini,3.7,1,0,0,0,189,189,0,off,logged #1 #2 Grazed (vet) scratched; next horse among runners
+DED,2026-11-04,6,9,Blue Chair Bay,5.4,8,0,0,1,43,100,0,off,"DB last race 100 days, PP 43 (later race not charted)"
+DED,2026-11-04,7,4,Stovall,2.4,3,1,0,0,19,19,0,off,jockey Hernandez Colby J unmatched
+DED,2026-11-04,8,2,Paired,1.5,3,1,1,0,20,20,0,off,jockey Barrera Elio J and trainer Cano Juan M unmatched
