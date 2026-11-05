@@ -263,7 +263,9 @@ Re-ranked around scratches as before (Don's alt moves up; Doug has no alt).
 
 All three sources had the same #1 in **R3, R4 and R8**, all pre-race, all
 the favourite. **R1 #7 Sarah's Rolling (won, 1.1-1) was also everyone's #1
-but is not added**: Don's picks arrived after R1 had run.
+but is not added**: Don's picks arrived after R1 had run. Rule (Doug,
+11/04): a race counts as consensus only when **all three picks were logged
+before post**.
 
 * **R3 #1 Running Faith**: **won** at 1.0-1 ($4.00). Led throughout.
 * **R4 #6 Cutting Class** (also Don's POD): 5th at 1.3-1. Off the board.
@@ -377,9 +379,22 @@ pooled across 1.3.0, 1.3.1 and 1.3.2):
 | T Rylee Magnon | 6 | 1 | 2 | 2.26 | 2 | −0.26 |
 | T W.B. Calhoun | 19 | 4 | 9 | 6.24 | 9 | +2.76 |
 
-(Starts here are logged starts. The file's "2026 meet" chart columns also
-count the 10/31 card loaded on 11/01, which was not logged: Ward 28 starts /
-3 W / 13 ITM, Calhoun 22 / 4 / 9.) Ward is now the biggest gap, +3.08 on
-26, ahead of Calhoun +2.76 on 19. From 11/05 on, name matching links Ward's
-and Calhoun's PP names to their chart history, so the gap should be read
-separately from that card on.
+The "2026 meet" window now counts **logged cards only** (Doug, 11/04): the
+10/31 card was charted but never run through the model, so its starts are
+left out. Before this change the file showed Ward 28 starts / 3 W / 13 ITM
+and Calhoun 22 / 4 / 9.
+
+**Read Ward's +3.08 with care.** It is not a steady meet-wide edge:
+
+| span | starts | sum P(ITM) | ITM | diff |
+|---|---|---|---|---|
+| 10/10–10/22 (early cards) | 16 | 5.14 | 8 | +2.86 |
+| 10/23–10/30 (1.3.2) | 8 | 2.35 | 2 | −0.35 (−0.24 with name matching on) |
+| 11/04 | 2 | 0.43 | 1 | +0.57 |
+
+On the 1.3.2 cards the name-matching validation rebuilt (10/23–10/30), his
+gap was close to zero with matching on. Most of the +3.08 comes from the
+early cards and from tonight's She Sails (+0.77 by herself, 2nd at 26-1, a
+first-time starter at 46% coverage). One horse at that price moves the
+number a lot. From 11/05 on, name matching links Ward's and Calhoun's PP
+names to their chart history, so read the gap from that card on separately.

@@ -6,7 +6,12 @@ rewrites ``tracking/watch_people_tally.csv``.
     python scripts_dpv1/tracking/watch_people_tally.py
 
 For each active trainer/jockey on ``watch_list.csv`` and each window (this
-meet, and every DED result in the DB):
+meet's logged cards, and every DED result in the DB):
+
+The meet window counts only DED cards that have a logged record run. A card
+that was charted but never run through the model (e.g. 10/31, loaded with
+the 11/01 charts) is left out, so the meet starts/W/ITM and the model
+comparison cover the same races (Doug, 2026-11-04).
 
 * starts, wins, in-the-money (1st-3rd), win% and ITM%;
 * $2 win ROI: (sum of $2 win payouts on their winners - $2 x starts)
@@ -86,12 +91,15 @@ def tally(db: str | Path) -> list[dict]:
             LEFT JOIN jockeys j ON j.id = e.jockey_id
             WHERE t.code = ? AND e.finish_status IS NOT NULL
               AND e.non_betting = 0""", (TRACK,)).fetchall()
+    logged_cards = {k[0] for k in logged}
     out = []
     for w in watch:
         col = 6 if w["type"] == "trainer" else 7
         mine = [r for r in rows if person_matches(w, r[col])]
-        for label, lo in (("2026 meet", MEET_START), ("all DED in DB", "0000")):
-            sel = [r for r in mine if r[0] >= lo]
+        for label, keep in (
+                ("2026 meet", lambda r: r[0] >= MEET_START and r[0] in logged_cards),
+                ("all DED in DB", lambda r: True)):
+            sel = [r for r in mine if keep(r)]
             st = len(sel)
             wins = sum(1 for r in sel if r[3] == 1)
             itm = sum(1 for r in sel if r[3] is not None and r[3] <= 3)
