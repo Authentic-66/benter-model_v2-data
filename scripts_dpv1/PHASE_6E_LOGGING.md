@@ -1688,6 +1688,22 @@ loaded ON keep their linked ids until reloaded.
   323,104 + 69 PP entries). EVD 2026 now runs 4/3-9/7 (73 days), LAD
   5/2-9/30 (56).
 
+### Input fix by hand, DED 2026-11-06 R4 (starter allowance)
+
+* `load_pp_card.py` maps the PP class token "Alw" to ALLOWANCE and only
+  "Str" to STARTERALLOWANCE, so a Brisnet starter allowance written
+  "Alw 5000s" loads as ALLOWANCE. The charts call these STARTERALLOWANCE.
+  Three earlier logged cards ran with the wrong label: DED 10/21 R1, 10/22
+  R5 and 11/04 R7 (not re-logged).
+* For the 11/06 card (Doug, option 1): after the PP load, R4 (race id
+  43628, "Alw 5000s 6½ Furlongs 3&up") was set to STARTERALLOWANCE in
+  `races` by hand, then speed figures, features and `card_picks --save`
+  ran as usual (record run 08:55 CDT). Backup taken before the PP load:
+  `racing_full.db.ded1106-run.bak` (verified).
+* Next (Doug, option 3): fix the loader mapping, regress it against the
+  earlier PP files (only those starter-allowance races should change) and
+  record it here as an input change.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
