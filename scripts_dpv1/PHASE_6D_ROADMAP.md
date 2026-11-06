@@ -7152,6 +7152,39 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
   qualifying races are tallied, report the two parts separately as well as
   pooled.
 
+### High-confidence #1 forward test (pre-registered 2026-11-06, before seeing more results)
+
+* **Why.** A read-only backtest (`tracking/top1_roi.py`, 119 DED races
+  10/10–11/05, all model versions) found the model's post-scratch #1 with
+  P(ITM) over 60% was the only P(ITM) group in profit on win (+33.2%), place
+  (+24.6%) and show (+7.2%), on 25 races. The 60% cut was chosen after
+  looking at those results, and the sample is small. **The backtest is the
+  reason for this test, not evidence for the rule.** It is not pooled into
+  the result.
+* **Rule.** In each DED race, take the model's #1: the horse with the
+  highest logged P(ITM) (final value, after the reranker) among the horses
+  that run, from the record run. If that horse's logged P(ITM) is **over
+  0.60**, it gets a paper **$2 win** and a paper **$2 place** bet. A late
+  scratch of the #1 passes the race to the next horse, which qualifies only
+  on its own logged P(ITM). No other filter (odds, coverage, race type).
+* **Logged.** `tracking/high_conf_top1.csv`, from **DED 2026-11-06** on:
+  race, horse, P(ITM), model version, name matching, final odds, official
+  finish, and the chart's $2 win and place payouts (0 on a loss). Qualifiers
+  are written pre-race from the logged picks and graded at scoring.
+* **When.** Review after **40 qualifying races** (about 10 cards at the
+  rate of about four a card).
+* **Judge on** win ROI and place ROI on the 40 races. Report the
+  **over-4-1 subset** (final odds) separately. Also report hits and the
+  two largest payouts so one long shot cannot carry the result unseen.
+* **Pass mark: NOT YET SET.** Doug writes it here before the 40th
+  qualifying race is scored and before anyone tallies the qualifying
+  races. Until then this is tracking only and no real money follows it.
+* **Inputs inside the window.** Name matching is ON for all of it (from
+  11/05). The starter-allowance loader fix (queued, after the 11/06 races)
+  changes race-type input from the card it lands on. The 11/06 R4 relabel
+  was done by hand before the run. Any model or reranker change ends the
+  window; report the parts separately.
+
 ### Queued after this (not started)
 
 1. **Late jockey changes.** Thornton came off all his mounts on 10/28, 10/29

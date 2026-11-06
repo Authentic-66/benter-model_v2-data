@@ -1,0 +1,5 @@
+track,race_date,race_num,pgm,horse,p_itm,model_version,name_matching,final_odds,finish,win_payout,place_payout,note
+DED,2026-11-06,1,8,Miss River Rat,0.7158,dpv1.3.2-5track-stretch,on,,,,,logged pre-race 08:55; grade at scoring
+DED,2026-11-06,4,7,Mahoney Road,0.6546,dpv1.3.2-5track-stretch,on,,,,,logged pre-race 08:55; grade at scoring; reranker #1 (base #1 #6 Call My Banker 0.6312)
+DED,2026-11-06,7,1,Vineaux,0.6422,dpv1.3.2-5track-stretch,on,,,,,logged pre-race 08:55; grade at scoring
+DED,2026-11-06,9,2,The Red Wicked One,0.6315,dpv1.3.2-5track-stretch,on,,,,,logged pre-race 08:55; grade at scoring
