@@ -176,6 +176,13 @@ def parse_race_type(conditions: str) -> str | None:
     # so strip them again once it is gone.
     if up.startswith("TM") and len(up) > 2:
         up = up[2:].lstrip(_HEAD_ARTIFACTS)
+    # Starter allowance. Brisnet prints it as an allowance whose starter tag
+    # ends in "s" ("Alw 5000s", "Alw5000s"); the charts call it
+    # STARTERALLOWANCE. Without this it fell through to ALLOWANCE
+    # (DED 10/21 R1, 10/22 R5, 11/04 R7, 11/06 R4).
+    tag = " ".join([up] + [t.upper() for t in conditions.split()[1:2]])
+    if re.match(r"ALW\s*\d+S\b", tag):
+        return "STARTERALLOWANCE"
     for token, race_type in RACE_TYPE_TOKENS:
         if up.startswith(token):
             return race_type

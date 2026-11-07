@@ -1703,14 +1703,50 @@ loaded ON keep their linked ids until reloaded.
 * Next (Doug, option 3): fix the loader mapping, regress it against the
   earlier PP files (only those starter-allowance races should change) and
   record it here as an input change.
-* **Status 2026-11-06 night (after the 11/06 card was scored, `21b3cd8`):
-  in progress, not committed.** The mapping change is in the working tree
-  (`parse_race_type`: "Alw <n>s" / "Alw<n>s" → STARTERALLOWANCE). The
-  regression over all 87 PP files (old vs new race type per race) was
-  running. Why it matters: `CLASS_TIERS` puts ALLOWANCE at tier 5 and
-  STARTERALLOWANCE at tier 3, so the mislabelled races read two tiers too
-  high in the class features. The input-change entry follows once the
-  regression is checked.
+* Done 2026-11-06 night: see the next entry.
+
+### Input change, 2026-11-06: starter allowances load as STARTERALLOWANCE
+
+**Doug's option 3, made after the DED 11/06 card was scored (`21b3cd8`).
+From the next PP card loaded.** The model (`dpv1.pkl`) and the rerankers
+are unchanged, so `model_version` and `reranker_version` do not change.
+Logged cards are not re-run.
+
+**What changes.** `load_pp_card.parse_race_type` now maps an allowance
+whose starter tag ends in "s" ("Alw 5000s", "Alw5000s", "Alw 25000s/n1x")
+to STARTERALLOWANCE, the charts' name for these races. Before, only the
+"Str" token did, and "Alw 5000s" fell through to ALLOWANCE. Every other
+token maps as before.
+
+**Why it matters.** `CLASS_TIERS` (`dpv1_common.py`) puts ALLOWANCE at
+tier 5 and STARTERALLOWANCE at tier 3, so on a mislabelled card every
+horse in the race read about two tiers too high in today's class and the
+class-change features. The training rows come from charts, which already
+say STARTERALLOWANCE, so the fix brings PP cards in line with training.
+
+**Regression (read-only, scratch script).** Every PP file on disk was
+parsed with `build_card`, and each race header was run through the old
+`parse_race_type` (the committed version, loaded from git) and the new
+one. 87 files, 85 parsed, 753 races:
+
+* **8 races change, all "Alw …s", ALLOWANCE → STARTERALLOWANCE:** DED
+  10/21 R1, 10/22 R5, 11/04 R7, 11/06 R4; ELP 8/22 R7 ("Alw 30000s"); CT
+  6/20 R4 ("Alw 12500s"); FP 5/19 R8 and 6/23 R8 ("Alw 5000s").
+* Where a chart is in the DB (the four DED races and ELP 8/22 R7), the
+  chart says STARTERALLOWANCE in every case. CT 6/20 and the two FP races
+  have no chart loaded.
+* Nothing else changes: claim prices are identical in all 753 races,
+  and the other 68 ALLOWANCE races are ordinary allowances ("n1x",
+  "n2L", "nc", "b"), none with an "s" tag.
+* The 2 files that did not parse fail the same way before and after,
+  for unrelated reasons: `kee1031y.pdf` (unrecognised track prefix) and
+  `CT20260618()_4x9PPs.pdf` (no race date; `success = 0` in
+  `pp_parsed_files` since it was first tried).
+
+**Logged cards that ran mislabelled** (not re-run; the DB rows were since
+replaced by the charts' rows, which are correct): DED 10/21 R1, 10/22 R5,
+11/04 R7. DED 11/06 R4 was relabelled by hand before its run (entry
+above), so it ran correctly.
 
 ### Follow-ups, not started
 
