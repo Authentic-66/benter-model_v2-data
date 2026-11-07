@@ -1748,6 +1748,10 @@ replaced by the charts' rows, which are correct): DED 10/21 R1, 10/22 R5,
 11/04 R7. DED 11/06 R4 was relabelled by hand before its run (entry
 above), so it ran correctly.
 
+**First card under the fix: DED 2026-11-07** (logged 09:54 CDT). It has no
+"Alw …s" race (R4 "Alw 45000n3x" and R8 "Alw 44000b" are ordinary
+allowances), so the fix changed nothing on that card.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
