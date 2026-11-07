@@ -7180,8 +7180,9 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
   qualifying race is scored and before anyone tallies the qualifying
   races. Until then this is tracking only and no real money follows it.
 * **Inputs inside the window.** Name matching is ON for all of it (from
-  11/05). The starter-allowance loader fix (queued, after the 11/06 races)
-  changes race-type input from the card it lands on. The 11/06 R4 relabel
+  11/05). The starter-allowance loader fix (`bb5b1a5`) changes race-type
+  input from DED 11/07, the first card loaded after it (11/07 has no
+  "Alw …s" race). The 11/06 R4 relabel
   was done by hand before the run. Any model or reranker change ends the
   window; report the parts separately.
 
@@ -7196,3 +7197,16 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
 3. **Shippers investigation** (read-only). Background is Gap #1 above; its
    diagnosis was reversed (the model over-rates unseen horses rather than
    burying them).
+4. **PP date for "days since last race" when the DB is missing the last
+   race** (queued by Doug 2026-11-07). When a horse's last race in the PP is
+   newer than its last race in the DB (the "missing last race" horses: last
+   race at a track that isn't in the corpus, or a chart that is missing),
+   test using the PP's date (`pp_entries_raw.pp_days_off`) for the days-off
+   features (`days_since_last_race`, `last_race_days_ago`). The other
+   last-race features stay as they are. This targets the missing-last-race
+   horses without adding new tracks. Validate it like name matching: a
+   switch, OFF must reproduce the logged runs exactly, then ON vs OFF on
+   past scored DED cards (P(ITM) log loss, Brier, #1 ITM, how many horses
+   change), before Doug decides. Background: the 11/06 review's
+   missing-last-race check (38 starters 11/04-11/06, ITM 15 vs 11.0
+   expected).
