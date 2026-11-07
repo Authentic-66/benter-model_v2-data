@@ -75,6 +75,20 @@ races can't be loaded without OCR, which would be a separate decision.
 Both have `success = 0` rows in `parsed_files`, and the pipeline retries
 them on every run.
 
+## Status, 2026-11-07
+
+* EVD 2026-06-11: Doug deleted the short file and downloaded
+  `20260611-usa-evd-a-d.standard.pdf` (R1-R8, Dat Hint in R8).
+* The other 10 files were **moved, not deleted** (`git mv`) into a
+  `_bad_charts/` subfolder of their own results folder, so the download
+  script fetches fresh copies. `retrain_pipeline.discover_charts` globs
+  `*-results-*/*.pdf` (one level), so it ignores `_bad_charts/`. The old
+  batch tools `equibase_pdf_parser.py batch` and `db_loader.py pipeline`
+  use `rglob` and **would** find them; pass `--exclude _bad_charts` if
+  either is ever run on a results folder.
+* The DB is unchanged until the replacements are loaded: those days
+  still hold the partial data.
+
 ## Other checks (all clean)
 
 * `races_found` = `races_loaded` for every parsed file on the loaded tracks.
