@@ -113,8 +113,9 @@ Recovering the image-page races would need OCR (a separate decision).
 Equibase may not have a better copy of the other two.
 
 **New from the MNR 2026 load:** `20261005-usa-mnr-a-d.standard.pdf` is
-damaged ("Unexpected EOF") and not loaded. Re-download it; this is the
-Wave Maker chart from the DED 11/05 card.
+damaged ("Unexpected EOF") and not loaded. This is the Wave Maker chart
+from the DED 11/05 card. **KNOWN GAP (2026-11-07):** Doug confirmed the
+file is corrupted on Equibase's side, so it is skipped, not re-downloaded.
 
 The rerun of `chart_audit.py` after the load shows exactly these 9 files
 and nothing else.
