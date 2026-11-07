@@ -40,8 +40,8 @@ rerankers or Piece 1–4 code.
 11/05 says "a race where someone's #1 scratched still counts if the
 post-scratch #1s all match (as 10/28 R3 did)". Don's #1 #6 scratched late,
 so his post-scratch #1 is #4, the same as the model's and Doug's. R2 is
-logged in `consensus_top1.csv` under the written rule, with a note asking
-Doug to confirm. Drop the row if R2 should not count.
+logged in `consensus_top1.csv` under the written rule. **Doug confirmed
+2026-11-07: R2 counts; the row stays.**
 
 ## Load (2026-11-06 night)
 
@@ -387,7 +387,7 @@ Six of 77 starters, all R3 first-time starters at 53%: #3 Cousin Michael
   moved up on the outside ... closed, racing four wide and was best of
   others."
 * **R2 #4 Cajun Cattitude** (0.7-1, fav): **1st**, $3.40 / $2.80 / $2.40.
-  Logged under the written rule; **Doug to confirm** (see Pre-race).
+  Logged under the written rule; **Doug confirmed 2026-11-07** (see Pre-race).
 
 So far (with R2): **6 W, 12 ITM from 16**, all favourites except Miss River
 Rat (second choice to #4 Ground Control, 1.3-1). $2 win on all sixteen:
