@@ -89,6 +89,36 @@ them on every run.
 * The DB is unchanged until the replacements are loaded: those days
   still hold the partial data.
 
+## Result after re-download and load (2026-11-07, PHASE_6E "Results load, 2026-11-07")
+
+**Fixed and loaded (3):** CT 2026-05-01 (now 9 races), EVD 2026-06-11
+(now 8, with Dat Hint's R8), FG 2025-02-15 (now 14).
+
+**Came back byte-identical to the bad copy: KNOWN GAPS (8).** These were
+not reloaded. The identical re-downloads sit in the results folders and
+the old copies in `_bad_charts/`.
+
+| track | date | problem | races in DB / expected |
+|---|---|---|---|
+| CT | 2022-03-18 | image page (R2) | 7 / 8 |
+| GP | 2019-07-18 | image page (R1-R3) | 6 / 9 |
+| GP | 2021-04-04 | image pages (R3-R5, R7-R9) | 4 / 10 |
+| GP | 2024-02-21 | image page (R1-R8) | 1 / 9 |
+| GP | 2024-04-05 | image page (R1-R3) | 5 / 8 |
+| MNR | 2022-08-07 | image pages (R1-R7) | 1 / 8 |
+| MNR | 2023-06-18 | Equibase file has no R8 | 7 / 8 |
+| EVD | 2023-08-10 | file damaged (won't open) | 0 / 9 |
+
+Recovering the image-page races would need OCR (a separate decision).
+Equibase may not have a better copy of the other two.
+
+**New from the MNR 2026 load:** `20261005-usa-mnr-a-d.standard.pdf` is
+damaged ("Unexpected EOF") and not loaded. Re-download it; this is the
+Wave Maker chart from the DED 11/05 card.
+
+The rerun of `chart_audit.py` after the load shows exactly these 9 files
+and nothing else.
+
 ## Other checks (all clean)
 
 * `races_found` = `races_loaded` for every parsed file on the loaded tracks.

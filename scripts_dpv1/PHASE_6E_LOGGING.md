@@ -1752,6 +1752,41 @@ above), so it ran correctly.
 "Alw …s" race (R4 "Alw 45000n3x" and R8 "Alw 44000b" are ordinary
 allowances), so the fix changed nothing on that card.
 
+### Results load, 2026-11-07 (chart audit replacements + MNR Aug-Nov 2026)
+
+* **Backup:** `scripts/racing_full.db.pre-charts1107.bak`, verified (same
+  sha256 as live, `integrity_check` ok on both, same counts in races,
+  entries, horses, exotic_payouts, entry_features_dpv1, parsed_files). Taken
+  after the DED 11/07 card was logged; that card was not touched or re-run.
+* **Replacements for the 11 files in `tracking/chart_audit_2026-11-07.md`.**
+  Each new file was compared with the bad copy in `_bad_charts/` (sha256)
+  and its pages read for "Race N" headers before loading. **Three came back
+  fixed and were loaded:** CT 2026-05-01 (9 races, was 7), EVD 2026-06-11
+  (8, was 7), FG 2025-02-15 (14, was 0: the old file was damaged).
+  **Eight came back byte-identical** and were not loaded (it would only
+  reload the same partial data); they stay as known gaps in the audit.
+* **MNR 2026:** 52 new charts 8/02-11/04 (none in the DB). **10/05 is
+  damaged** (`Unexpected EOF`), not loaded, re-download. The other 51
+  dry-parsed clean. Warnings checked against the chart text:
+  * MNR 9/09 R2-R8 and 9/21 R7-R8 are **cancelled races** ("Cancelled -
+    Weather" / "Cancelled - Management Decision"); they load as races with
+    no entries, like the 1,041 already in the DB. 9/21 has no R6 page and
+    no later chart names one.
+  * `horse_row_unparsed` (6 races, all 2 furlongs): trailing Final Time /
+    Run-Up / Winner lines; every field parsed in full (rows = field size).
+  * MNR 8/04 R4 `official_tote_mismatch`: #7 Legacy Trail disqualified
+    2nd to unplaced after the race (positive test). The tote paid 9-7, so
+    official finish = as run (#14 C rule). Correct as parsed.
+* **Loaded 54 charts in one `retrain_pipeline.load_charts` batch**
+  (`PRAGMA foreign_keys = ON`): 439 races, 3,056 starters, 1,828 exotic
+  rows, 0 errors. CT 5/1 and EVD 6/11 were purged first (53 + 50 entries)
+  and replaced; no duplicate race days. Races 43,411 -> 43,836; entries
+  323,329 -> 326,282; horses 49,414 -> 49,640.
+* **Rebuilt** speed figures and features: 326,282 rows.
+* **Audit rerun:** only the known gaps remain (7 image-page/short files
+  that came back identical, EVD 2023-08-10 still damaged, MNR 2026-10-05
+  damaged).
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
