@@ -1703,6 +1703,14 @@ loaded ON keep their linked ids until reloaded.
 * Next (Doug, option 3): fix the loader mapping, regress it against the
   earlier PP files (only those starter-allowance races should change) and
   record it here as an input change.
+* **Status 2026-11-06 night (after the 11/06 card was scored, `21b3cd8`):
+  in progress, not committed.** The mapping change is in the working tree
+  (`parse_race_type`: "Alw <n>s" / "Alw<n>s" → STARTERALLOWANCE). The
+  regression over all 87 PP files (old vs new race type per race) was
+  running. Why it matters: `CLASS_TIERS` puts ALLOWANCE at tier 5 and
+  STARTERALLOWANCE at tier 3, so the mislabelled races read two tiers too
+  high in the class features. The input-change entry follows once the
+  regression is checked.
 
 ### Follow-ups, not started
 
