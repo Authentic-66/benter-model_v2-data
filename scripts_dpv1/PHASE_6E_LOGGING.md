@@ -1842,6 +1842,58 @@ PP bridge (`apply_to_card` → `pp_index`), about 39 s each.
   about 5.5 minutes instead of 10.6.
 * Harness (scratch, not committed): `build_card_db.py`, `run_picks_pair.py`.
 
+### Input change (interim), 2026-11-08: speed-figure pars frozen as `pars-v1-20261108`
+
+**Doug, 2026-11-08 (PHASE_7_SCALING_PLAN, par policy, interim freeze).
+Model and rerankers unchanged. No figure changes today; old figures stop
+drifting from here on.** Until now `speed_figures_dpv1 compute` recomputed
+every par (median final time per track / surface / distance / condition)
+from the whole DB on each run, so loading any chart moved old figures and,
+through them, `last_race_speed_figure`, track bias and class-context terms
+(the 11/07 54-chart load moved 41,311 figures). Point-in-time pars (no
+look-ahead) are item 2 of the 1.4 candidate (PHASE_6D_ROADMAP) and will
+replace this.
+
+* **What changed.**
+  * New tables `par_versions_dpv1` (one row per version: created_at UTC,
+    races used, cell counts, last race date, note) and `par_times_dpv1` (the
+    raw cell statistics, median and count, for every fine and coarse cell).
+  * `speed_figures_dpv1.py freeze --version V` stores the current whole-DB
+    statistics as V and refuses to overwrite a version.
+  * `compute` now reads the version named in `scripts_dpv1/speed_par_config.json`
+    and applies the same fine (n ≥ 20) / coarse (n ≥ 10) / none rule to the
+    frozen statistics. A cell that has a timed race but did not exist at freeze
+    time falls back to its frozen coarse cell (else no figure). If the DB lacks
+    the version, `compute` **stops** with a message (no silent fallback).
+  * `compute --recompute-pars` is the old behaviour; use it to rebuild a
+    backup taken before 2026-11-08 (those have no par table), which is what
+    reproduces their logged runs. `--par-version` overrides the config.
+* **Live.** Backup `scripts/racing_full.db.pre-parfreeze.bak` (sha256
+  acf21ecb…, integrity ok, same counts as live). Froze **`pars-v1-20261108`**
+  on live: 42,161 timed races, 354 fine and 114 coarse cells, data through DED
+  2026-11-07. Live speed figures and features were **not** rebuilt (still one
+  chart behind since 11/07, as logged; the next card build does it).
+* **Proofs (scratch copies, all deleted afterwards).**
+  * Live copy: default `compute` (frozen `pars-v1-20261108`) vs
+    `--recompute-pars`: all 326,270 rows, all 8 columns identical.
+  * Card: DED 11/07 rebuilt from `.ded1107-run.bak` (current build), then on a
+    copy pars frozen, speed figures and the full feature table rebuilt from
+    them: speed table 323,329 rows identical; feature table 323,329 rows × 131
+    columns, 0 differing cells; `card_picks --pp-file … --save` gives the same
+    87 logged rows as the current build (every field but the run stamp).
+  * Drift: on `.pre-ded1107res.bak` (before the 11/07 chart), load
+    `DED110726USA.pdf` (9 races, 75 starters) and recompute. **Whole-DB pars:
+    10,095 old figures changed** (max 0.025 points; 11,679 par times).
+    **Frozen pars: 0 old figures changed** (all 326,195 entries common to
+    both states identical in every column).
+* **Refreshing the pars** is a decision, not routine: `freeze --version <new>`,
+  change `speed_par_config.json`, rebuild figures and features, and record it
+  here as an input change. `retrain_pipeline` does not refresh them.
+* **Harness note.** The 11/04 and 11/08 name-matching harnesses
+  (`tracking/name_matching_*/nm_card.py`) call `compute` without
+  `--recompute-pars`; on pre-freeze backups they now stop with the message
+  above. Add the flag before rerunning them.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

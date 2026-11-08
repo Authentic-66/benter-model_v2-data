@@ -23,14 +23,34 @@ for the cell, horse time = final time + beaten_lengths * SEC_PER_LENGTH,
 figure = 80 + (par - horse_time) * 5. Distances are never pooled — a 4.5f
 par cannot be inferred from 6f data.
 
+Frozen pars (2026-11-08, interim)
+---------------------------------
+Pars used to be recomputed from the whole DB on every ``compute``, so loading
+any chart could move old figures (the 2026-11-07 load moved 41,311).
+``compute`` now reads the pars from ``par_times_dpv1`` under the version named
+in ``speed_par_config.json`` and never recomputes them. The table holds the
+raw cell statistics (median and count, fine and coarse), and the same
+fine / coarse / insufficient rule is applied to them at lookup, so figures are
+identical to a recompute on the data the pars were frozen from. A cell with a
+timed race that did not exist at freeze time (a new distance or condition
+label) falls back to its frozen coarse cell, else gets no figure. Refresh =
+``freeze`` a new version and point the config at it (a model-input change;
+record it in PHASE_6E). Point-in-time pars are item 2 of the 1.4 candidate
+(PHASE_6D_ROADMAP).
+
 Usage
 -----
-    python scripts_dpv1/speed_figures_dpv1.py compute
+    python scripts_dpv1/speed_figures_dpv1.py compute            # frozen pars
+    python scripts_dpv1/speed_figures_dpv1.py compute --recompute-pars
+        # old behaviour: medians over the whole DB (e.g. rebuilding a backup
+        # taken before pars were frozen, to reproduce its logged run)
+    python scripts_dpv1/speed_figures_dpv1.py freeze --version pars-v1 --note "..."
     python scripts_dpv1/speed_figures_dpv1.py summarize
 """
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sqlite3
 import sys
@@ -55,6 +75,12 @@ log = logging.getLogger("speed_figures_dpv1")
 # has not raced a distance often enough under one condition.
 N_MIN_FINE = 20     # (track, surf, dist, cond)
 N_MIN_COARSE = 10   # (track, surf, dist)
+
+PAR_TABLE = "par_times_dpv1"          # frozen cell statistics, per version
+PAR_VERSIONS = "par_versions_dpv1"    # one row per frozen version
+PAR_CONFIG = Path(__file__).resolve().parent / "speed_par_config.json"
+FINE_KEY = ["track_id", "surface", "distance_yards", "track_condition"]
+COARSE_KEY = ["track_id", "surface", "distance_yards"]
 
 
 def load_race_times(conn: sqlite3.Connection) -> pd.DataFrame:
@@ -82,22 +108,30 @@ def compute_par_times(race_df: pd.DataFrame) -> pd.DataFrame:
     Track is never dropped from the key. A thin cell falls back to a broader
     condition set at the SAME track, never to another track.
     """
+    fine, coarse = par_cell_stats(race_df)
+    return resolve_par(fine, coarse)
+
+
+def par_cell_stats(race_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Median final time and race count per fine and per coarse cell."""
     df = race_df.dropna(subset=["final_time_sec"]).copy()
 
     fine = (
-        df.groupby(["track_id", "surface", "distance_yards", "track_condition"],
-                   dropna=False)["final_time_sec"]
+        df.groupby(FINE_KEY, dropna=False)["final_time_sec"]
           .agg(fine_median="median", fine_n="count")
           .reset_index()
     )
     coarse = (
-        df.groupby(["track_id", "surface", "distance_yards"], dropna=False)
-          ["final_time_sec"]
+        df.groupby(COARSE_KEY, dropna=False)["final_time_sec"]
           .agg(coarse_median="median", coarse_n="count")
           .reset_index()
     )
-    par = fine.merge(coarse, on=["track_id", "surface", "distance_yards"],
-                     how="left")
+    return fine, coarse
+
+
+def resolve_par(fine: pd.DataFrame, coarse: pd.DataFrame) -> pd.DataFrame:
+    """Apply the fine / coarse / insufficient rule to cell statistics."""
+    par = fine.merge(coarse, on=COARSE_KEY, how="left")
 
     use_fine = par["fine_n"] >= N_MIN_FINE
     use_coarse = (~use_fine) & (par["coarse_n"] >= N_MIN_COARSE)
@@ -111,6 +145,125 @@ def compute_par_times(race_df: pd.DataFrame) -> pd.DataFrame:
     par["n_cell"] = np.where(use_fine, par["fine_n"], par["coarse_n"]).astype(int)
     return par[["track_id", "surface", "distance_yards", "track_condition",
                 "par_time_sec", "par_cell_used", "n_cell"]]
+
+
+# ---------------------------------------------------------------------------
+# Frozen pars
+# ---------------------------------------------------------------------------
+
+def active_par_version(path: Path = PAR_CONFIG) -> str | None:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh).get("par_version") or None
+    except (OSError, ValueError):
+        return None
+
+
+def _ensure_par_tables(conn: sqlite3.Connection) -> None:
+    conn.executescript(
+        f"""
+        CREATE TABLE IF NOT EXISTS {PAR_VERSIONS} (
+            par_version    TEXT PRIMARY KEY,
+            created_at     TEXT NOT NULL,   -- UTC
+            n_races        INTEGER,         -- races with a final time used
+            n_fine         INTEGER,
+            n_coarse       INTEGER,
+            last_race_date TEXT,            -- latest timed race in the data
+            note           TEXT
+        );
+        CREATE TABLE IF NOT EXISTS {PAR_TABLE} (
+            par_version     TEXT NOT NULL,
+            level           TEXT NOT NULL,  -- 'fine' or 'coarse'
+            track_id        INTEGER,
+            surface         TEXT,
+            distance_yards  INTEGER,
+            track_condition TEXT,           -- NULL on coarse rows
+            median_sec      REAL,
+            n               INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_{PAR_TABLE}_version
+            ON {PAR_TABLE}(par_version);
+        """)
+
+
+def freeze_pars(conn: sqlite3.Connection, version: str, note: str = "") -> dict:
+    """Store the current whole-DB cell statistics as ``version``."""
+    from datetime import datetime, timezone
+    _ensure_par_tables(conn)
+    if conn.execute(f"SELECT 1 FROM {PAR_VERSIONS} WHERE par_version = ?",
+                    (version,)).fetchone():
+        raise SystemExit(f"par version {version!r} already exists; "
+                         f"versions are never overwritten")
+    races = load_race_times(conn)
+    fine, coarse = par_cell_stats(races)
+    last = conn.execute(
+        """SELECT MAX(rd.race_date) FROM races r
+           JOIN race_days rd ON rd.id = r.race_day_id
+           WHERE r.final_time IS NOT NULL""").fetchone()[0]
+    rows = []
+    for t in fine.itertuples(index=False):
+        rows.append((version, "fine", int(t.track_id), t.surface,
+                     int(t.distance_yards),
+                     None if pd.isna(t.track_condition) else t.track_condition,
+                     float(t.fine_median), int(t.fine_n)))
+    for t in coarse.itertuples(index=False):
+        rows.append((version, "coarse", int(t.track_id), t.surface,
+                     int(t.distance_yards), None,
+                     float(t.coarse_median), int(t.coarse_n)))
+    conn.executemany(f"INSERT INTO {PAR_TABLE} VALUES (?,?,?,?,?,?,?,?)", rows)
+    info = {"n_races": int(races["final_time_sec"].notna().sum()),
+            "n_fine": len(fine), "n_coarse": len(coarse),
+            "last_race_date": last}
+    conn.execute(f"INSERT INTO {PAR_VERSIONS} VALUES (?,?,?,?,?,?,?)",
+                 (version,
+                  datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                  info["n_races"], info["n_fine"], info["n_coarse"], last,
+                  note))
+    conn.commit()
+    return info
+
+
+def load_frozen_stats(conn: sqlite3.Connection,
+                      version: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    have = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+        (PAR_VERSIONS,)).fetchone()
+    if not have or not conn.execute(
+            f"SELECT 1 FROM {PAR_VERSIONS} WHERE par_version = ?",
+            (version,)).fetchone():
+        raise SystemExit(
+            f"par version {version!r} is not in this DB ({PAR_VERSIONS}). "
+            f"Run 'speed_figures_dpv1.py freeze --version {version}', or pass "
+            f"--recompute-pars for whole-DB medians (the old behaviour, e.g. "
+            f"when rebuilding a backup taken before pars were frozen).")
+    t = pd.read_sql_query(
+        f"SELECT level, track_id, surface, distance_yards, track_condition, "
+        f"median_sec, n FROM {PAR_TABLE} WHERE par_version = ?",
+        conn, params=(version,))
+    fine = (t[t.level == "fine"].drop(columns="level")
+            .rename(columns={"median_sec": "fine_median", "n": "fine_n"})
+            .reset_index(drop=True))
+    coarse = (t[t.level == "coarse"].drop(columns=["level", "track_condition"])
+              .rename(columns={"median_sec": "coarse_median", "n": "coarse_n"})
+              .reset_index(drop=True))
+    return fine, coarse
+
+
+def frozen_par_times(fine: pd.DataFrame, coarse: pd.DataFrame,
+                     race_df: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """Par rows from frozen statistics. A cell that has a timed race now but
+    was not in the frozen data gets a row with no fine statistics, so the
+    usual rule sends it to its frozen coarse cell (or none). Returns
+    ``(par, n_new_cells)``."""
+    now = (race_df.dropna(subset=["final_time_sec"])[FINE_KEY]
+           .drop_duplicates())
+    m = now.merge(fine[FINE_KEY], on=FINE_KEY, how="left", indicator=True)
+    new = m[m["_merge"] == "left_only"][FINE_KEY].copy()
+    if len(new):
+        new["fine_median"] = np.nan
+        new["fine_n"] = 0
+        fine = pd.concat([fine, new], ignore_index=True)
+    return resolve_par(fine, coarse), len(new)
 
 
 def load_entries(conn: sqlite3.Connection) -> pd.DataFrame:
@@ -181,7 +334,18 @@ def cmd_compute(args: argparse.Namespace) -> int:
     log.info("Loading race times…")
     races = load_race_times(conn)
     log.info("  %d races with a distance + surface", len(races))
-    par = compute_par_times(races)
+    if args.recompute_pars:
+        par = compute_par_times(races)
+        log.info("Pars: RECOMPUTED from the whole DB (--recompute-pars)")
+    else:
+        version = args.par_version or active_par_version()
+        if not version:
+            raise SystemExit(f"no par_version in {PAR_CONFIG.name}; pass "
+                             f"--par-version or --recompute-pars")
+        fine, coarse = load_frozen_stats(conn, version)
+        par, n_new = frozen_par_times(fine, coarse, races)
+        log.info("Pars: FROZEN version %s (%d timed cells not in it -> "
+                 "coarse fallback)", version, n_new)
     log.info("  %d (track, surf, dist, cond) par cells", len(par))
     for tier, n in par["par_cell_used"].value_counts().items():
         log.info("    %-12s %d cells", tier, n)
@@ -197,6 +361,14 @@ def cmd_compute(args: argparse.Namespace) -> int:
                  100.0 * grp["speed_figure"].notna().mean())
     n = write_results(conn, sf)
     log.info("Wrote %d rows to %s", n, SPEED_TABLE)
+    return 0
+
+
+def cmd_freeze(args: argparse.Namespace) -> int:
+    conn = sqlite3.connect(args.db)
+    info = freeze_pars(conn, args.version, args.note)
+    log.info("Froze par version %s: %s", args.version, info)
+    log.info("It is used once %s names it.", PAR_CONFIG.name)
     return 0
 
 
@@ -223,10 +395,19 @@ def cmd_summarize(args: argparse.Namespace) -> int:
 def _cli() -> int:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
-    for name, fn in (("compute", cmd_compute), ("summarize", cmd_summarize)):
+    for name, fn in (("compute", cmd_compute), ("summarize", cmd_summarize),
+                     ("freeze", cmd_freeze)):
         sp = sub.add_parser(name)
         sp.add_argument("--db", default=str(DEFAULT_DB))
         sp.set_defaults(func=fn)
+        if name == "compute":
+            sp.add_argument("--recompute-pars", action="store_true",
+                            help="medians over the whole DB (old behaviour)")
+            sp.add_argument("--par-version", default=None,
+                            help=f"override {PAR_CONFIG.name}")
+        if name == "freeze":
+            sp.add_argument("--version", required=True)
+            sp.add_argument("--note", default="")
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(message)s")

@@ -1,0 +1,4 @@
+{
+  "par_version": "pars-v1-20261108",
+  "note": "Speed-figure pars are read from par_times_dpv1 under this version and never recomputed. Refresh = speed_figures_dpv1.py freeze --version <new> and change this value (a model-input change: record it in PHASE_6E). Point-in-time pars: 1.4 candidate item 2 (PHASE_6D_ROADMAP)."
+}
