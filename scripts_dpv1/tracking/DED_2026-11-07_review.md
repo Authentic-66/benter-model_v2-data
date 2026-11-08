@@ -149,14 +149,15 @@ scratches, among the horses that ran, it changed the #1 in R6 and R9**:
   "among the horses that ran". The full-field #1 #1 Reaux Ban Da Man
   scratched; among runners the base #1 is #2 Moonlight Max and the reranked
   #1 is #5 Highland Creek. Row added to `reranker_changes.csv`, marked
-  post-scratch. **Doug to confirm.**
+  post-scratch. **Doug confirmed 2026-11-07: R6 counts** (judged on the
+  horses that ran, same principle as the consensus rule).
 * Race P(ITM) log loss, summed over starters (base → reranked): R6 4.654 →
   4.761 (worse, despite the winner), R9 6.717 → 6.204 (better: #4 Sugah Gem
   17.9 → 30.6 ran 2nd).
 
 **Reranker review rule:** **4 qualifying races** (11/05 R4, 11/06 R4, 11/07
 R6, R9): reranked #1 2 W / 3 ITM, base #1 0 W / 0 ITM. 36 to go. All on
-the name-matching-ON part. Without R6 it would be 3: 1 W / 2 ITM vs 0 / 0.
+the name-matching-ON part.
 
 Net on the card: #1 wins 1 vs 0, #1 ITM 5 vs 4, overlap 11 vs 11, $2 win
 $5.20 vs $0.
@@ -397,9 +398,8 @@ logged record runs only):
 
 ## Things that look off
 
-1. **R6 is a post-scratch reranker change** that counts under the written
-   rule but was not in the pre-race log or the scoring note (count 4/40
-   with it, 3/40 without). Needs Doug's call.
+1. **R6 is a post-scratch reranker change** that was not in the pre-race
+   log or the scoring note. **Doug confirmed it counts; review count 4/40.**
 2. **Two model #1s (R5, R7) had last races at non-corpus tracks** (FON,
    SWF), so the model priced them off much older DED races. One ran 2nd,
    one 4th.
@@ -411,6 +411,17 @@ logged record runs only):
    #1 lost each time.
 
 ## Queued (not started)
+
+Doug's answers, 2026-11-07 (PHASE_6D_ROADMAP "Queued after this" and "Next
+session's list"):
+
+* **Next session (read-only):** paired name-matching check on 11/05–11/07,
+  each card rescored from its pre-race backup with name matching OFF and
+  ON, one card at a time; #1 wins, #1 ITM, P(ITM) log loss and Brier on
+  identical races.
+* **PP-date recency fix moved to the top of the queue**, ahead of the
+  feeder-track question; it still needs the OFF/ON validation before it
+  goes live.
 
 * The first-time-starter maiden check (now 3 races) and the last-race
   long-priced-winner check.

@@ -7188,25 +7188,50 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
 
 ### Queued after this (not started)
 
-1. **Late jockey changes.** Thornton came off all his mounts on 10/28, 10/29
+Order updated by Doug 2026-11-07 (after the 11/07 scoring): the PP-date
+recency fix moves to the top, ahead of the feeder-track question.
+
+1. **PP date for "days since last race" when the DB is missing the last
+   race** (queued by Doug 2026-11-07; **moved to the top 2026-11-07**). When
+   a horse's last race in the PP is newer than its last race in the DB (the
+   "missing last race" horses: last race at a track that isn't in the
+   corpus, or a chart that is missing), test using the PP's date
+   (`pp_entries_raw.pp_days_off`) for the days-off features
+   (`days_since_last_race`, `last_race_days_ago`). The other last-race
+   features stay as they are. This targets the missing-last-race horses
+   without adding new tracks. **Still needs the OFF/ON validation before it
+   goes live**, like name matching: a switch, OFF must reproduce the logged
+   runs exactly, then ON vs OFF on past scored DED cards (P(ITM) log loss,
+   Brier, #1 ITM, how many horses change), before Doug decides. Background:
+   the missing-last-race tally, **42 flagged starters 11/04–11/07, ITM 18 vs
+   12.6 expected** (11/07 review); on 11/07 two of the model's #1s (R5 Fierce
+   Cat, FON; R7 Paynted Blue, SWF) were in this group.
+2. **Feeder-track question** (decision, not started): whether to add
+   non-corpus tracks the DED shippers come from (seen so far: ARP, GIL, PRM,
+   LS, ATO, BAQ, RP, SWF, FON, EUR, OP). Adding a track is a model-input
+   change (track-keyed features would see races they did not see in
+   training) and needs its own PHASE_6E entry. Comes after item 1, which
+   covers part of the same horses without new tracks.
+3. **Late jockey changes.** Thornton came off all his mounts on 10/28, 10/29
    and 10/30 (and Colby Hernandez off two on 10/29), after the pre-race run
    was logged with them listed. Investigate read-only how the listed-jockey
    features move these horses' predictions, and options for handling likely
-   jockey changes.
-2. **Purse fix (b2):** the asymmetric drop cap, PHASE_6E follow-up #16.
-3. **Shippers investigation** (read-only). Background is Gap #1 above; its
+   jockey changes. (Melancon off 3 listed mounts on each of 11/05–11/07:
+   `tracking/late_jockey_changes.csv`.)
+4. **Purse fix (b2):** the asymmetric drop cap, PHASE_6E follow-up #16.
+5. **Shippers investigation** (read-only). Background is Gap #1 above; its
    diagnosis was reversed (the model over-rates unseen horses rather than
    burying them).
-4. **PP date for "days since last race" when the DB is missing the last
-   race** (queued by Doug 2026-11-07). When a horse's last race in the PP is
-   newer than its last race in the DB (the "missing last race" horses: last
-   race at a track that isn't in the corpus, or a chart that is missing),
-   test using the PP's date (`pp_entries_raw.pp_days_off`) for the days-off
-   features (`days_since_last_race`, `last_race_days_ago`). The other
-   last-race features stay as they are. This targets the missing-last-race
-   horses without adding new tracks. Validate it like name matching: a
-   switch, OFF must reproduce the logged runs exactly, then ON vs OFF on
-   past scored DED cards (P(ITM) log loss, Brier, #1 ITM, how many horses
-   change), before Doug decides. Background: the 11/06 review's
-   missing-last-race check (38 starters 11/04-11/06, ITM 15 vs 11.0
-   expected).
+
+### Next session's list (read-only checks)
+
+* **Paired name-matching check, DED 11/05–11/07** (queued by Doug
+  2026-11-07). Rescore each card from its pre-race backup with name
+  matching OFF and ON, **one card at a time** (memory; backups
+  `scripts/racing_full.db.ded1105-run.bak`, `.ded1106-run.bak`,
+  `.ded1107-run.bak`), and compare #1 wins,
+  #1 in the money, P(ITM) log loss and Brier **on identical races** (same
+  starters in both arms). Read-only: backups are copied to scratch, the
+  live DB and logged runs are untouched. Background: the ON cards' log loss
+  rose 0.622 → 0.631 → 0.643 over the three nights (11/07 review), but the
+  ON/OFF comparison so far is across different cards, not paired.
