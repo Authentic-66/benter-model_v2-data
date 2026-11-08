@@ -1,0 +1,88 @@
+race,pgm,horse,p_itm,p_win,base_itm,cov,rank,n_pp,jockey,trainer,jockey_hist,trainer_hist,date,arm
+1,5,Paradise Ridge,0.406,0.1397,0.4186000000000001,0.9270833333333334,1,11,"Edison, Jocelyn","Arey, Anthony",1,1,2026-11-07,off
+1,2,Miss Leona,0.4014,0.1368,0.3738,0.9479166666666666,2,11,"Perez, Carlos","Latour, Nicholas",1,1,2026-11-07,off
+1,4,Hint Hint,0.383,0.134,0.39649999999999996,0.8854166666666666,3,11,"Roman, Kevin",Gonzalez Isai V,1,0,2026-11-07,off
+1,6,Double L's Army,0.3755,0.1286,0.41009999999999996,0.8541666666666666,4,11,Pompell Thomas L,Gelner Jayde J,0,0,2026-11-07,off
+1,9,Miss Makeithappen,0.25460000000000005,0.0825,0.20529999999999998,0.8958333333333334,5,11,"Castillo, Isaac","Demouchet, Ricky",1,1,2026-11-07,off
+1,7,Spun Silk,0.2496,0.0843,0.2459,0.8333333333333334,6,11,Hernandez Javier A,Brinkman Brett A,0,0,2026-11-07,off
+1,11,Olympic Flame,0.22660000000000002,0.0772,0.28659999999999997,0.6041666666666666,7,11,Rodriguez Jose L,Schindler Jeff,0,1,2026-11-07,off
+1,3,Royal B,0.20850000000000002,0.0654,0.24130000000000001,0.8854166666666666,8,11,Barrera Elio J,"WittII, Ernie",0,1,2026-11-07,off
+1,10,Midnight Breeze,0.1971,0.0591,0.189,0.8645833333333334,9,11,Rodriguez Jose L,"Love, Sr., Alan",0,1,2026-11-07,off
+1,1,Regal Time,0.1635,0.0503,0.1072,0.90625,10,11,"Santiago, Edward","Constantine, Carol",1,1,2026-11-07,off
+1,8,Call Sadie,0.13419999999999999,0.0421,0.12569999999999998,0.875,11,11,Vargas Juan P,"Borel, Renay",0,1,2026-11-07,off
+2,7,Stephanie's Maria,0.45790000000000003,0.1647,0.41459999999999997,0.8958333333333334,1,9,Hernandez Javier A,"Ward, Derrick",0,1,2026-11-07,off
+2,5,Megans Millions,0.36229999999999996,0.1253,0.36920000000000003,0.8645833333333334,2,9,Rodriguez Jose L,Gonzalez Isai V,0,0,2026-11-07,off
+2,1,Flame Mc Goon,0.351,0.1199,0.3678,0.8854166666666666,3,9,"Hernandez, Harry","Mocklin, Jr. Richard L",1,0,2026-11-07,off
+2,8,Beamer,0.3492,0.1194,0.3477,0.8958333333333334,4,9,Pompell Thomas L,"Landry, Jacoby",0,1,2026-11-07,off
+2,9,Mo's Little Darlin,0.3311,0.11,0.3565,0.9375,5,9,"Castillo, Isaac","Wong, Jonathan",1,1,2026-11-07,off
+2,2,Best Performer,0.315,0.1013,0.2726,0.8333333333333334,6,9,Vargas Juan P,Larrosa Juan A,0,0,2026-11-07,off
+2,4,Blueberry Eyes,0.30920000000000003,0.0982,0.3224,0.9166666666666666,7,9,"Perez, Carlos","Broussard, Jervon",1,1,2026-11-07,off
+2,6,Morning Miracle,0.3078,0.0955,0.2904,0.9270833333333334,8,9,"Mudd, Jamison","Broussard, Jervon",1,1,2026-11-07,off
+2,3,Girl Thirsty,0.2165,0.0657,0.2588,0.875,9,9,"Birzer, Alex",Ward Ronnie P,1,0,2026-11-07,off
+3,12,Charming Gail,0.40280000000000005,0.1398,0.3699,0.875,1,12,Vargas Juan P,"Briley, Lonnie",0,1,2026-11-07,off
+3,5,Golden Mist,0.3986,0.14,0.38110000000000005,0.8020833333333334,2,12,Hernandez Colby J,Bourgeois Keith G,0,0,2026-11-07,off
+3,11,Favolishous,0.3513,0.1187,0.3459,0.875,3,12,"Castillo, Isaac","Diodoro, Robertino",1,1,2026-11-07,off
+3,9,Wicked But Royal,0.3423,0.1163,0.3488,0.53125,4,12,"Fusilier, Casey","Landry, Allen",1,1,2026-11-07,off
+3,10,Golden Protocol,0.3192,0.1058,0.3257,0.53125,5,12,"Hernandez, Harry","Devereux, Jr. Patrick",1,1,2026-11-07,off
+3,2,Ericka's Ocean,0.2515,0.08,0.2555,0.53125,6,12,"Castillo, Isaac","Alberto, Antonio",1,1,2026-11-07,off
+3,6,Castle Rock,0.19860000000000003,0.0636,0.2047,0.4895833333333333,7,12,Magnon Devin H,"Magnon, Rylee",0,1,2026-11-07,off
+3,1,Aloha Angel,0.17859999999999998,0.0585,0.1832,0.4479166666666667,8,12,Vargas Juan P,Husak Gary J,0,0,2026-11-07,off
+3,7,Powerful Rose,0.1607,0.0523,0.1448,0.84375,9,12,"Inirio, Junior",Pomier Chasey D,1,0,2026-11-07,off
+3,4,Silent Heiress,0.1518,0.0486,0.1565,0.5104166666666666,10,12,"Ramirez, Paulina","Alcantara, Barbara",1,1,2026-11-07,off
+3,8,Roadster Runner,0.1419,0.0453,0.1453,0.4479166666666667,11,12,Hernandez Javier A,Pomier Chasey D,0,0,2026-11-07,off
+3,3,Runnellie,0.10269999999999999,0.0311,0.1386,0.875,12,12,"Perez, Carlos","Averett, Ronnie",1,1,2026-11-07,off
+4,2,Liteupthenite,0.6284,0.2375,0.6048,0.875,1,8,"Birzer, Alex",Gelner Jayde J,1,0,2026-11-07,off
+4,6,Proton Kitty,0.5539000000000001,0.1941,0.4912000000000001,0.8333333333333334,2,8,Pompell Thomas L,Brinkman Brett A,0,0,2026-11-07,off
+4,1,Pitchatizzy,0.5151,0.1773,0.5341,0.875,3,8,"Lozada, Carlos",Dunn Henry R,1,0,2026-11-07,off
+4,7,Cavade Oro,0.37020000000000003,0.112,0.3931,0.8229166666666666,4,8,Barrera Elio J,Foster Joseph M,0,0,2026-11-07,off
+4,8,Lolaand Rose,0.3186,0.0998,0.3528,0.9166666666666666,5,8,"Hernandez, Harry","Courville, Ricky",1,1,2026-11-07,off
+4,3,Justlikelouise,0.2811,0.0809,0.2717,0.8333333333333334,6,8,Hernandez Javier A,Brinkman Brett A,0,0,2026-11-07,off
+4,4,Ayzee,0.2631,0.0804,0.2854,0.9166666666666666,7,8,"Melancon, Jansen","Arey, Anthony",1,1,2026-11-07,off
+4,5,Inawinner,0.0696,0.018,0.0669,0.875,8,8,"Arana, Kelvin",Ward Ronnie P,1,0,2026-11-07,off
+5,5,Fierce Cat,0.48279999999999995,0.1752,0.5157,0.8541666666666666,1,10,Ramos Adrian B,Hibdon Mark N,0,0,2026-11-07,off
+5,3,Obvious Conclusion,0.4109,0.1393,0.4012,0.8854166666666666,2,10,Hernandez Javier A,"Love, Sr., Alan",0,1,2026-11-07,off
+5,4,Little Lee,0.40870000000000006,0.1409,0.4457,0.9270833333333334,3,10,"Alvarez, Misael","Davis, Veronica",1,1,2026-11-07,off
+5,8,The Petitioner,0.4036,0.1337,0.3535,0.9479166666666666,4,10,"Mudd, Jamison","West, Jr., Henry",1,1,2026-11-07,off
+5,1,Mr. Goodtime,0.3376,0.1113,0.33590000000000003,0.8854166666666666,5,10,"Edison, Jocelyn","Arey, Anthony",1,1,2026-11-07,off
+5,7,Stray Lightning,0.31060000000000004,0.0927,0.2751,0.9270833333333334,6,10,"Santiago, Edward","Shamsie, Mike",1,1,2026-11-07,off
+5,6,Pea Eye,0.2384,0.0784,0.24609999999999999,0.9166666666666666,7,10,"Birzer, Alex","Dixon, Tim",1,1,2026-11-07,off
+5,10,Wildcats's Meow,0.1448,0.0454,0.1666,0.8854166666666666,8,10,"Ramirez, Paulina",Mojica Edith A,1,0,2026-11-07,off
+5,2,Bourbon Or Wine,0.1376,0.0429,0.1341,0.90625,9,10,"Arana, Kelvin","Averett, Ronnie",1,1,2026-11-07,off
+5,9,Gone Elvis,0.125,0.0402,0.12610000000000002,0.8854166666666666,10,10,Del Cid Erick,Castillo Ricardo S,1,0,2026-11-07,off
+6,5,Highland Creek,0.5081,0.1846,0.46929999999999994,0.9375,1,9,"Melancon, Jansen","Landry, Allen",1,1,2026-11-07,off
+6,2,Moonlight Max,0.45599999999999996,0.1585,0.45940000000000003,0.875,2,9,Vargas Juan P,"Klanfer, Alan",0,1,2026-11-07,off
+6,1,Reaux Ban Da Man,0.39780000000000004,0.1381,0.38270000000000004,0.8229166666666666,3,9,Hernandez Colby J,Calhoun W. Bret,0,0,2026-11-07,off
+6,4,Regatta Bay,0.3757,0.1231,0.3482,0.9375,4,9,"Castillo, Isaac","Wong, Jonathan",1,1,2026-11-07,off
+6,9,Mogumbeaux,0.323,0.1059,0.32080000000000003,0.8333333333333334,5,9,Pompell Thomas L,Brinkman Brett A,0,0,2026-11-07,off
+6,3,Causeway Benny,0.2904,0.092,0.34640000000000004,0.8854166666666666,6,9,Hernandez Javier A,"Ramaekers, Eric",0,1,2026-11-07,off
+6,8,Sweet Talkin Slick,0.2733,0.0888,0.2885,0.9375,7,9,"Hernandez, Harry","Breaux, Samuel",1,1,2026-11-07,off
+6,6,Deacon Jones,0.2249,0.067,0.2031,0.8333333333333334,8,9,Barrera Elio J,Bryant George R,0,0,2026-11-07,off
+6,7,Cunimbus,0.1508,0.042,0.18159999999999998,0.875,9,9,Rodriguez Jose L,"Ramaekers, Eric",0,1,2026-11-07,off
+7,2,Paynted Blue,0.5572,0.1993,0.528,0.8958333333333334,1,7,"Cardoso, David",Hibdon Mark N,1,0,2026-11-07,off
+7,6,American Know How,0.5006999999999999,0.1753,0.5103,0.90625,2,7,"Perez, Carlos",Brinkman Brett A,1,0,2026-11-07,off
+7,7,Red Roadster,0.4567,0.1525,0.4331999999999999,0.9375,3,7,"Roman, Kevin","Morris, Rowdy",1,1,2026-11-07,off
+7,5,Astrologysprotege,0.4181,0.1407,0.44,0.8958333333333334,4,7,Hernandez Javier A,"Degeyter, Jr., Randy",0,1,2026-11-07,off
+7,4,Old Homestead,0.3654,0.115,0.3346,0.8333333333333334,5,7,Pompell Thomas L,Brinkman Brett A,0,0,2026-11-07,off
+7,1,Our Last Chance,0.36260000000000003,0.1101,0.3809,0.6666666666666666,6,7,"Birzer, Alex","Birzer, Bonnie",1,1,2026-11-07,off
+7,3,Tripple D Ruller,0.33930000000000005,0.1071,0.373,0.9166666666666666,7,7,"Castillo, Isaac","Toups, Brent",1,1,2026-11-07,off
+8,10,Cool Guitar,0.3932,0.1364,0.3608,0.90625,1,11,"Hernandez, Harry","Alberto, Antonio",1,1,2026-11-07,off
+8,3,Inchhighatahundred,0.3825,0.1314,0.37,0.8645833333333334,2,11,Hernandez Colby J,"Breaux, Samuel",0,1,2026-11-07,off
+8,8,Mc Z,0.3738,0.1249,0.3842,0.8541666666666666,3,11,"Castillo, Isaac",Husak Gary J,1,0,2026-11-07,off
+8,4,Seitan,0.32899999999999996,0.113,0.3137,0.875,4,11,Magnon Devin H,"Magnon, Rylee",0,1,2026-11-07,off
+8,9,Von Erich,0.3139,0.1089,0.3385,0.9166666666666666,5,11,"Melancon, Jansen","Landry, Allen",1,1,2026-11-07,off
+8,2,Gold Thief,0.2804,0.089,0.3045,0.9270833333333334,6,11,"Roman, Kevin","Ramirez-Rodriguez, Abel",1,1,2026-11-07,off
+8,7,Clearly Majestic,0.27690000000000003,0.0907,0.2219,0.875,7,11,Pompell Thomas L,"Prejean, Raymond",0,1,2026-11-07,off
+8,1,Sarah's Runner,0.2538,0.0803,0.2456,0.9375,8,11,"Fusilier, Casey","Arey, Anthony",1,1,2026-11-07,off
+8,6,Seehoss,0.1857,0.059,0.2182,0.8229166666666666,9,11,Vargas Juan P,Larrosa Juan A,0,0,2026-11-07,off
+8,11,You Good,0.10919999999999999,0.036,0.1246,0.8854166666666666,10,11,"Arana, Kelvin","Zenon, Sr. Shelton J",1,0,2026-11-07,off
+8,5,Big Duck,0.1016,0.0304,0.118,0.8541666666666666,11,11,?,Bruno Donald J,0,0,2026-11-07,off
+9,3,Miss Country,0.5146,0.1882,0.46009999999999995,0.8645833333333334,1,10,"Santiago, Edward",Nixon Thomas W,1,0,2026-11-07,off
+9,6,Dr.Red,0.38970000000000005,0.1351,0.3558,0.90625,2,10,"Hernandez, Harry","Courville, Ricky",1,1,2026-11-07,off
+9,10,Bobby's Native One,0.3523,0.1175,0.3991,0.875,3,10,Hernandez Javier A,"Degeyter, Jr., Randy",0,1,2026-11-07,off
+9,8,Elaina Reins,0.3131,0.1019,0.36760000000000004,0.8645833333333334,4,10,Magnon Devin H,"Magnon, Rylee",0,1,2026-11-07,off
+9,5,Proneto Greatness,0.3031,0.1029,0.2921,0.9270833333333334,5,10,"Perez, Carlos","Landry, Jacoby",1,1,2026-11-07,off
+9,4,Sugah Gem,0.30219999999999997,0.1002,0.1767,0.90625,6,10,"Arana, Kelvin","Giangrosso, Russell",1,1,2026-11-07,off
+9,9,Soxy Girl,0.24130000000000001,0.0741,0.2955,0.875,7,10,Rodriguez Jose L,"Ramaekers, Eric",0,1,2026-11-07,off
+9,2,Karsyn's Ocean,0.21939999999999998,0.069,0.24880000000000002,0.53125,8,10,Del Cid Erick,"Latour, Nicholas",1,1,2026-11-07,off
+9,7,Meaner Than Mean,0.1845,0.0541,0.20400000000000001,0.8645833333333334,9,10,"Alvarez, Misael","Zeno, Benjamin",1,1,2026-11-07,off
+9,1,Jolly Good Time,0.1798,0.057,0.20030000000000003,0.8645833333333334,10,10,"Edison, Jocelyn",Ortiz Javier R,1,0,2026-11-07,off

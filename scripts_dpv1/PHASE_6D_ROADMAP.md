@@ -7257,6 +7257,11 @@ moved into the 1.4 candidate above.
 
 ### Next session's list (read-only checks)
 
+* **DONE 2026-11-08:** `tracking/name_matching_paired_2026-11-08.md`. ON
+  reproduces the record runs exactly; on identical races ON is slightly
+  better than OFF (log loss −0.0023 per starter, CI crosses 0); the rising log
+  loss is the same in the OFF arm and comes from 3-1 to 9-1 horses running in
+  the money (53% vs 41%), not name matching or long shots. No action.
 * **Paired name-matching check, DED 11/05–11/07** (queued by Doug
   2026-11-07). Rescore each card from its pre-race backup with name
   matching OFF and ON, **one card at a time** (memory; backups

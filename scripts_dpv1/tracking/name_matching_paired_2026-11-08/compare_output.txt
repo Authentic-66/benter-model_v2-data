@@ -1,0 +1,56 @@
+History gains (PP entries whose jockey / trainer has a charted start before the card)
+card       horses  jky off jky on  trn off trn on  either gained  #1 changed (full field)
+2026-11-05     69       41     69       38     68             46    2 of 8
+2026-11-06     89       50     89       59     88             53    1 of 9
+2026-11-07     87       51     87       55     87             51    5 of 9
+
+mean |P(ITM) on - off| = 2.21pp, max 12.8pp; base model only: 2.24pp
+
+Scored against results (starters only; #1 re-ranked among runners; identical races in both arms)
+card       races start | #1 W off/on #1 ITM off/on | LL/start off      on  on-off | Brier off      on  on-off
+2026-11-05     8    61 |     2/3           5/7     |       0.6252  0.6217 -0.0035 |    0.2193  0.2179 -0.0014
+2026-11-06     9    77 |     2/2           4/5     |       0.6318  0.6313 -0.0005 |    0.2183  0.2183 +0.0000
+2026-11-07     9    75 |     1/1           5/5     |       0.6462  0.6430 -0.0032 |    0.2275  0.2265 -0.0010
+all           26   213 |     5/6          14/17    |       0.6350  0.6327 -0.0023 |    0.2218  0.2211 -0.0008
+log loss: on - off = -0.0023 per starter, 95% race-bootstrap CI [-0.0119, +0.0084], races better/worse/tied = 17/9/0
+Brier: on - off = -0.0008 per starter, 95% race-bootstrap CI [-0.0050, +0.0040], races better/worse/tied = 17/9/0
+
+Races where the #1 among runners differs (off -> on): finish and final odds of each
+  2026-11-05 R2: off #1 Life's Ride (48.6, fin 6, 20.0-1) -> on #2 Gomarkgo (46.1, fin 2, 0.5-1)
+  2026-11-05 R4: off #8 Cheyenne Moon (55.1, fin 6, 1.9-1) -> on #6 Memory Maker (57.1, fin 1, 2.3-1)
+  2026-11-06 R4: off #6 Call My Banker (62.6, fin 5, 3.4-1) -> on #7 Mahoney Road (65.5, fin 2, 1.9-1)
+  2026-11-07 R1: off #5 Paradise Ridge (40.6, fin 2, 4.7-1) -> on #6 Double L's Army (42.4, fin 4, 3.8-1)
+  2026-11-07 R8: off #10 Cool Guitar (39.3, fin 4, 4.1-1) -> on #3 Inchhighatahundred (45.5, fin 2, 3.0-1)
+
+Why the ON cards' log loss rose: the same cards under OFF and under the market
+card         LL on  LL off  LL mkt | ITM fin. median odds ITM at 10-1+ winners 10-1+  P(ITM) on of ITM fin.
+2026-11-05  0.6217  0.6252  0.4988 |                  5.0     4 of 24        0 of 8                     0.410
+2026-11-06  0.6313  0.6318  0.4982 |                  4.3     5 of 27        2 of 9                     0.360
+2026-11-07  0.6430  0.6462  0.6080 |                  5.5     6 of 27        2 of 9                     0.338
+
+Context: logged 1.3.2 DED cards (record runs, logged P(ITM)), same scoring
+card        NM start LL model  LL mkt model-mkt ITM 10-1+
+2026-10-22 off    66   0.6854  0.6098   +0.0755    8 of 24
+2026-10-23 off    75   0.6642  0.5282   +0.1360    5 of 27
+2026-10-24 off    71   0.5684  0.5108   +0.0576    4 of 27
+2026-10-28 off    71   0.5872  0.5741   +0.0131    8 of 24
+2026-10-29 off    67   0.5707  0.5764   -0.0058    5 of 24
+2026-10-30 off    86   0.6064  0.5397   +0.0666    8 of 27
+2026-11-04 off    69   0.5805  0.5309   +0.0496    5 of 24
+2026-11-05  on    61   0.6217  0.4988   +0.1229    4 of 24
+2026-11-06  on    77   0.6313  0.4982   +0.1331    5 of 27
+2026-11-07  on    75   0.6430  0.6080   +0.0349    6 of 27
+  pooled NM off: 7 cards, 505 starters, LL model 0.6090, LL mkt 0.5516, model-mkt +0.0574
+  pooled NM on: 3 cards, 213 starters, LL model 0.6327, LL mkt 0.5370, model-mkt +0.0956
+
+Log loss per starter by final-odds band (logged record runs; model vs market)
+group           band        start   ITM% mean P(ITM) LL model  LL mkt
+10/22-11/04 OFF under 3-1      90   68.9       0.448   0.7959  0.6192
+10/22-11/04 OFF 3-1 to 9-1    176   40.9       0.351   0.6909  0.6383
+10/22-11/04 OFF 10-1 up       239   18.0       0.237   0.4782  0.4623
+11/05-11/07 ON  under 3-1      38   63.2       0.476   0.7073  0.6493
+11/05-11/07 ON  3-1 to 9-1     73   53.4       0.361   0.8465  0.7238
+11/05-11/07 ON  10-1 up       102   14.7       0.243   0.4518  0.3616
+  2026-11-05: under-3-1 starters 10, ITM 8 (80%), model mean P(ITM) 0.525, LL 0.7651 vs market 0.4514
+  2026-11-06: under-3-1 starters 15, ITM 10 (67%), model mean P(ITM) 0.491, LL 0.6656 vs market 0.6115
+  2026-11-07: under-3-1 starters 13, ITM 6 (46%), model mean P(ITM) 0.422, LL 0.7109 vs market 0.8451
