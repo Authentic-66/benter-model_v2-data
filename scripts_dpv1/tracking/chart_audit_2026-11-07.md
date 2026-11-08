@@ -114,8 +114,8 @@ Equibase may not have a better copy of the other two.
 
 **New from the MNR 2026 load:** `20261005-usa-mnr-a-d.standard.pdf` is
 damaged ("Unexpected EOF") and not loaded. This is the Wave Maker chart
-from the DED 11/05 card. **KNOWN GAP (2026-11-07):** Doug confirmed the
-file is corrupted on Equibase's side, so it is skipped, not re-downloaded.
+from the DED 11/05 card. **Retry after 11/21** (Doug, 2026-11-07): the
+file is corrupted on Equibase's side for now, so it is skipped until then.
 
 The rerun of `chart_audit.py` after the load shows exactly these 9 files
 and nothing else.
