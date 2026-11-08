@@ -1,0 +1,70 @@
+race,pgm,horse,p_itm,p_win,base_itm,cov,rank,n_pp,jockey,trainer,jockey_hist,trainer_hist,date,arm
+1,3,Midnight Halo,0.5551,0.2032,0.5799000000000001,0.9270833333333334,1,9,"Hernandez, Harry","Jeansonne, Justin",1,1,2026-11-05,on
+1,2,Josan,0.486,0.171,0.4056,0.9166666666666666,2,9,"Barrera, Elio","Cormier, Cardel",1,1,2026-11-05,on
+1,4,Lewis Memorial,0.423,0.1397,0.41789999999999994,0.9270833333333334,3,9,"Ramirez, Jr., Julio","Ramirez, Rosa",1,1,2026-11-05,on
+1,9,Onemotime,0.40990000000000004,0.1377,0.3991,0.9270833333333334,4,9,"Perez, Carlos","Castillo, Ricardo",1,1,2026-11-05,on
+1,5,Due We Dare,0.252,0.0791,0.2597,0.9375,5,9,"Roman, Kevin","Pedigo, Randy",1,1,2026-11-05,on
+1,1,Zippy Toga,0.24869999999999998,0.0808,0.27099999999999996,0.9166666666666666,6,9,"Arana, Kelvin","Zenon, Sr., Shelton",1,1,2026-11-05,on
+1,8,Namethe Time,0.24080000000000001,0.0753,0.2511,0.9375,7,9,"Hernandez, Javier","Ellis, Randy",1,1,2026-11-05,on
+1,7,Easy Eddie A,0.2219,0.0645,0.2306,0.9270833333333334,8,9,"Ledet, Theodrick","Charles, Jonathan",1,1,2026-11-05,on
+1,6,Jamaican Me,0.1626,0.0487,0.1851,0.9375,9,9,"Rodriguez, Jose","Govea, Cesar",1,1,2026-11-05,on
+2,2,Gomarkgo,0.4613999999999999,0.1633,0.41569999999999996,0.9166666666666666,1,12,"Arana, Kelvin","Segura, Kearney",1,1,2026-11-05,on
+2,1,Life's Ride,0.442,0.1598,0.4095,0.9270833333333334,2,12,"Melancon, Jansen","Castille, Rickey",1,1,2026-11-05,on
+2,3,Parole Drama,0.35509999999999997,0.1196,0.3459,0.9270833333333334,3,12,"Inirio, Junior","Pomier, Chasey",1,1,2026-11-05,on
+2,7,AG's Charlie,0.31189999999999996,0.1039,0.3615,0.9270833333333334,4,12,"Castillo, Isaac","West, Patricia",1,1,2026-11-05,on
+2,10,Quikonthetrigger,0.3065,0.101,0.3107,0.9375,5,12,"Barrera, Elio","Melancon, Donald",1,1,2026-11-05,on
+2,6,Chatty Milligan,0.2399,0.077,0.2299,0.90625,6,12,"Ramos, Adrian","Hibdon, Mark",1,1,2026-11-05,on
+2,9,Saucer Eyes,0.2188,0.0701,0.2151,0.90625,7,12,"Vargas, Juan","Gomez, Rafael",1,1,2026-11-05,on
+2,5,Mo'z Star Sailor,0.21489999999999998,0.0644,0.21289999999999998,0.90625,8,12,"Mudd, Jamison","Broussard, Jervon",1,1,2026-11-05,on
+2,8,Puppeteer,0.2065,0.0659,0.1829,0.9375,9,12,"Ramirez, Jr., Julio","Castille, Rickey",1,1,2026-11-05,on
+2,4,Black Cloud,0.10040000000000002,0.0309,0.1361,0.9166666666666666,10,12,"Lozada, Carlos","Lara, Jorge",1,1,2026-11-05,on
+2,12,Rexinator,0.0726,0.0212,0.095,0.9166666666666666,11,12,"Ramirez, Jr., Julio","Hill, Viviane",1,1,2026-11-05,on
+2,11,Borongan,0.07,0.0229,0.08479999999999999,0.8958333333333334,12,12,"Alvarez, Misael","Goins, Garland",1,1,2026-11-05,on
+3,7,Here Comes Benny,0.6747000000000001,0.274,0.6417999999999999,0.9166666666666666,1,9,"Melancon, Jansen","Landry, Allen",1,1,2026-11-05,on
+3,2,Ohm Namo,0.5371,0.1861,0.5316000000000001,0.9166666666666666,2,9,"Birzer, Alex","Gelner, Jayde",1,1,2026-11-05,on
+3,3,Louie Le Coeur,0.3964,0.1277,0.40180000000000005,0.9166666666666666,3,9,"Lozada, Carlos","Dunn, Henry",1,1,2026-11-05,on
+3,5,First Flame,0.3392,0.1048,0.36729999999999996,0.90625,4,9,"Hernandez, Harry","Larrosa, Juan",1,1,2026-11-05,on
+3,9,Ayden's Edge,0.264,0.0798,0.2541,0.9375,5,9,"Barrera, Elio","Cangemi, Daniel",1,1,2026-11-05,on
+3,6,Tearsfor Thee,0.2627,0.0757,0.25470000000000004,0.8958333333333334,6,9,"Ramirez, Jr., Julio","Chatters, Benard",1,1,2026-11-05,on
+3,4,Gary P,0.2493,0.0707,0.3015,0.9166666666666666,7,9,"Roman, Kevin","Lara, Jorge",1,1,2026-11-05,on
+3,1,Gallabye,0.1735,0.0488,0.1434,0.9375,8,9,"Hernandez, Javier","Patt, Jr., Roland",1,1,2026-11-05,on
+3,8,Hard Cry,0.1031,0.0324,0.1038,0.9479166666666666,9,9,"Alvarez, Misael","Zeno, Benjamin",1,1,2026-11-05,on
+4,6,Memory Maker,0.5707,0.2077,0.5195,0.9270833333333334,1,8,"Barrera, Elio","Gonzalez, Isai",1,1,2026-11-05,on
+4,8,Cheyenne Moon,0.5455,0.198,0.5095000000000001,0.9270833333333334,2,8,"Rosier, Chris","Woodley, Carl",1,1,2026-11-05,on
+4,3,Shining Away,0.5281,0.1804,0.5610999999999999,0.9270833333333334,3,8,"Hernandez, Harry","Larrosa, Juan",1,1,2026-11-05,on
+4,1,Bootsan Diamonds,0.3164,0.1,0.3126,0.9166666666666666,4,8,"Pompell, Thomas",Boxie Jonathan,1,1,2026-11-05,on
+4,5,Papiringa,0.3101,0.0931,0.318,0.9270833333333334,5,8,"Alvarez, Misael","Ramirez, Rosa",1,1,2026-11-05,on
+4,4,Periphery,0.2845,0.0881,0.27690000000000003,0.8958333333333334,6,8,"Cardoso, David","Hibdon, Mark",1,1,2026-11-05,on
+4,7,She's Extra,0.22710000000000002,0.0698,0.24979999999999997,0.9270833333333334,7,8,"Perez, Carlos","Govea, Cesar",1,1,2026-11-05,on
+4,2,Mor Mor Music,0.21759999999999996,0.0629,0.2526,0.9166666666666666,8,8,Spann Baron,"West, Jr., Henry",1,1,2026-11-05,on
+5,2,Shots From Above,0.7082999999999999,0.2845,0.6964,0.875,1,7,"Hernandez, Harry","Averett, Ronnie",1,1,2026-11-05,on
+5,6,Brilliant Deal,0.5113,0.1709,0.46840000000000004,0.8958333333333334,2,7,"Roman, Kevin","Gonzalez, Isai",1,1,2026-11-05,on
+5,3,Ella B Beautiful,0.49319999999999997,0.1608,0.46440000000000003,0.875,3,7,"Ramirez, Jr., Julio","Chatters, Benard",1,1,2026-11-05,on
+5,1,Bayou Baby,0.4205,0.1284,0.4087,0.8958333333333334,4,7,"Magnon, Devin","Pomier, Chasey",1,1,2026-11-05,on
+5,4,Here Comes Hellcat,0.3096,0.0899,0.3388,0.7916666666666666,5,7,"Ramos, Adrian","West, Jr., Henry",1,1,2026-11-05,on
+5,7,Hintof Bourbon,0.2983,0.089,0.3408,0.90625,6,7,"Barrera, Elio","Wilson, Shane",1,1,2026-11-05,on
+5,5,Mo Belle Power,0.2588,0.0765,0.2825,0.8645833333333334,7,7,"Ruiz, Efigenio","Gonzalez, Isai",1,1,2026-11-05,on
+6,3,Coco Bella Blue,0.6329,0.2372,0.653,0.9270833333333334,1,8,"Melancon, Jansen","Degeyter, Jr., Randy",1,1,2026-11-05,on
+6,2,Balitrix,0.4771,0.162,0.4865,0.8854166666666666,2,8,"Alvarez, Misael",Balthazar T. Darryl,1,0,2026-11-05,on
+6,1,Security Queen,0.4189,0.1451,0.3782,0.9270833333333334,3,8,"Ramirez, Jr., Julio","Govea, Cesar",1,1,2026-11-05,on
+6,7,Surprise Angel,0.3541,0.1138,0.3829,0.90625,4,8,"Santiago, Edward","Marechal, Merlin",1,1,2026-11-05,on
+6,5,Eskenforaveand Ak,0.3186,0.0978,0.2873,0.8958333333333334,5,8,Spann Baron,"West, Jr., Henry",1,1,2026-11-05,on
+6,6,Call Fern,0.2932,0.0874,0.2472,0.8958333333333334,6,8,Del Cid Erick,"Dison, Phillip",1,1,2026-11-05,on
+6,4,Ancho,0.2645,0.0831,0.2565,0.8645833333333334,7,8,Del Cid Fernando,"Zeno, Benjamin",1,1,2026-11-05,on
+6,8,Air Sahara,0.24069999999999997,0.0736,0.3084,0.90625,8,8,"Barrera, Elio","Lorefice, Matthew",1,1,2026-11-05,on
+7,1,Luau Larry's,0.5697,0.2166,0.5145,0.9166666666666666,1,8,"Castillo, Isaac","Wong, Jonathan",1,1,2026-11-05,on
+7,3,Levee Native,0.4798,0.1631,0.4689,0.9375,2,8,"Vargas, Juan","Ramaekers, Eric",1,1,2026-11-05,on
+7,6,Mo Sippi,0.4527,0.1491,0.4446,0.9270833333333334,3,8,"Roman, Kevin","Gelner, Jayde",1,1,2026-11-05,on
+7,7,I Forgot the Time,0.3439,0.1127,0.336,0.65625,4,8,"Birzer, Alex","Tracy, Tanner",1,1,2026-11-05,on
+7,8,Kason's Buckaroo,0.3268,0.1039,0.3055,0.6770833333333334,5,8,"Cardoso, David","Hibdon, Mark",1,1,2026-11-05,on
+7,2,Wave Maker,0.3252,0.1008,0.3467,0.6770833333333334,6,8,"Melancon, Jansen","Morey, William",1,1,2026-11-05,on
+7,5,Letsgowinthisthing,0.307,0.0942,0.3426,0.8958333333333334,7,8,"Nava-Marin, Jose","Wong, Jonathan",1,1,2026-11-05,on
+7,4,Gracie Baby,0.19490000000000002,0.0596,0.24120000000000003,0.6666666666666666,8,8,"Ramos, Adrian","Hibdon, Mark",1,1,2026-11-05,on
+8,2,Cassy Cassy,0.6258999999999999,0.2443,0.6014,0.9166666666666666,1,8,"Castillo, Isaac","Pomier, Chasey",1,1,2026-11-05,on
+8,3,Sweet Kantha,0.40759999999999996,0.1327,0.4234,0.90625,2,8,"Melancon, Jansen","Ramsay-Banks, Allison",1,1,2026-11-05,on
+8,7,Sellthe Buffalo,0.3901,0.125,0.31920000000000004,0.8854166666666666,3,8,"Fusilier, Casey","Duhon, Paul",1,1,2026-11-05,on
+8,6,Just a Tap Away,0.38,0.1176,0.3999,0.8645833333333334,4,8,"Hernandez, Javier",Boxie Jonathan,1,1,2026-11-05,on
+8,5,Strawberry Streets,0.3705,0.1183,0.4052,0.53125,5,8,"Vargas, Juan","Briley, Lonnie",1,1,2026-11-05,on
+8,1,Zarlana,0.3655,0.1206,0.3083,0.9270833333333334,6,8,"Alvarez, Misael","Dison, Phillip",1,1,2026-11-05,on
+8,8,Funhouse,0.3183,0.1005,0.38280000000000003,0.875,7,8,"Pompell, Thomas","Brinkman, Brett",1,1,2026-11-05,on
+8,4,Goldenbraids,0.1421,0.041,0.1598,0.9166666666666666,8,8,"Arana, Kelvin",Boxie Jonathan,1,1,2026-11-05,on

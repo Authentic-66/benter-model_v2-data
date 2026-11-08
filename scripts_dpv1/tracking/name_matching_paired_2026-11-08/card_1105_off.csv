@@ -1,0 +1,70 @@
+race,pgm,horse,p_itm,p_win,base_itm,cov,rank,n_pp,jockey,trainer,jockey_hist,trainer_hist,date,arm
+1,3,Midnight Halo,0.5587,0.2042,0.5804,0.9270833333333334,1,9,"Hernandez, Harry","Jeansonne, Justin",1,1,2026-11-05,off
+1,4,Lewis Memorial,0.5,0.1753,0.4931,0.84375,2,9,?,Ramirez Rosa E,0,0,2026-11-05,off
+1,2,Josan,0.4279,0.1446,0.3529,0.875,3,9,Barrera Elio J,"Cormier, Cardel",0,1,2026-11-05,off
+1,9,Onemotime,0.3618,0.1184,0.3532,0.8854166666666666,4,9,"Perez, Carlos",Castillo Ricardo S,1,0,2026-11-05,off
+1,1,Zippy Toga,0.28959999999999997,0.0958,0.3134,0.875,5,9,"Arana, Kelvin","Zenon, Sr. Shelton J",1,0,2026-11-05,off
+1,5,Due We Dare,0.2537,0.0775,0.2627,0.9375,6,9,"Roman, Kevin","Pedigo, Randy",1,1,2026-11-05,off
+1,8,Namethe Time,0.2516,0.0792,0.2617,0.8541666666666666,7,9,Hernandez Javier A,Ellis Randy J,0,0,2026-11-05,off
+1,7,Easy Eddie A,0.2241,0.0648,0.2317,0.9270833333333334,8,9,"Ledet, Theodrick","Charles, Jonathan",1,1,2026-11-05,off
+1,6,Jamaican Me,0.1326,0.0402,0.15089999999999998,0.8958333333333334,9,9,Rodriguez Jose L,"Govea, Cesar",0,1,2026-11-05,off
+2,1,Life's Ride,0.48560000000000003,0.1789,0.4525,0.8854166666666666,1,12,"Melancon, Jansen",Castille Rickey N,1,0,2026-11-05,off
+2,2,Gomarkgo,0.4632,0.1643,0.4192,0.9166666666666666,2,12,"Arana, Kelvin","Segura, Kearney",1,1,2026-11-05,off
+2,3,Parole Drama,0.3349,0.1119,0.3267,0.8854166666666666,3,12,"Inirio, Junior",Pomier Chasey D,1,0,2026-11-05,off
+2,7,AG's Charlie,0.3029,0.1002,0.3513,0.8854166666666666,4,12,"Castillo, Isaac",West Patricia G,1,0,2026-11-05,off
+2,8,Puppeteer,0.26180000000000003,0.0815,0.2323,0.8541666666666666,5,12,?,Castille Rickey N,0,0,2026-11-05,off
+2,10,Quikonthetrigger,0.2563,0.0836,0.261,0.8958333333333334,6,12,Barrera Elio J,"Melancon, Donald",0,1,2026-11-05,off
+2,6,Chatty Milligan,0.22649999999999998,0.0711,0.21700000000000003,0.8333333333333334,7,12,Ramos Adrian B,Hibdon Mark N,0,0,2026-11-05,off
+2,5,Mo'z Star Sailor,0.2152,0.0667,0.216,0.90625,8,12,"Mudd, Jamison","Broussard, Jervon",1,1,2026-11-05,off
+2,9,Saucer Eyes,0.19940000000000002,0.0629,0.1961,0.8645833333333334,9,12,Vargas Juan P,"Gomez, Rafael",0,1,2026-11-05,off
+2,4,Black Cloud,0.1008,0.0314,0.13740000000000002,0.9166666666666666,10,12,"Lozada, Carlos","Lara, Jorge",1,1,2026-11-05,off
+2,12,Rexinator,0.0833,0.024,0.1064,0.875,11,12,?,"Hill, Viviane",0,1,2026-11-05,off
+2,11,Borongan,0.0701,0.0235,0.08410000000000001,0.8958333333333334,12,12,"Alvarez, Misael","Goins, Garland",1,1,2026-11-05,off
+3,7,Here Comes Benny,0.6812,0.2814,0.6484,0.9166666666666666,1,9,"Melancon, Jansen","Landry, Allen",1,1,2026-11-05,off
+3,2,Ohm Namo,0.497,0.165,0.49119999999999997,0.875,2,9,"Birzer, Alex",Gelner Jayde J,1,0,2026-11-05,off
+3,3,Louie Le Coeur,0.4153,0.1361,0.4205,0.875,3,9,"Lozada, Carlos",Dunn Henry R,1,0,2026-11-05,off
+3,5,First Flame,0.3028,0.0918,0.3292,0.8645833333333334,4,9,"Hernandez, Harry",Larrosa Juan A,1,0,2026-11-05,off
+3,6,Tearsfor Thee,0.2927,0.0856,0.2828,0.8541666666666666,5,9,?,"Chatters, Benard",0,1,2026-11-05,off
+3,9,Ayden's Edge,0.2781,0.0846,0.2682,0.8541666666666666,6,9,Barrera Elio J,Cangemi Daniel R,0,0,2026-11-05,off
+3,4,Gary P,0.2541,0.0728,0.30820000000000003,0.9166666666666666,7,9,"Roman, Kevin","Lara, Jorge",1,1,2026-11-05,off
+3,1,Gallabye,0.17309999999999998,0.0491,0.14600000000000002,0.8958333333333334,8,9,Hernandez Javier A,"Patt, Jr., Roland",0,1,2026-11-05,off
+3,8,Hard Cry,0.10569999999999999,0.0336,0.1055,0.9479166666666666,9,9,"Alvarez, Misael","Zeno, Benjamin",1,1,2026-11-05,off
+4,8,Cheyenne Moon,0.5514,0.2041,0.5157999999999999,0.84375,1,8,Rosier Chris R,Woodley Carl J,0,0,2026-11-05,off
+4,6,Memory Maker,0.5153,0.1784,0.4665,0.84375,2,8,Barrera Elio J,Gonzalez Isai V,0,0,2026-11-05,off
+4,3,Shining Away,0.5075000000000001,0.1721,0.5365,0.8854166666666666,3,8,"Hernandez, Harry",Larrosa Juan A,1,0,2026-11-05,off
+4,5,Papiringa,0.375,0.1191,0.383,0.8854166666666666,4,8,"Alvarez, Misael",Ramirez Rosa E,1,0,2026-11-05,off
+4,4,Periphery,0.2953,0.0923,0.28809999999999997,0.8541666666666666,5,8,"Cardoso, David",Hibdon Mark N,1,0,2026-11-05,off
+4,1,Bootsan Diamonds,0.2933,0.0952,0.29059999999999997,0.875,6,8,Pompell Thomas L,Boxie Jonathan,0,1,2026-11-05,off
+4,7,She's Extra,0.23520000000000002,0.0731,0.2584,0.9270833333333334,7,8,"Perez, Carlos","Govea, Cesar",1,1,2026-11-05,off
+4,2,Mor Mor Music,0.22699999999999998,0.0657,0.2611,0.9166666666666666,8,8,Spann Baron,"West, Jr., Henry",1,1,2026-11-05,off
+5,2,Shots From Above,0.7162,0.2888,0.7048000000000001,0.875,1,7,"Hernandez, Harry","Averett, Ronnie",1,1,2026-11-05,off
+5,3,Ella B Beautiful,0.5297000000000001,0.175,0.5009,0.8333333333333334,2,7,?,"Chatters, Benard",0,1,2026-11-05,off
+5,6,Brilliant Deal,0.5085,0.1688,0.4678,0.8541666666666666,3,7,"Roman, Kevin",Gonzalez Isai V,1,0,2026-11-05,off
+5,1,Bayou Baby,0.3829,0.1136,0.3704,0.8125,4,7,Magnon Devin H,Pomier Chasey D,0,0,2026-11-05,off
+5,4,Here Comes Hellcat,0.3045,0.0864,0.33080000000000004,0.7604166666666666,5,7,Ramos Adrian B,"West, Jr., Henry",0,1,2026-11-05,off
+5,5,Mo Belle Power,0.2996,0.0908,0.3282,0.78125,6,7,Ruiz Efigenio G,Gonzalez Isai V,0,0,2026-11-05,off
+5,7,Hintof Bourbon,0.2586,0.0766,0.29710000000000003,0.8645833333333334,7,7,Barrera Elio J,"Wilson, Shane",0,1,2026-11-05,off
+6,3,Coco Bella Blue,0.6209,0.2311,0.6416,0.9270833333333334,1,8,"Melancon, Jansen","Degeyter, Jr., Randy",1,1,2026-11-05,off
+6,2,Balitrix,0.46399999999999997,0.1573,0.47290000000000004,0.8854166666666666,2,8,"Alvarez, Misael",Balthazar T. Darryl,1,0,2026-11-05,off
+6,1,Security Queen,0.4343,0.1496,0.3932,0.8854166666666666,3,8,?,"Govea, Cesar",0,1,2026-11-05,off
+6,7,Surprise Angel,0.3425,0.1099,0.37160000000000004,0.90625,4,8,"Santiago, Edward","Marechal, Merlin",1,1,2026-11-05,off
+6,6,Call Fern,0.32939999999999997,0.1012,0.2806,0.8541666666666666,5,8,Del Cid Erick,Dison Phillip M,1,0,2026-11-05,off
+6,5,Eskenforaveand Ak,0.30579999999999996,0.0943,0.2778,0.8958333333333334,6,8,Spann Baron,"West, Jr., Henry",1,1,2026-11-05,off
+6,4,Ancho,0.2556,0.0805,0.24659999999999999,0.8645833333333334,7,8,Del Cid Fernando,"Zeno, Benjamin",1,1,2026-11-05,off
+6,8,Air Sahara,0.2475,0.0761,0.3157,0.8229166666666666,8,8,Barrera Elio J,Lorefice Matthew F,0,0,2026-11-05,off
+7,1,Luau Larry's,0.589,0.2268,0.5342,0.9166666666666666,1,8,"Castillo, Isaac","Wong, Jonathan",1,1,2026-11-05,off
+7,3,Levee Native,0.46630000000000005,0.1569,0.45539999999999997,0.8958333333333334,2,8,Vargas Juan P,"Ramaekers, Eric",0,1,2026-11-05,off
+7,6,Mo Sippi,0.4334,0.1407,0.42669999999999997,0.8854166666666666,3,8,"Roman, Kevin",Gelner Jayde J,1,0,2026-11-05,off
+7,7,I Forgot the Time,0.36119999999999997,0.1181,0.3532,0.65625,4,8,"Birzer, Alex","Tracy, Tanner",1,1,2026-11-05,off
+7,8,Kason's Buckaroo,0.3251,0.1039,0.3064,0.6354166666666666,5,8,"Cardoso, David",Hibdon Mark N,1,0,2026-11-05,off
+7,5,Letsgowinthisthing,0.32299999999999995,0.1008,0.3598,0.8541666666666666,6,8,?,"Wong, Jonathan",0,1,2026-11-05,off
+7,2,Wave Maker,0.3171,0.0972,0.3359,0.6354166666666666,7,8,"Melancon, Jansen",Morey William E,1,0,2026-11-05,off
+7,4,Gracie Baby,0.1849,0.0556,0.22840000000000002,0.59375,8,8,Ramos Adrian B,Hibdon Mark N,0,0,2026-11-05,off
+8,2,Cassy Cassy,0.6035,0.228,0.5761999999999999,0.875,1,8,"Castillo, Isaac",Pomier Chasey D,1,0,2026-11-05,off
+8,1,Zarlana,0.43720000000000003,0.1524,0.38029999999999997,0.8854166666666666,2,8,"Alvarez, Misael",Dison Phillip M,1,0,2026-11-05,off
+8,3,Sweet Kantha,0.4184,0.1372,0.44089999999999996,0.90625,3,8,"Melancon, Jansen","Ramsay-Banks, Allison",1,1,2026-11-05,off
+8,7,Sellthe Buffalo,0.3988,0.131,0.3291,0.8854166666666666,4,8,"Fusilier, Casey","Duhon, Paul",1,1,2026-11-05,off
+8,6,Just a Tap Away,0.38480000000000003,0.1201,0.409,0.8229166666666666,5,8,Hernandez Javier A,Boxie Jonathan,0,1,2026-11-05,off
+8,5,Strawberry Streets,0.354,0.1107,0.385,0.4895833333333333,6,8,Vargas Juan P,"Briley, Lonnie",0,1,2026-11-05,off
+8,8,Funhouse,0.2552,0.0776,0.3135,0.7916666666666666,7,8,Pompell Thomas L,Brinkman Brett A,0,0,2026-11-05,off
+8,4,Goldenbraids,0.1481,0.043,0.166,0.9166666666666666,8,8,"Arana, Kelvin",Boxie Jonathan,1,1,2026-11-05,off
