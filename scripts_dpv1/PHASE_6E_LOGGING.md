@@ -1787,6 +1787,33 @@ allowances), so the fix changed nothing on that card.
   that came back identical, EVD 2023-08-10 still damaged, MNR 2026-10-05
   damaged).
 
+### DED 2026-11-07 night: scoring and session wrap-up
+
+* **Card scored** (`376f8d0`, review `tracking/DED_2026-11-07_review.md`).
+  Chart `DED110726USA.pdf` loaded with `retrain_pipeline.load_charts`
+  (9 races, 75 starters, 87 pre-race entries purged first, 0 errors);
+  backup `scripts/racing_full.db.pre-ded1107res.bak` verified (sha256,
+  integrity, row counts). No DQs, dead heats or DNFs. Speed figures and
+  features **not** rebuilt after this load; the next card's build does it.
+* **Reranker review rule:** R6 is a post-scratch change (judged on the
+  horses that ran); **Doug confirmed it counts** (`59e8a46`). Count **4/40**
+  (11/05 R4, 11/06 R4, 11/07 R6, R9). R2 does not count (reranked #1
+  scratched; same #1 among runners).
+* **Doug's decisions (`59e8a46`, PHASE_6D_ROADMAP "Queued after this"):**
+  PP-date recency fix moved to #1, ahead of the feeder-track (non-corpus
+  tracks) question; still needs the OFF/ON validation before going live.
+* **Next session (read-only):** paired name-matching check on 11/05–11/07,
+  each card rescored from `racing_full.db.ded1105-run.bak`,
+  `.ded1106-run.bak`, `.ded1107-run.bak` with name matching OFF and ON, one
+  card at a time; compare #1 W, #1 ITM, P(ITM) log loss, Brier on identical
+  races (PHASE_6D_ROADMAP "Next session's list"). Doug will also go over the
+  other open items.
+* **Still open:** MNR 2026-10-05 chart is corrupted at Equibase; **retry
+  after 11/21** (`tracking/chart_audit_2026-11-07.md`). Par policy decision
+  (freeze vs point-in-time) from `PHASE_7_SCALING_PLAN.md` before any
+  incremental feature work.
+* Nothing pushed; all of 11/07's commits are local.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
