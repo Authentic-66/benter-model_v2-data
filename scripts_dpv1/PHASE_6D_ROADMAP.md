@@ -7186,40 +7186,72 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
   was done by hand before the run. Any model or reranker change ends the
   window; report the parts separately.
 
+### 1.4 candidate (bundled 2026-11-08, not started)
+
+Doug, 2026-11-08: the four input changes below go into **one** candidate
+model, `dpv1.4`, in this order. They come out of "Queued after this". **None
+of them goes live on its own.** All four need **one retrain** of the
+current feature set on the changed inputs, then **a paired comparison
+against `dpv1.3.2-5track-stretch`** (same cards, same starters; #1 W, #1 ITM,
+P(ITM) log loss and Brier, as in `tracking/DED_paired_comparison_2026-11-01.md`)
+before Doug decides. Each item also gets its own PHASE_6E input-change entry
+when it is built, and an OFF switch that reproduces 1.3.2's logged runs.
+
+1. **PP-date recency fix.** When a horse's last race in the PP is newer than
+   its last race in the DB (last race at a non-corpus track, or a missing
+   chart), use the PP's last-race date (`pp_entries_raw.pp_days_off`) for the
+   days-off features (`days_since_last_race`, `last_race_days_ago`). Other
+   last-race features stay as they are. Background: the missing-last-race
+   tally, **42 flagged starters 11/04–11/07, ITM 18 vs 12.6 expected** (11/07
+   review); on 11/07 two of the model's #1s (R5 Fierce Cat, FON; R7 Paynted
+   Blue, SWF) were in this group. Validation as for name matching: OFF must
+   reproduce the logged runs exactly; then ON vs OFF on the scored DED cards
+   (how many horses change, P(ITM) log loss, Brier, #1 ITM).
+2. **Point-in-time speed-figure pars (no look-ahead).** Par = median final
+   time of the (track, surface, distance, condition) cell over races
+   **before** each race's date, instead of over the whole corpus
+   (`speed_figures_dpv1.compute_par_times`). Removes the look-ahead in the
+   training rows and stops old figures moving when a chart is loaded (the
+   11/07 load moved 41,311 figures; `PHASE_7_SCALING_PLAN.md` section 2).
+   The cell-minimum and fine/coarse fallback rules need a point-in-time
+   version too.
+3. **Speed-figure formula fix (beaten lengths from cumulative margins).**
+   `entries.beaten_lengths` is the chart's margin **over the next
+   finisher**, not lengths behind the winner (Sung & Johnson diagnostics,
+   open lead #3; PHASE_6E PP-bridge note). Today horse time = winner's
+   final time + the horse's **own** margin over the horse behind it, so a
+   5th-place horse 10 lengths behind the winner but a nose clear of 6th gets
+   almost the winner's time. It should use the **cumulative** margin behind
+   the winner: the sum of the margins of every horse that finished ahead of
+   it. Decide at the same time
+   whether `last_race_beaten_lengths` itself becomes lengths behind the
+   winner (it would then match the PP bridge's Brisnet value).
+4. **Feeder-track question.** Which non-corpus tracks the DED shippers come
+   from should be added (seen so far: ARP, GIL, PRM, LS, ATO, BAQ, RP, SWF,
+   FON, EUR, OP). Decide from a **read-only count** first: DED starters by
+   last-race track, and how many of them item 1 already covers. Adding a
+   track is a model-input change (track-keyed features would see races they
+   did not see in training).
+
+Why bundled: items 2 and 3 change every speed figure, and with them
+`last_race_speed_figure`, track bias and the class/cross-track terms that
+use figures; items 1 and 4 change the inputs for the same shipper horses.
+Testing them one retrain at a time would cost four paired comparisons on
+the same small DED sample.
+
 ### Queued after this (not started)
 
-Order updated by Doug 2026-11-07 (after the 11/07 scoring): the PP-date
-recency fix moves to the top, ahead of the feeder-track question.
+Updated 2026-11-08: the PP-date recency fix and the feeder-track question
+moved into the 1.4 candidate above.
 
-1. **PP date for "days since last race" when the DB is missing the last
-   race** (queued by Doug 2026-11-07; **moved to the top 2026-11-07**). When
-   a horse's last race in the PP is newer than its last race in the DB (the
-   "missing last race" horses: last race at a track that isn't in the
-   corpus, or a chart that is missing), test using the PP's date
-   (`pp_entries_raw.pp_days_off`) for the days-off features
-   (`days_since_last_race`, `last_race_days_ago`). The other last-race
-   features stay as they are. This targets the missing-last-race horses
-   without adding new tracks. **Still needs the OFF/ON validation before it
-   goes live**, like name matching: a switch, OFF must reproduce the logged
-   runs exactly, then ON vs OFF on past scored DED cards (P(ITM) log loss,
-   Brier, #1 ITM, how many horses change), before Doug decides. Background:
-   the missing-last-race tally, **42 flagged starters 11/04–11/07, ITM 18 vs
-   12.6 expected** (11/07 review); on 11/07 two of the model's #1s (R5 Fierce
-   Cat, FON; R7 Paynted Blue, SWF) were in this group.
-2. **Feeder-track question** (decision, not started): whether to add
-   non-corpus tracks the DED shippers come from (seen so far: ARP, GIL, PRM,
-   LS, ATO, BAQ, RP, SWF, FON, EUR, OP). Adding a track is a model-input
-   change (track-keyed features would see races they did not see in
-   training) and needs its own PHASE_6E entry. Comes after item 1, which
-   covers part of the same horses without new tracks.
-3. **Late jockey changes.** Thornton came off all his mounts on 10/28, 10/29
+1. **Late jockey changes.** Thornton came off all his mounts on 10/28, 10/29
    and 10/30 (and Colby Hernandez off two on 10/29), after the pre-race run
    was logged with them listed. Investigate read-only how the listed-jockey
    features move these horses' predictions, and options for handling likely
    jockey changes. (Melancon off 3 listed mounts on each of 11/05–11/07:
    `tracking/late_jockey_changes.csv`.)
-4. **Purse fix (b2):** the asymmetric drop cap, PHASE_6E follow-up #16.
-5. **Shippers investigation** (read-only). Background is Gap #1 above; its
+2. **Purse fix (b2):** the asymmetric drop cap, PHASE_6E follow-up #16.
+3. **Shippers investigation** (read-only). Background is Gap #1 above; its
    diagnosis was reversed (the model over-rates unseen horses rather than
    burying them).
 
