@@ -855,10 +855,34 @@ def race_numbers(db, track: str, date: str) -> list[int]:
         conn.close()
 
 
+# One PP parse per run (2026-11-08). The PDF used to be parsed once for the
+# morning line and again for every race's bridge (about 39 s each). The parse
+# depends only on the file, the effective track code (``parse_pp_file`` uses
+# ``track_code`` only to pick the track, falling back to the file name) and
+# the name-matching state, so those are the key. Callers get a deep copy, so
+# nothing one race does to the bundle can reach the next.
+_PP_CACHE: dict = {}
+
+
+def _pp_bundle(pdf, track: str | None = None) -> dict:
+    import copy
+    from brisnet_pp_parser import track_from_filename
+    path = Path(pdf).resolve()
+    try:
+        st = path.stat()
+    except OSError:
+        return pp_index(pdf, track)   # let the parser report it, as before
+    eff = (track or track_from_filename(path) or "").upper() or None
+    key = (str(path), st.st_size, st.st_mtime_ns, eff, name_match.state())
+    if key not in _PP_CACHE:
+        _PP_CACHE[key] = pp_index(pdf, track)
+    return copy.deepcopy(_PP_CACHE[key])
+
+
 def ml_lookup(pdf, track: str | None) -> dict:
     """``(race_num, normalized name) -> morning line`` for display only."""
     from equibase_pdf_parser import normalize_name
-    bundle = pp_index(pdf, track)
+    bundle = _pp_bundle(pdf, track)
     out = {}
     for (rn, nm), h in bundle["index"].items():
         out[(rn, nm)] = (h.get("ml"), h.get("pp_ml_decimal"),
@@ -941,7 +965,8 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
 
     if pp_file:
         try:
-            apply_to_card(card, pp_file, model)
+            apply_to_card(card, pp_file, model,
+                          bundle=_pp_bundle(pp_file, None))
         except SystemExit as exc:
             log.warning("R%s: PP bridge failed (%s)", race_num, exc)
 

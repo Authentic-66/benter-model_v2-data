@@ -224,12 +224,16 @@ def bridge_row(pp: dict, race: dict) -> dict:
     return out
 
 
-def apply_to_card(card, pdf: str | Path, model) -> dict:
+def apply_to_card(card, pdf: str | Path, model, bundle: dict | None = None) -> dict:
     """Bridge a single ``RaceCard`` in place. Returns the fill report.
 
     ``load_race_from_db`` pops ``race_num`` off the frame onto the card, and a
     card is one race, so the race number is taken from the card rather than
     expected as a column.
+
+    ``bundle`` is an already-parsed :func:`pp_index` result for ``pdf``
+    (``card_picks`` parses the PDF once per run and passes it in). ``None``
+    parses ``pdf`` here, as before.
     """
     frame = card.frame.copy()
     frame["_bridge_race_num"] = card.race_num
@@ -239,7 +243,7 @@ def apply_to_card(card, pdf: str | Path, model) -> dict:
         frame["horse_name"] = card.names()
     bridged, report = apply_bridge(frame, pdf, model,
                                    race_num_col="_bridge_race_num",
-                                   name_col="horse_name")
+                                   name_col="horse_name", bundle=bundle)
     card.frame = bridged.drop(columns=["_bridge_race_num"])
     return report
 
@@ -285,14 +289,16 @@ def pp_index(pdf: str | Path, track_code: str | None = None) -> dict:
 
 def apply_bridge(frame: pd.DataFrame, pdf: str | Path, model,
                  race_num_col: str = "race_num",
-                 name_col: str = "horse_name") -> tuple[pd.DataFrame, dict]:
+                 name_col: str = "horse_name",
+                 bundle: dict | None = None) -> tuple[pd.DataFrame, dict]:
     """Fill NULL DPv1 slots in ``frame`` from the PP file.
 
     Returns ``(frame, report)``. The report counts, per feature, how many cells
     were NULL before and how many the PP file could fill — which is the only
     honest way to describe what this bought.
     """
-    bundle = pp_index(pdf)
+    if bundle is None:
+        bundle = pp_index(pdf)
     idx = bundle["index"]
     out = frame.copy()
 

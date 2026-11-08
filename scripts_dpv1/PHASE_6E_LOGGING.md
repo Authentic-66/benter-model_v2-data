@@ -1814,6 +1814,34 @@ allowances), so the fix changed nothing on that card.
   incremental feature work.
 * Nothing pushed; all of 11/07's commits are local.
 
+### Code change, 2026-11-08: `card_picks` reads the PP PDF once (no output change)
+
+**Doug, 2026-11-08 (PHASE_7_SCALING_PLAN quick win). No model, reranker,
+input or output change.** `card_picks` used to parse the PP PDF 10 times per
+run: once for the morning line (`ml_lookup`) and again inside every race's
+PP bridge (`apply_to_card` → `pp_index`), about 39 s each.
+
+* **What changed.** `card_picks._pp_bundle` parses the PDF once per run and
+  hands each caller a deep copy. The cache key is the resolved path, file size
+  and mtime, the effective track code, and the name-matching state, which is
+  everything the parse depends on (`parse_pp_file` uses `track_code` only to
+  choose the track, falling back to the file name). `pp_feature_bridge.
+  apply_to_card` / `apply_bridge` take an optional `bundle=`; without it they
+  parse as before, so other callers are unchanged. A missing file still
+  reaches the parser and fails the same way.
+* **Proof (output-identical).** DED 11/04, 11/05, 11/06, 11/07 rebuilt from
+  `racing_full.db.dedMMDD-run.bak` on scratch (load, speed figures,
+  features), then `card_picks --pp-file … --save --log-file <scratch>` run
+  from the old code (a worktree at `1602e88`, identical to HEAD) and the new
+  code on the same DB. **Every logged field identical on all 322 rows** (77 /
+  69 / 89 / 87; all fields except the run stamp: `generated_at`, the
+  `prediction_id` stamp, `picks_file`), and **the picks page identical line for
+  line** apart from its "generated" line (577 / 516 / 679 / 662 lines).
+* **Time:** `card_picks` 326 / 270 / 403 / 385 s → 41 / 35 / 46 / 44 s;
+  **about 5 minutes (305 s, 88%) saved per card.** The nightly build is now
+  about 5.5 minutes instead of 10.6.
+* Harness (scratch, not committed): `build_card_db.py`, `run_picks_pair.py`.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.
