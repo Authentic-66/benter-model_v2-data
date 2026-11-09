@@ -1,0 +1,184 @@
+=== base [09:33:19]
+Froze par version proof-1104: {'n_races': 41352, 'n_fine': 353, 'n_coarse': 114, 'last_race_date': '2026-10-31'}
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320087 rows to computed_speed_figures_dpv1
+  [4s] speed A.db
+done — 320087 rows to entry_features_dpv1 in 163.8s
+  [177s] full A.db
+=== det [09:36:25]
+done — 320087 rows to entry_features_dpv1 in 162.2s
+  [174s] full B.db
+{'rows_a': 320087, 'rows_b': 320087, 'columns_compared': 131, 'differing_cells': 0, 'type_diffs_by_column': {}, 'identical': True} True
+=== card 1104 [09:44:05]
+loaded: 8 races, 77 entries into C:/Users/bornr/AppData/Local/Temp/claude/4f22c0db0d78fb97/8df8e3de-f7b1-4b87-8df9-459de4e9cf9d/scratchpad/s6/A.db
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320164 rows to computed_speed_figures_dpv1
+  [7s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 77, "seeds_changed": 0, "seeds_removed": 0, "attr_only": 0, "dirty_rows": 77, "rounds": 1, "closure_rows": 71599, "seconds": 48.7, "plan_s": 16.5, "build_s": 31.8, "write_s": 0.3}
+  [50s] inc 
+=== cmp card1104 1104 [09:46:04]
+done — 320164 rows to entry_features_dpv1 in 152.6s
+  [164s] full B.db
+card1104 {'rows_a': 320164, 'rows_b': 320164, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+  card_picks A vs B: 77 77 diffs 0
+=== chart 1104 [09:54:05]
+  DED110426USA.pdf                              DED 2026-11-04  +8r 69e  (purged 77 first)
+{"races": 8, "entries": 69, "exotics": 41, "purged_entries": 77, "cards": 1, "errors": 0}
+  [3s] python load_chart.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320156 rows to computed_speed_figures_dpv1
+  [7s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 69, "seeds_changed": 0, "seeds_removed": 77, "attr_only": 22, "dirty_rows": 69, "rounds": 1, "closure_rows": 80269, "seconds": 45.9, "plan_s": 11.5, "build_s": 34.2, "write_s": 0.3}
+  [47s] inc 
+=== cmp chart1104 [09:55:02]
+done — 320156 rows to entry_features_dpv1 in 158.5s
+  [171s] full B.db
+chart1104 {'rows_a': 320156, 'rows_b': 320156, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== card 1105 [10:01:16]
+loaded: 8 races, 69 entries into C:/Users/bornr/AppData/Local/Temp/claude/4f22c0db0d78fb97/8df8e3de-f7b1-4b87-8df9-459de4e9cf9d/scratchpad/s6/A.db
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320225 rows to computed_speed_figures_dpv1
+  [6s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 69, "seeds_changed": 0, "seeds_removed": 0, "attr_only": 0, "dirty_rows": 69, "rounds": 1, "closure_rows": 77960, "seconds": 48.5, "plan_s": 15.3, "build_s": 32.9, "write_s": 0.3}
+  [50s] inc 
+=== cmp card1105 1105 [10:02:58]
+done — 320225 rows to entry_features_dpv1 in 150.3s
+  [161s] full B.db
+card1105 {'rows_a': 320225, 'rows_b': 320225, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+  card_picks A vs B: 69 69 diffs 0
+=== chart 1105 [10:10:18]
+  DED110526USA.pdf                              DED 2026-11-05  +8r 61e  (purged 69 first)
+{"races": 8, "entries": 61, "exotics": 41, "purged_entries": 69, "cards": 1, "errors": 0}
+  [3s] python load_chart.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320217 rows to computed_speed_figures_dpv1
+  [6s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 61, "seeds_changed": 0, "seeds_removed": 69, "attr_only": 13, "dirty_rows": 61, "rounds": 1, "closure_rows": 77288, "seconds": 43.8, "plan_s": 11.2, "build_s": 32.3, "write_s": 0.3}
+  [45s] inc 
+=== cmp chart1105 [10:11:13]
+done — 320217 rows to entry_features_dpv1 in 147.9s
+  [159s] full B.db
+chart1105 {'rows_a': 320217, 'rows_b': 320217, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== card 1106 [10:17:05]
+loaded: 9 races, 89 entries into C:/Users/bornr/AppData/Local/Temp/claude/4f22c0db0d78fb97/8df8e3de-f7b1-4b87-8df9-459de4e9cf9d/scratchpad/s6/A.db
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320306 rows to computed_speed_figures_dpv1
+  [8s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 89, "seeds_changed": 0, "seeds_removed": 0, "attr_only": 0, "dirty_rows": 89, "rounds": 1, "closure_rows": 82090, "seconds": 51.1, "plan_s": 15.1, "build_s": 35.7, "write_s": 0.3}
+  [52s] inc 
+=== cmp card1106 1106 [10:19:12]
+done — 320306 rows to entry_features_dpv1 in 160.2s
+  [171s] full B.db
+card1106 {'rows_a': 320306, 'rows_b': 320306, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+  card_picks A vs B: 89 89 diffs 0
+=== chart 1106 [10:27:39]
+  DED110626USA.pdf                              DED 2026-11-06  +9r 77e  (purged 89 first)
+{"races": 9, "entries": 77, "exotics": 46, "purged_entries": 89, "cards": 1, "errors": 0}
+  [4s] python load_chart.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320294 rows to computed_speed_figures_dpv1
+  [7s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 77, "seeds_changed": 0, "seeds_removed": 89, "attr_only": 0, "dirty_rows": 77, "rounds": 1, "closure_rows": 80741, "seconds": 47.9, "plan_s": 11.8, "build_s": 35.7, "write_s": 0.3}
+  [49s] inc 
+=== cmp chart1106 [10:28:39]
+done — 320294 rows to entry_features_dpv1 in 159.1s
+  [171s] full B.db
+chart1106 {'rows_a': 320294, 'rows_b': 320294, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== card 1107 [10:34:55]
+loaded: 9 races, 87 entries into C:/Users/bornr/AppData/Local/Temp/claude/4f22c0db0d78fb97/8df8e3de-f7b1-4b87-8df9-459de4e9cf9d/scratchpad/s6/A.db
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320381 rows to computed_speed_figures_dpv1
+  [7s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 87, "seeds_changed": 0, "seeds_removed": 0, "attr_only": 0, "dirty_rows": 87, "rounds": 1, "closure_rows": 79591, "seconds": 49.2, "plan_s": 14.8, "build_s": 34.1, "write_s": 0.3}
+  [50s] inc 
+=== cmp card1107 1107 [10:36:54]
+done — 320381 rows to entry_features_dpv1 in 147.5s
+  [159s] full B.db
+card1107 {'rows_a': 320381, 'rows_b': 320381, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+  card_picks A vs B: 87 87 diffs 0
+=== adv scratch [10:44:18]
+scratched entry 359610 {'computed_speed_figures': 0, 'computed_speed_figures_dpv1': 1, 'entry_v10_flags': 0, 'entry_pp_features': 0, 'pp_entries_raw': 0, 'entry_features_v1': 0, 'entries': 1}
+  [2s] python adv_edit.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320380 rows to computed_speed_figures_dpv1
+  [6s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 0, "seeds_changed": 0, "seeds_removed": 1, "attr_only": 0, "dirty_rows": 86, "rounds": 2, "closure_rows": 79512, "seconds": 44.9, "plan_s": 11.3, "build_s": 33.3, "write_s": 0.3}
+  [46s] inc 
+=== cmp adv_scratch 1107 [10:45:12]
+done — 320380 rows to entry_features_dpv1 in 147.9s
+  [159s] full B.db
+adv_scratch {'rows_a': 320380, 'rows_b': 320380, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+  card_picks A vs B: 86 86 diffs 0
+=== adv restore [10:52:44]
+restored entry 359610
+  [0s] python adv_edit.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320381 rows to computed_speed_figures_dpv1
+  [6s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 1, "seeds_changed": 0, "seeds_removed": 0, "attr_only": 0, "dirty_rows": 87, "rounds": 2, "closure_rows": 79591, "seconds": 45.3, "plan_s": 11.5, "build_s": 33.5, "write_s": 0.3}
+  [47s] inc 
+=== cmp adv_also_eligible 1107 [10:53:37]
+done — 320381 rows to entry_features_dpv1 in 147.3s
+  [159s] full B.db
+adv_also_eligible {'rows_a': 320381, 'rows_b': 320381, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+  card_picks A vs B: 87 87 diffs 0
+=== chart 1107 [11:01:04]
+  DED110726USA.pdf                              DED 2026-11-07  +9r 75e  (purged 87 first)
+{"races": 9, "entries": 75, "exotics": 46, "purged_entries": 87, "cards": 1, "errors": 0}
+  [4s] python load_chart.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320369 rows to computed_speed_figures_dpv1
+  [6s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 75, "seeds_changed": 0, "seeds_removed": 87, "attr_only": 3, "dirty_rows": 75, "rounds": 1, "closure_rows": 77422, "seconds": 44.6, "plan_s": 11.3, "build_s": 33.1, "write_s": 0.3}
+  [46s] inc 
+=== cmp chart1107 [11:02:00]
+done — 320369 rows to entry_features_dpv1 in 148.2s
+  [160s] full B.db
+chart1107 {'rows_a': 320369, 'rows_b': 320369, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== adv attrs [11:07:48]
+horse 45871 entries 9 old {'id': 45871, 'sire_id': 200, 'foaled_date': '2021-02-06'} new sire 1 foaled 2019-01-01
+  [0s] python adv_edit.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320369 rows to computed_speed_figures_dpv1
+  [6s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 0, "seeds_changed": 0, "seeds_removed": 0, "attr_only": 9, "dirty_rows": 0, "rounds": 0, "closure_rows": 0, "seconds": 13.9, "plan_s": 13.7, "build_s": 0.0, "write_s": 0.2}
+  [15s] inc 
+=== cmp adv_attrs [11:08:10]
+done — 320369 rows to entry_features_dpv1 in 148.1s
+  [159s] full B.db
+adv_attrs {'rows_a': 320369, 'rows_b': 320369, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== adv relabel [11:13:57]
+race {'id': 42628, 'race_type': 'CLAIMING', 'race_num': 5} -> STARTERALLOWANCE entries 10
+  [0s] python adv_edit.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320369 rows to computed_speed_figures_dpv1
+  [7s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 0, "seeds_changed": 10, "seeds_removed": 0, "attr_only": 0, "dirty_rows": 1243, "rounds": 2, "closure_rows": 93304, "seconds": 55.2, "plan_s": 14.8, "build_s": 40.0, "write_s": 0.4}
+  [56s] inc 
+=== cmp adv_relabel [11:15:01]
+done — 320369 rows to entry_features_dpv1 in 147.3s
+  [158s] full B.db
+adv_relabel {'rows_a': 320369, 'rows_b': 320369, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== chart 1024 [11:20:46]
+  DED102426USA.pdf                              DED 2026-10-24  +9r 71e  (purged 71 first)
+{"races": 9, "entries": 71, "exotics": 47, "purged_entries": 71, "cards": 1, "errors": 0}
+  [3s] python load_chart.py
+Pars: FROZEN version proof-1104 (0 timed cells not in it -> coarse fallback)
+Wrote 320369 rows to computed_speed_figures_dpv1
+  [3s] speed A.db
+{"mode": "incremental", "reason": "ok", "seeds_new": 71, "seeds_changed": 0, "seeds_removed": 71, "attr_only": 0, "dirty_rows": 651, "rounds": 2, "closure_rows": 91503, "seconds": 51.5, "plan_s": 11.3, "build_s": 39.9, "write_s": 0.4}
+  [52s] inc 
+=== cmp adv_purge_reload_1024 [11:21:45]
+done — 320369 rows to entry_features_dpv1 in 153.2s
+  [164s] full B.db
+adv_purge_reload_1024 {'rows_a': 320369, 'rows_b': 320369, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== config [11:27:37]
+  update --no-fallback (must refuse):
+incremental update refused: feature code, config or library versions changed since the last recorded build
+  update (falls back):
+  [160s] python feature_incremental.py
+=== cmp adv_config [11:30:20]
+done — 320369 rows to entry_features_dpv1 in 148.4s
+  [160s] full B.db
+adv_config {'rows_a': 320369, 'rows_b': 320369, 'ids_only_a': 0, 'ids_only_b': 0, 'columns_compared': 131, 'differing_cells': 0, 'differing_cells_by_column': {}, 'type_diffs_by_column': {}, 'identical': True} hash_eq True
+=== ALL DONE [11:36:12]
