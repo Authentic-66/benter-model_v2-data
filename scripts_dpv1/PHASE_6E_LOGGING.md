@@ -1894,6 +1894,57 @@ replace this.
   `--recompute-pars`; on pre-freeze backups they now stop with the message
   above. Add the flag before rerunning them.
 
+**Pre-freeze backups need `--recompute-pars`.** Every DB backup taken before
+2026-11-08 17:18 CST (all `*.bak` up to and including `.pre-parfreeze.bak`,
+the `.dedMMDD-run.bak` pre-race backups among them) has no par table. To
+rebuild one (and reproduce its logged run) use
+`speed_figures_dpv1.py compute --recompute-pars`. Plain `compute` on such a DB
+stops with a message saying so. Backups taken from the live DB after the
+freeze carry `pars-v1-20261108` and need no flag.
+
+### Code change, 2026-11-08: card input snapshots (no output change)
+
+**Doug, 2026-11-08 (PHASE_7_SCALING_PLAN section 3, layer 1). Model,
+rerankers, inputs and predictions unchanged.** Every `card_picks --save` now
+also writes `logs/card_snapshots/<TRACK>_<date>_<stamp>.json.gz` (next to the
+prediction log it belongs to; with `--log-file`, next to that file). About
+0.03 MB a card.
+
+* **What is stored** (`card_snapshot.py`): per race, the card frame before
+  the PP bridge (the stored feature rows) and after it (the vector the model
+  scored), race conditions, pre-bridge coverage, shipper flags, the PP
+  reranker's `pp_entries_raw` rows and the morning-line display values; per
+  run, the stamp, iterations / seed / flags, picks file, PP file sha256,
+  name-matching state, and version tags (model version + sha256, PP and
+  class-context reranker versions + sha256, feature config version + sha256,
+  `par_version`, git commit and dirty flag). Floats are stored with their exact
+  repr and dtypes are kept, so a frame round-trips bit for bit.
+* **Code.** `card_picks.one_race` now reads everything from the DB first
+  (card, PP bridge, PP rows, shipper flags) and then calls the new
+  `score_race`, which does all the scoring with no DB access.
+  `rerank_probabilities` takes an optional `pp_rows=`. The snapshot is written
+  best-effort after the log rows (a failure is a warning, never a lost card).
+  `python scripts_dpv1/card_snapshot.py rescore <snapshot>` re-scores a
+  snapshot through the same `score_race` + `prediction_rows` and compares it
+  with `logs/predictions.jsonl`; exit 0 only if every logged field is equal.
+* **Output unchanged.** DED 11/07 rebuilt from `.ded1107-run.bak`: the new
+  code's 87 logged rows are identical to the Step 3 run (every field but the
+  run stamp), and re-scoring the snapshot that run wrote reproduces all 87 rows
+  on every field.
+* **Backfill (11 cards, all exact).** Each card rebuilt from its pre-race
+  backup with the code that made its logged run, its inputs captured during
+  that code's own `one_race`, then the snapshot re-scored with today's code
+  against `logs/predictions.jsonl`. Every logged field identical on every
+  row: 10/21 (73 rows, 1.3.1, code `7bbe3ab`), 10/22 (75, `2b8336e`), 10/23
+  (82), 10/24 (79), 10/28 (82), 10/29 (75), 10/30 (100), 11/04 (77,
+  `6515182`), 11/05 (69), 11/06 (89), 11/07 (87); unmarked = today's code.
+  822 rows in all. Harness: `tracking/card_snapshot_backfill_2026-11-08/`.
+* **Not backfilled yet:** 10/15, 10/16, 10/17 (1.3.0). `ded1017-run.bak` is
+  byte-identical to `ded1016-run.bak`, so it is not 10/17's pre-race state;
+  rebuilt from it, 636 logged fields differ. Being settled separately (see the
+  next entry); any that cannot be reproduced exactly are recorded as known
+  gaps.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

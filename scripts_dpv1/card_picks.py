@@ -581,8 +581,11 @@ def _cc_delta_depends_on_base() -> bool:
             or "base_logit" in list(getattr(rr, "feature_names", ())))
 
 
+_READ_DB = object()   # rerank_probabilities: read pp_entries_raw (default)
+
+
 def rerank_probabilities(card, p_fund, db, track, date, race_num,
-                         use_classctx: bool = False):
+                         use_classctx: bool = False, pp_rows=_READ_DB):
     """Adjusted fundamental P(ITM) plus the per-horse logit delta of each stage.
 
     Returns a :class:`RerankResult`.
@@ -614,6 +617,9 @@ def rerank_probabilities(card, p_fund, db, track, date, race_num,
     W arm). Reconstructing W from the stacked delta would be wrong. When the PP
     stage did not fire the two are identical by construction and only one call
     is made.
+
+    ``pp_rows``: the race's ``pp_rows_for_race`` result, when the caller has
+    it already (``one_race``, or a snapshot re-score with no database).
     """
     import numpy as _np
     p_fund = _np.asarray(p_fund, dtype=float)
@@ -625,7 +631,10 @@ def rerank_probabilities(card, p_fund, db, track, date, race_num,
     n_pp = 0
 
     rr = get_reranker()
-    pp = pp_rows_for_race(db, track, date, race_num) if rr is not None else None
+    if pp_rows is _READ_DB:
+        pp = pp_rows_for_race(db, track, date, race_num) if rr is not None else None
+    else:
+        pp = pp_rows if rr is not None else None
     programs = [_norm_pgm(p) for p in card.programs()]
     have = [i for i, pg in enumerate(programs) if pg in pp] if pp else []
     if rr is not None and have:
@@ -963,12 +972,41 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     # that is the pre-bridge number.
     base_cov = coverage_report(card, model)["per_horse"]
 
+    frame_pre = card.frame.copy()   # the stored feature rows, for the snapshot
+
     if pp_file:
         try:
             apply_to_card(card, pp_file, model,
                           bundle=_pp_bundle(pp_file, None))
         except SystemExit as exc:
             log.warning("R%s: PP bridge failed (%s)", race_num, exc)
+
+    # Everything below the bridge that reads the database is read here, so
+    # score_race works from these inputs alone (and a snapshot can replay it).
+    pp_rows = (pp_rows_for_race(db, track, date, race_num)
+               if get_reranker() is not None else None)
+    shipper = shipper_flags(card, base_cov, db, date)
+    frame_post = card.frame.copy()  # the vector the model scores
+    out = score_race(card, model, race_num=race_num, base_cov=base_cov,
+                     pp_rows=pp_rows, shipper=shipper, ml_map=ml_map,
+                     iters=iters, seed=seed, use_classctx=use_classctx)
+    out["snapshot_inputs"] = {"frame_pre": frame_pre, "frame_post": frame_post,
+                              "base_cov": base_cov,
+                              "pp_rows": pp_rows, "shipper": shipper,
+                              "card": card}
+    return out
+
+
+def score_race(card, model, *, race_num: int, base_cov, pp_rows, shipper,
+               ml_map: dict, iters: int, seed: int,
+               use_classctx: bool = False) -> dict:
+    """Score one bridged card from its inputs; no database access.
+
+    ``one_race`` calls this after loading and bridging the card; the snapshot
+    re-score (``card_snapshot.py rescore``) calls it on a stored card. Same
+    function both ways, so a snapshot replays exactly what was logged.
+    """
+    from equibase_pdf_parser import normalize_name
 
     pred = predict_card(card, model, use="fundamental")
     base_sim = simulate_prediction(pred, n_iter=iters, seed=seed)
@@ -979,8 +1017,8 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     # win probabilities and the simulator stay consistent with the reranked
     # P(ITM) rather than describing a different race.
     rrr = rerank_probabilities(
-        card, pred.p_fund, db, track, date, race_num,
-        use_classctx=use_classctx)
+        card, pred.p_fund, None, card.track, card.race_date, race_num,
+        use_classctx=use_classctx, pp_rows=pp_rows)
     p_adj, rr_delta, cc_delta = rrr.p_adjusted, rrr.pp_delta, rrr.cc_delta
     cc_delta_base = rrr.cc_delta_base
     n_pp, n_cc = rrr.n_pp, rrr.n_cc_applied
@@ -1025,7 +1063,7 @@ def one_race(track: str, date: str, race_num: int, model, db, pp_file,
     # Explainability: what pushes this horse up/down vs the race baseline?
     reasons = compute_reasons(card, model)
     d["_reasons"] = reasons  # list of dicts, aligned to card order
-    d["_shipper"] = shipper_flags(card, base_cov, db, date)
+    d["_shipper"] = list(shipper)
     # Kept alongside the displayed post-bridge figure so a reader of the log
     # can see why the flag fired: the PP bridge can lift a shipper well over
     # the threshold, and shipper_flag=true beside cov=64% otherwise reads as
@@ -1489,6 +1527,38 @@ def _cli() -> int:
         n_logged = append_predictions(rows, log_path)
         if n_logged:
             print(f'logged {n_logged} predictions -> {log_path}')
+
+        # Card input snapshot (2026-11-08): what the model scored, exactly,
+        # next to the log it belongs to. Best effort, like the log.
+        try:
+            import card_snapshot
+            races = [card_snapshot.race_snapshot(
+                         r["snapshot_inputs"]["card"],
+                         r["snapshot_inputs"]["frame_pre"],
+                         r["snapshot_inputs"]["frame_post"],
+                         r["snapshot_inputs"]["base_cov"],
+                         r["snapshot_inputs"]["pp_rows"],
+                         r["snapshot_inputs"]["shipper"], ml_map)
+                     for r in results]
+            stamp_s = generated_at.strftime('%Y%m%d-%H%M%S')
+            meta = {"generated_at": generated_at.isoformat(timespec="seconds"),
+                    "stamp": stamp_s, "track": args.track.upper(),
+                    "race_date": args.date, "iters": args.iters,
+                    "seed": args.seed,
+                    "use_classctx": bool(args.reranker_classctx),
+                    "picks_file": picks_rel, "pp_file": args.pp_file,
+                    "pp_file_sha256": card_snapshot.sha256(args.pp_file)
+                    if args.pp_file else None,
+                    "name_matching": "on" if nm_on else "off",
+                    "logged_rows": n_logged, "source": "card_picks --save",
+                    **card_snapshot.version_tags(model, args.model, args.db)}
+            snap = card_snapshot.write_snapshot(
+                log_path.parent / "card_snapshots"
+                / f"{args.track.upper()}_{args.date}_{stamp_s}.json.gz",
+                meta, races)
+            print(f'snapshot -> {snap} ({snap.stat().st_size / 1e6:.2f} MB)')
+        except Exception as exc:  # noqa: BLE001 -- picks and log come first
+            log.warning('card snapshot not written: %s', exc)
     return 0
 
 
