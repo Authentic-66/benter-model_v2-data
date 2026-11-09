@@ -7244,8 +7244,22 @@ when it is built, and an OFF switch that reproduces 1.3.2's logged runs.
    * **Those rows are hot connections.** ITM 43.6% and 46.1%, against 27-30%
      for the other NULL rows. Their start-of-day value has a median of 4 and
      6 days.
-   * **Own-race leak.** 2,690 trainer rows read a win by a stablemate in
-     **the same race**.
+   * **Target leakage (trainer, same race).** In 2,690 training rows, the
+     trainer had two starters in the race, the stablemate with the lower
+     entry id won, and so this row's `days_since_trainer_last_win` is NULL.
+     * The NULL is caused by **this race's own result**. It tells the model
+       "this horse did not win", which is part of the ITM label the model is
+       fitted to. These rows run ITM 37.0%.
+     * This is target leakage, not just same-day leakage: no pre-race value
+       could produce this NULL. It is a missingness-derived leak: the
+       `__missing` indicator carries it into the model.
+     * Live cards cannot reproduce it, because a card has no results.
+     * The item 5 fix removes it, because only earlier dates count. Check
+       after the rebuild: 0 rows where a same-race result changes a feature.
+       Add this to `validate_dpv1_features.py` as a standing check.
+     * Also found: 50 trainer rows and 2 jockey rows read a win from a
+       **later** race on the same day. These come from 24 race days where
+       entry-id order is not race order.
    * **Live rows unchanged.** A card has no results when it is scored, so the
      OFF switch reproduces 1.3.2 by construction. Live, the `__missing`
      indicator means "no earlier win". In training it mostly meant "won
