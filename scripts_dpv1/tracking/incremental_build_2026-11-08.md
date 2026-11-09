@@ -230,3 +230,42 @@ A row brought in only because it shares a race with a changed horse is
 propagated along every key, track included. That is why the 3-month-back MNR
 backfill reached 6,020 rows and fell back. Narrowing it needs a careful read
 of which past-race values later rows use.
+
+## Per-table fingerprint (2026-11-10, side-by-side step 1 done)
+
+**What changed.** `feature_input_hashes` gains a `table_name` column, and its
+key is now (`table_name`, `entry_id`). `record_full_build`, `update` and
+`plan` each read and write only their own table's rows. A table in the old
+one-per-DB layout is dropped on the next full build (`_ensure_tables`). It
+holds state only; with no state, the next update does a full build. No
+feature code changed (`build_version` is unchanged).
+
+**Proof.** On a copy of `.ded1107-run.bak` with the 11/07 card loaded and
+pars recomputed as on the night (`fingerprint_proof.sh old|new|side`).
+
+1. **Old code vs new code: identical.**
+   * Full builds: 323,329 rows, 0 differing cells, no type differences, same
+     hash (`cmp_fingerprint_old_new.json`).
+   * 11/07 `card_picks`: 87 rows each, 0 diffs old vs new, and 0 diffs
+     against the logged 09:54 record run. Generated time, prediction id and
+     picks file are not compared.
+   * The new build replaced the old-layout table and wrote the new layout.
+2. **A side table keeps its own state.** Pars were frozen on the copy. The
+   run built `entry_features_dpv1_inc`, then the main table, then checked
+   `plan --table entry_features_dpv1_inc`: "no input changed". Then, in the
+   nightly order:
+   * load the 11/07 chart, then speed;
+   * a **main full build**;
+   * `update --table entry_features_dpv1_inc --no-fallback`.
+
+   The side update still found the chart's seeds (75 new, 87 removed, 3
+   attribute-only) and recomputed 75 rows in 45 s. The side table then
+   equals the main table: 323,317 rows, 0 rows either way, 0 type
+   differences. Each table has its own 323,317 fingerprint rows. With the
+   old shared layout, the main build would have overwritten the record and
+   the side update would have seen no change.
+3. The live DB was not written (mtime checked after every phase).
+
+**Still to do (Thursday):**
+* step 2, a big backfill test;
+* step 3, wiring the side-by-side into the card night.

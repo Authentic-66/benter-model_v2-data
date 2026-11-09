@@ -184,12 +184,26 @@ def input_frame(conn: sqlite3.Connection) -> pd.DataFrame:
     return out.set_index("entry_id")
 
 
+def _has_table_name(conn) -> bool:
+    return "table_name" in {r[1] for r in conn.execute(f"PRAGMA table_info({HASH_TABLE})")}
+
+
 def _ensure_tables(conn):
+    """The fingerprint is kept per feature table (``table_name``), so a second
+    table in the same DB (a side-by-side copy) keeps its own state when the
+    live table is rebuilt. A fingerprint table in the old one-per-DB layout is
+    dropped: it is state only, and with no state the next update does a full
+    build."""
+    if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                    (HASH_TABLE,)).fetchone() and not _has_table_name(conn):
+        conn.execute(f"DROP TABLE {HASH_TABLE}")
     keycols = ", ".join(f"{k} INTEGER" for k in KEYS)
     conn.executescript(f"""
         CREATE TABLE IF NOT EXISTS {HASH_TABLE} (
-            entry_id INTEGER PRIMARY KEY, h INTEGER NOT NULL, ha INTEGER NOT NULL,
-            race_id INTEGER, race_date TEXT, {keycols});
+            table_name TEXT NOT NULL, entry_id INTEGER NOT NULL,
+            h INTEGER NOT NULL, ha INTEGER NOT NULL,
+            race_id INTEGER, race_date TEXT, {keycols},
+            PRIMARY KEY (table_name, entry_id));
         CREATE TABLE IF NOT EXISTS {BUILD_LOG} (
             run_at TEXT NOT NULL, mode TEXT NOT NULL, build_version TEXT,
             table_name TEXT, n_rows INTEGER, n_recomputed INTEGER,
@@ -197,10 +211,13 @@ def _ensure_tables(conn):
     """)
 
 
-def _hash_rows(frame: pd.DataFrame):
+_N_HASH_COLS = 6 + len(KEYS)
+
+
+def _hash_rows(frame: pd.DataFrame, table: str):
     cols = ["h", "ha", "race_id", "race_date"] + KEYS
     sub = frame[cols].astype(object).where(frame[cols].notna(), None)
-    return [(int(i),) + tuple(int(v) if isinstance(v, (np.integer,)) else v
+    return [(table, int(i)) + tuple(int(v) if isinstance(v, (np.integer,)) else v
                               for v in row)
             for i, row in zip(frame.index, sub.itertuples(index=False, name=None))]
 
@@ -218,17 +235,22 @@ def record_full_build(conn, config_path, table=FEATURES_TABLE, seconds=None,
     """Call right after a full build: store the inputs it was built on."""
     _ensure_tables(conn)
     frame = input_frame(conn)
-    conn.execute(f"DELETE FROM {HASH_TABLE}")
-    conn.executemany(f"INSERT INTO {HASH_TABLE} VALUES ({','.join('?' * (5 + len(KEYS)))})",
-                     _hash_rows(frame))
+    conn.execute(f"DELETE FROM {HASH_TABLE} WHERE table_name = ?", (table,))
+    conn.executemany(f"INSERT INTO {HASH_TABLE} VALUES ({','.join('?' * _N_HASH_COLS)})",
+                     _hash_rows(frame, table))
     _log(conn, "full", config_path, table, len(frame), None, None, seconds, note)
     conn.commit()
 
 
-def _stored(conn) -> pd.DataFrame | None:
+def _stored(conn, table=FEATURES_TABLE) -> pd.DataFrame | None:
     try:
-        df = pd.read_sql_query(f"SELECT * FROM {HASH_TABLE}", conn)
+        if not _has_table_name(conn):    # missing, or the old one-per-DB layout
+            return None
+        df = pd.read_sql_query(f"SELECT * FROM {HASH_TABLE} WHERE table_name = ?",
+                               conn, params=(table,)).drop(columns="table_name")
     except Exception:  # noqa: BLE001 - no table yet
+        return None
+    if df.empty:
         return None
     for k in ["race_id"] + KEYS:
         df[k] = df[k].astype("Int64")
@@ -368,7 +390,7 @@ def plan(conn, config_path=DEFAULT_CONFIG, table=FEATURES_TABLE,
          max_frac=0.6) -> dict:
     """What ``update`` would do, without doing it."""
     cfg = json.loads(Path(config_path).read_text(encoding="utf-8"))
-    stored = _stored(conn)
+    stored = _stored(conn, table)
     if stored is None or "ha" not in stored.columns or _last_version(conn, table) is None:
         return {"mode": "full", "reason": "no recorded build state in this DB"}
     if _last_version(conn, table) != build_version(config_path):
@@ -450,7 +472,8 @@ def update(db, config_path=DEFAULT_CONFIG, table=FEATURES_TABLE, max_frac=0.6,
                      [(i,) for i in sorted(set(d["removed"]) | set(dirty))])
     conn.execute(f"DELETE FROM {table} WHERE entry_id IN (SELECT id FROM temp._gone)")
     conn.executemany("INSERT OR IGNORE INTO temp._gone VALUES (?)", [(i,) for i in rehash])
-    conn.execute(f"DELETE FROM {HASH_TABLE} WHERE entry_id IN (SELECT id FROM temp._gone)")
+    conn.execute(f"DELETE FROM {HASH_TABLE} WHERE table_name = ? AND "
+                 f"entry_id IN (SELECT id FROM temp._gone)", (table,))
     if dirty:
         vals = out[cols].astype(object).where(out[cols].notna(), None)
         rows = [tuple(v.item() if hasattr(v, "item") else v for v in r)
@@ -459,8 +482,8 @@ def update(db, config_path=DEFAULT_CONFIG, table=FEATURES_TABLE, max_frac=0.6,
                          f"VALUES ({','.join('?' * len(cols))})", rows)
     if rehash:
         conn.executemany(f"INSERT INTO {HASH_TABLE} VALUES "
-                         f"({','.join('?' * (5 + len(KEYS)))})",
-                         _hash_rows(frame.loc[rehash]))
+                         f"({','.join('?' * _N_HASH_COLS)})",
+                         _hash_rows(frame.loc[rehash], table))
     sec = round(time.perf_counter() - t0, 1)
     seeds = p["seeds_new"] + p["seeds_changed"] + p["seeds_removed"] + p["attr_only"]
     _log(conn, "incremental", config_path, table, len(dirty), len(clo), seeds, sec, None)
