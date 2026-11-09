@@ -2000,6 +2000,35 @@ prediction log it belongs to; with `--log-file`, next to that file). About
 * Earlier backups have no manifest. The first run for each track hashes the
   most recent `-run.bak` instead (`.ded1107-run.bak` for DED).
 
+### Code change, 2026-11-08: fixed feature-table column types + incremental build (7b-1, in progress)
+
+**Doug, 2026-11-08 (PHASE_7_SCALING_PLAN 7b-1). No model, reranker, input
+or prediction change. Stopped mid-proof at Doug's request.**
+Write-up: `tracking/incremental_build_2026-11-08.md`.
+
+* **Live effect from the next full build:**
+  * `write_table` creates `entry_features_dpv1` with the fixed types in
+    `dpv1_feature_schema.json`. Only `weight_lbs` changes: it stays INTEGER
+    on card nights instead of flipping to REAL. Values unchanged.
+  * Proof: DED 11/07 rebuilt from `.ded1107-run.bak`; `card_picks`
+    reproduces the 87 logged rows of the 09:54 record run exactly.
+  * `build` also records an input fingerprint (`feature_input_hashes`,
+    `feature_build_log`), best-effort, about 9 s.
+* **`feature_incremental.py`** (not in the nightly flow yet):
+  * Proved on scratch copies against a full rebuild after every step:
+    the 11/04-11/07 replay (4 cards, 4 charts), scratch, also-eligible,
+    remove and backfill an old day, DQ flip, jockey merge.
+  * Every step identical (cells, cell types, table hash); `card_picks`
+    identical on all 6 card states.
+  * About 45-50 s per card or chart step against about 160 s for a full
+    build. Big backfills and old merges fall back to a full build.
+* **Stopped here.** The replay steps ran before the same-day fix (the DQ
+  test found that `days_since_*_last_win` reads earlier races of the same
+  day), so the replay needs one rerun on the final code. The adversarial
+  edits not yet run are sire/foaled change, race_type relabel, purge and
+  reload of an old day, and config change. Also for review: that same-day
+  read is a mild same-day leak in training rows (not changed).
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

@@ -55,6 +55,8 @@ from dpv1_common import (  # noqa: E402
 )
 import feature_builder as v1  # noqa: E402
 
+FEATURE_SCHEMA = Path(__file__).resolve().parent / "dpv1_feature_schema.json"
+
 from new_features import (  # noqa: E402
     aggregate_features, class_change_features, class_context_features,
     cross_track_features,
@@ -424,7 +426,15 @@ def write_table(conn: sqlite3.Connection, df: pd.DataFrame,
             f"{table}: {int(dup.sum())} rows share {df.loc[dup, 'entry_id'].nunique()}"
             f" entry_ids; table not written")
     log.info("Writing %s (drop-and-replace)…", table)
-    df.to_sql(table, conn, if_exists="replace", index=False)
+    # Fixed column types (dpv1_feature_schema.json), so how a value is stored
+    # does not depend on which rows this build happened to see.
+    schema = json.loads(FEATURE_SCHEMA.read_text(encoding="utf-8"))["columns"]
+    unknown = [c for c in df.columns if c not in schema]
+    if unknown:
+        log.warning("%d column(s) not in %s, types left to pandas: %s",
+                    len(unknown), FEATURE_SCHEMA.name, unknown)
+    df.to_sql(table, conn, if_exists="replace", index=False,
+              dtype={c: schema[c] for c in df.columns if c in schema})
     for col in ("race_id", "horse_id", "track_id"):
         conn.execute(
             f"CREATE INDEX IF NOT EXISTS idx_{table}_{col} ON {table}({col})")
@@ -438,8 +448,18 @@ def cmd_build(args: argparse.Namespace) -> int:
     t0 = time.perf_counter()
     df = build_features(conn, cfg)
     write_table(conn, df, args.table)
-    log.info("done — %d rows to %s in %.1fs", len(df), args.table,
-             time.perf_counter() - t0)
+    sec = time.perf_counter() - t0
+    log.info("done — %d rows to %s in %.1fs", len(df), args.table, sec)
+    # Record the inputs this table was built from, so feature_incremental
+    # can update it later. Best-effort: a failure here leaves the table as
+    # built, and the next incremental update falls back to a full build.
+    try:
+        import feature_incremental
+        feature_incremental.record_full_build(conn, args.config, args.table,
+                                              round(sec, 1), note="feature_builder_dpv1 build")
+    except Exception as exc:  # noqa: BLE001
+        log.warning("build state not recorded (%s); the next incremental "
+                    "update will run a full build", exc)
     return 0
 
 
