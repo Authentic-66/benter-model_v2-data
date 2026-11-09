@@ -1939,11 +1939,66 @@ prediction log it belongs to; with `--log-file`, next to that file). About
   (82), 10/24 (79), 10/28 (82), 10/29 (75), 10/30 (100), 11/04 (77,
   `6515182`), 11/05 (69), 11/06 (89), 11/07 (87); unmarked = today's code.
   822 rows in all. Harness: `tracking/card_snapshot_backfill_2026-11-08/`.
-* **Not backfilled yet:** 10/15, 10/16, 10/17 (1.3.0). `ded1017-run.bak` is
-  byte-identical to `ded1016-run.bak`, so it is not 10/17's pre-race state;
-  rebuilt from it, 636 logged fields differ. Being settled separately (see the
-  next entry); any that cannot be reproduced exactly are recorded as known
-  gaps.
+* **1.3.0 cards (added after the first commit, same proof).** The October
+  backups follow an older naming: `.ded1015-run.bak` and `.ded1016-run.bak`
+  are the DB *at run time* (card loaded and features built), so they were
+  captured directly from a copy, no rebuild. `.ded1017-run.bak` is
+  byte-identical to `.ded1016-run.bak` (see the next entry); rebuilt from it,
+  636 logged fields differ, so it was not used. 10/17 was captured from
+  `.pre-results1018.bak` (10/17 07:50: 10/16 chart in, 10/17 card loaded and
+  built, run at 07:58). All three exact: 10/15 (88 rows, code `2d574f1`),
+  10/16 (99, `d4f6d62`), 10/17 (101, `5ffbbf3`), 1.3.0 model (70b529db…).
+  **All 14 cards with a pre-race backup now have a snapshot; 1,110 rows,
+  every logged field reproduced; no known gaps.**
+
+### Procedure change, 2026-11-08: checked pre-race backup before every card load
+
+**Doug, 2026-11-08. No model, input or output change.**
+
+* **Why `.ded1017-run.bak` = `.ded1016-run.bak`.** Backups were made by
+  hand, and the name's meaning moved. 10/15 and 10/16: `-run.bak` = DB at run
+  time (card in). From 10/17: DB just before the PP load. On 10/17 the copy
+  was made at 07:43, *before* the 10/16 chart was loaded (`.pre-ded1016res.bak`
+  07:46). Nothing had written to the DB since the 10/16 run at 15:21, so the
+  copy was byte for byte the 10/16 backup (sha256 010d0937…). The state the
+  10/17 run actually used is `.pre-results1018.bak` (07:50).
+* **New: `scripts_dpv1/pre_race_backup.py --track DED --date YYYY-MM-DD`.**
+  Run it after the previous card's chart is loaded and before
+  `load_pp_card.py load`. It writes `scripts/racing_full.db.dedMMDD-run.bak`
+  and a manifest `….bak.json` (sha256, integrity, previous backup and its
+  sha256, previous card date and whether its results are in). It **refuses**,
+  leaving nothing behind, if
+  * the DB already contains that night's card (entries or staged PP rows);
+  * the copy has the **same sha256 as the previous card's backup**;
+  * the copy fails `integrity_check`;
+  * the backup exists (`--replace` to retake; the checks still apply).
+
+  It **warns** (does not refuse) if the previous card still has no results
+  loaded, since charts sometimes come late.
+* **`load_pp_card.py load` on the live DB now requires it.** The load stops
+  unless the card's `-run.bak` and manifest exist and the live DB still has
+  the manifest's sha256, i.e. nothing was written after the backup. About 3 s
+  of hashing. `--no-backup-check` skips it. On other DBs it is off unless
+  `--require-backup` is given, so scratch harnesses are unaffected.
+* **Tests (scratch copies, deleted; live DB mtime unchanged).**
+  * 10/17 replay (DB = `.ded1016-run.bak`, previous backup recorded at its
+    sha): refused, byte-identical.
+  * `.pre-results1018.bak` for 10/17: refused, card already in (101 + 101).
+  * 11/07 from `.ded1107-run.bak` with the previous 11/06 backup recorded:
+    * load before any backup: refused;
+    * backup: taken, integrity ok, 11/06 results in, copy byte-identical to
+      the real `.ded1107-run.bak`;
+    * retake without `--replace`: refused;
+    * load: verified, then loaded (9 races, 87 entries);
+    * second load: refused (DB changed);
+    * `--replace` after the load: refused (card in DB), and the original
+      backup was kept.
+* **Nightly order from the next card:** load the previous chart →
+  `pre_race_backup.py` → `load_pp_card.py load` → `speed_figures_dpv1.py
+  compute` → `feature_builder_dpv1.py build` → `card_picks.py --pp-file …
+  --save`.
+* Earlier backups have no manifest. The first run for each track hashes the
+  most recent `-run.bak` instead (`.ded1107-run.bak` for DED).
 
 ### Follow-ups, not started
 

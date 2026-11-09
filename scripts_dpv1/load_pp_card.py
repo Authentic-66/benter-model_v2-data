@@ -726,6 +726,11 @@ def _cli() -> int:
         s.add_argument("pdf")
         s.add_argument("--track", default=None)
         s.add_argument("--db", default=str(DEFAULT_DB))
+        if name == "load":
+            # Pre-race backup guard (pre_race_backup.py). On by default for
+            # the live DB; --require-backup turns it on for any DB.
+            s.add_argument("--require-backup", action="store_true")
+            s.add_argument("--no-backup-check", action="store_true")
 
     s = sub.add_parser("remove")
     s.add_argument("--track", required=True)
@@ -776,6 +781,13 @@ def _cli() -> int:
         print("  and their predictions carry the same caveat as hand entry.")
 
     if args.cmd == "load":
+        if not args.no_backup_check and (
+                args.require_backup
+                or Path(args.db).resolve() == DEFAULT_DB.resolve()):
+            from pre_race_backup import verify_for_load
+            bak = verify_for_load(Path(args.db), card["track"],
+                                  card["race_date"])
+            print(f"pre-race backup verified: {bak}")
         summary = load_card(args.db, card)
         print(f"\nloaded: {summary['races']} races, {summary['entries']} "
               f"entries into {args.db}")
