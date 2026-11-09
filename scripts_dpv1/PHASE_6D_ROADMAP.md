@@ -7188,8 +7188,8 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
 
 ### 1.4 candidate (bundled 2026-11-08, not started)
 
-Doug, 2026-11-08: the four input changes below go into **one** candidate
-model, `dpv1.4`, in this order. They come out of "Queued after this". **None
+Doug, 2026-11-08: the input changes below (four on 11/08, item 5 added
+11/09) go into **one** candidate model, `dpv1.4`, in this order. They come out of "Queued after this". **None
 of them goes live on its own.** All four need **one retrain** of the
 current feature set on the changed inputs, then **a paired comparison
 against `dpv1.3.2-5track-stretch`** (same cards, same starters; #1 W, #1 ITM,
@@ -7232,12 +7232,33 @@ when it is built, and an OFF switch that reproduces 1.3.2's logged runs.
    last-race track, and how many of them item 1 already covers. Adding a
    track is a model-input change (track-keyed features would see races they
    did not see in training).
+5. **Same-day features as of start of day** (added 2026-11-09, Doug). Compute
+   `days_since_jockey_last_win` and `days_since_trainer_last_win` from wins
+   on dates **strictly before** the race date, the rule every other
+   connection feature already follows (`_prior_days_to_event` currently
+   reads earlier entry ids on the same day). Read-only audit:
+   `tracking/same_day_audit_2026-11-09.md`.
+   * **Rows affected.** In training these are NULL where a start-of-day value
+     exists on 35,192 rows (19.2%, jockey) and 15,323 rows (8.3%, trainer).
+     That is 90% and 68% of those features' training NULLs.
+   * **Those rows are hot connections.** ITM 43.6% and 46.1%, against 27-30%
+     for the other NULL rows. Their start-of-day value has a median of 4 and
+     6 days.
+   * **Own-race leak.** 2,690 trainer rows read a win by a stablemate in
+     **the same race**.
+   * **Live rows unchanged.** A card has no results when it is scored, so the
+     OFF switch reproduces 1.3.2 by construction. Live, the `__missing`
+     indicator means "no earlier win". In training it mostly meant "won
+     earlier today" (trainer missing coefficient −0.047).
+   * Every other jockey/trainer rate was recomputed as of start of day and
+     matched exactly (0 rows differ).
 
 Why bundled: items 2 and 3 change every speed figure, and with them
 `last_race_speed_figure`, track bias and the class/cross-track terms that
 use figures; items 1 and 4 change the inputs for the same shipper horses.
 Testing them one retrain at a time would cost four paired comparisons on
-the same small DED sample.
+the same small DED sample. Item 5 changes only training and charted rows (not
+live card rows) and rides on the same retrain.
 
 ### Queued after this (not started)
 
