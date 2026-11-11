@@ -1,2 +1,3 @@
 date,event,amount,balance
-2026-11-11,Opening balance as reported by Doug (after the 11/11 DED PP purchase; purchase amount not given),,69.57
+2026-11-11,Opening balance (before the 11/11 DED PP purchase; derived from the $69.57 reported after it),,73.42
+2026-11-11,DED 11/11 PP file purchase (refunded next day if at least $2 is wagered on the DED 11/11 card),-3.85,69.57
