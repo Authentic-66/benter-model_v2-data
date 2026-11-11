@@ -1,5 +1,8 @@
 # Incremental feature build, stage 7b-1 (closure recompute), 2026-11-08
 
+**Status (2026-11-11): big-backfill test passed; side-by-side wired
+(`incremental_side_by_side.py`, runbook C), first live run 11/12 (a seed).**
+
 **Status (2026-11-09): first-stage proofs done on the final code, all
 identical. Stopped for Doug's review.** It is not wired into the nightly
 flow; `feature_builder_dpv1.py build` is still the build of record. The
@@ -296,5 +299,48 @@ Replay of the real 11/05 load of 44 EVD/LAD charts, on a copy only.
 
 The live DB was not written (mtime checked). The scratch copies are deleted.
 
-**Still to do:** step 3, wiring the side-by-side into the card night (below,
-when done).
+## Side-by-side wiring (2026-11-11, step 3): code done, first live night 11/12
+
+**Tool:** `scripts_dpv1/incremental_side_by_side.py` (`run`, `status`). The
+runbook section is C. It runs after every full build of record and after
+card_picks. In order:
+
+1. It refuses unless the main table's recorded inputs equal the DB's.
+2. `feature_incremental.update` into `entry_features_dpv1_inc`. It seeds
+   with a full build the first time, and falls back with its reason.
+3. A cell-for-cell compare: ids, columns, values (NULL = NULL, floats
+   exact), stored types, and the table hash.
+4. With `--pp-file`, `card_picks` from both tables. This runs on a scratch
+   copy of the DB, with the side table swapped in, and logs to scratch. It
+   compares every logged field per horse except time, prediction id and
+   picks file.
+5. One row in `tracking/incremental_side_by_side.csv`, plus the streak.
+
+**Pass rule:** 14 clean nights in a row.
+* Clean = every row that night is an incremental update with 0 cells, 0
+  type or id differences, equal hash and 0 pick differences.
+* Any DIFF resets the count to 0 and exits 1 (report to Doug).
+* Seeds and fallbacks are logged; they neither count nor reset.
+
+The nightly full build is the full-rebuild check. `status` warns after 7
+days with no comparison. The purge (Step 1) also clears the side table's
+rows for a purged day, symmetric with the main table.
+
+**End-to-end test on a copy of the live DB** (11/11 card in, live untouched,
+copy deleted). Log: `incremental_build_2026-11-08/side_by_side_e2e_test_2026-11-11.csv`.
+Nights 11/12-11/14 are labels for simulated nights.
+
+| night | what | side mode | dirty / closure | cells | picks | result | streak |
+|---|---|---|---|---|---|---|---|
+| 11/11 | current live state | seed (full, 166 s) | - | 0 | 71, 0 diffs | seed | 0 |
+| (refusal) | 11/07 chart reloaded, no main build yet | - | - | - | - | REFUSED, nothing logged | - |
+| 11/12 | 11/07 chart reloaded over itself + main build | incremental 51 s | 146 / 88,799 | 0 | 75, 0 diffs | clean | 1 |
+| 11/13 | 11/11 card removed and reloaded (new ids) + main build | incremental 50 s | 71 / 87,029 | 0 | 71, 0 diffs | clean | 2 |
+| 11/14 | one side cell changed by hand (post_position) | none | 0 | **1** | - | **DIFF**, exit 1 | **0** |
+| 11/14 | `--reseed` | seed (full) | - | 0 | - | seed | 0 |
+
+**Live start.** The live DB has no side table yet; no live writes were
+allowed on 11/11. So the first live run, after the 11/12 card's full build,
+is a **seed** and does not count. The first counted night is the next full
+build after that. This is about 5-8 min a night, mostly two card_picks runs.
+The DB grows by one feature table.

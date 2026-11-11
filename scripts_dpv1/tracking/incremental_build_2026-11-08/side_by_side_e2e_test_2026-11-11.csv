@@ -1,0 +1,6 @@
+run_at,night,track,step,side_mode,reason,seeds_new,seeds_changed,seeds_removed,attr_only,dirty_rows,closure_rows,side_seconds,rows_main,rows_side,ids_only_main,ids_only_side,differing_cells,type_diffs,hash_equal,picks_rows,picks_diffs,result,streak,detail
+2026-11-11T18:17:57+00:00,2026-11-11,DED,card,full,no recorded build state in this DB,,,,,,,165.8,326341,326341,0,0,0,0,True,71,0,seed,0,
+2026-11-11T18:27:17+00:00,2026-11-12,DED,chart,incremental,ok,75,0,75,0,146,88799,50.9,326341,326341,0,0,0,0,True,75,0,clean,1,
+2026-11-11T18:36:47+00:00,2026-11-13,DED,card,incremental,ok,71,0,71,0,71,87029,49.5,326341,326341,0,0,0,0,True,71,0,clean,2,
+2026-11-11T18:40:36+00:00,2026-11-14,DED,weekly,none,no input changed,0,0,0,0,0,,10.7,326341,326341,0,0,1,0,False,,,DIFF,0,"{""cells"": {""post_position"": 1}}"
+2026-11-11T18:47:17+00:00,2026-11-14,DED,weekly,full,no recorded build state in this DB,,,,,,,164.5,326341,326341,0,0,0,0,True,,,seed,0,

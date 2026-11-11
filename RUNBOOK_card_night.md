@@ -60,6 +60,45 @@ python scripts_dpv1/card_picks.py --track DED --date 2026-11-10 --pp-file "Delta
 
 Always pass `--pp-file`; without it, P(ITM) changes.
 
+## C. Incremental side-by-side (after the picks are out; from 2026-11-12)
+
+Run after **every full build of record** (`feature_builder_dpv1.py build`),
+card night or chart night, once card_picks has saved. It does not change the
+picks or `entry_features_dpv1`.
+
+```
+python scripts_dpv1/incremental_side_by_side.py run --step card --track DED --date 2026-11-10 --pp-file "Delta Downs/ded-pps-files/ded1110y.pdf"
+```
+
+* `--step card` on a card night. On a night with a full build and no new
+  card (for example after a chart backfill), use `--step chart` and, with
+  `--pp-file`, the last card's date and PP file.
+* It takes about 5-8 min: the side update (about 50 s), the table compare,
+  and card_picks twice on a scratch copy of the DB (about 550 MB of free
+  disk space next to the DB, deleted afterwards).
+* It writes only the side table `entry_features_dpv1_inc` and its records
+  in the live DB, plus one row in
+  `scripts_dpv1/tracking/incremental_side_by_side.csv`. Commit that file with
+  the night's logs.
+
+**Good:** `0 differing cells, 0 type diffs, ids only main/side 0/0, hash
+equal True`, `picks: N rows, 0 diffs`, and `result: clean; streak K of 14`.
+
+* The first run (or a run after `--reseed`, a config change or a par refreeze)
+  says `seed` or `fallback`. Those are logged, but they don't count and don't
+  reset the streak.
+* `REFUSED: the full build of record is not current`: run
+  `feature_builder_dpv1.py build` first (nothing was logged).
+* `result: DIFF` (exit 1) resets the count to 0. **Report it to Doug** with
+  the `detail` column, and don't reseed until it is understood. After the
+  fix, use `run ... --reseed`.
+* **Pass:** 14 clean nights in a row. Doug then decides whether incremental
+  becomes the build of record.
+* **Weekly full-rebuild check:** every run compares against that night's
+  full build. `python scripts_dpv1/incremental_side_by_side.py status`
+  prints the streak, and it warns if no comparison has run for 7 days. In
+  that case, run a full build and then `run --step weekly`.
+
 ## If a check fails
 
 | Symptom | Do this |
