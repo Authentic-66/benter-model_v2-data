@@ -53,6 +53,10 @@ python scripts_dpv1/card_picks.py --track DED --date 2026-11-10 --pp-file "Delta
   plus tonight's starters.
 * card_picks writes the picks file and `snapshot -> ...`. Its header has no
   PP-reader WARNING.
+* The card_picks header names the model `dpv1.3.2-5track-stretch` (first
+  line: `DPv1 dpv1.3.2-5track-stretch — DED <date>`).
+* The card_picks header says `name matching: ON` (with the config line and
+  the alias / new-person counts).
 
 Always pass `--pp-file`; without it, P(ITM) changes.
 
@@ -68,6 +72,8 @@ Always pass `--pp-file`; without it, P(ITM) changes.
 | Speed: many timed cells not in the frozen pars | Stop and ask. Don't pass `--recompute-pars` on the live DB. |
 | Feature build error, or a row count off by more than the card | Stop. The live table was not replaced. Restore the `-run.bak` and ask. |
 | card_picks PP-reader WARNING | Re-run the load (step 2 of B), then card_picks. |
+| card_picks header shows another model than `dpv1.3.2-5track-stretch` | Stop. Don't use or send the picks. Check `scripts_dpv1/dpv1.pkl` and ask. |
+| card_picks header says `name matching: OFF` | Stop. Check `name_match_config.json` and that `BENTER_NAME_MATCH` is not set, then reload the card (B from the backup) and ask. |
 | Chart load: `errors` > 0, `FAILED` or `CHECK FAILED` | Restore `pre-...res.bak` and ask. Don't build the card on it. |
 | Chart load: `REFUSED` | Nothing was written. Read the reason: re-download a short chart; `--reload` only for a deliberate re-download over a chart; for "backup exists but the DB has changed", find out what wrote to the DB before moving the old backup aside. |
 
