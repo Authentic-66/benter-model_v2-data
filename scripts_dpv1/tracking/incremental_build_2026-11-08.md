@@ -266,6 +266,35 @@ pars recomputed as on the night (`fingerprint_proof.sh old|new|side`).
    the side update would have seen no change.
 3. The live DB was not written (mtime checked after every phase).
 
-**Still to do (Thursday):**
-* step 2, a big backfill test;
-* step 3, wiring the side-by-side into the card night.
+## Big-backfill test (2026-11-11, side-by-side step 2): PASSED
+
+Replay of the real 11/05 load of 44 EVD/LAD charts, on a copy only.
+
+* **Base:** `.pre-charts1105.bak` (320,156 entries). Pars were frozen on the
+  copy as `proof-1105`, then speed figures and a full build, which recorded
+  the state. `plan` said "no input changed".
+* **Load:** the same 44 files in the same order, with
+  `retrain_pipeline.load_charts` (new code). Result: 372 races, 2,948
+  entries, 1,962 exotics, 0 errors, 0 purged. This matches the PHASE_6E
+  record exactly. Speed figures were then computed with frozen pars (0 cells
+  missing).
+* **Plan:** seeds 2,948 new plus 613 attribute-only. They propagate in 5
+  rounds to 62,208 dirty rows, and the closure is the whole corpus (323,104).
+  So the result is mode `full` with reason "closure 323104 rows is over 60%
+  of 323104".
+  * `update --no-fallback` refused with that reason.
+  * `update` ran the full build, and `feature_build_log` holds the reason in
+    `note`.
+* **Fallback result vs a fresh full build:** 323,104 rows each, 131 columns,
+  0 differing cells, 0 type differences, same hash
+  (`cmp_backfill_fallback.json`).
+* **Extra: forced incremental** (`--max-frac 1.0 --no-fallback`) on the same
+  state. It recomputed the 62,208 dirty rows in 185 s, against 169 s for the
+  full build. The result is identical to the full build: 0 cells, same hash
+  (`cmp_backfill_forced.json`). So the dirty set is right on a 3,000-seed
+  backfill too, and the fallback costs nothing.
+
+The live DB was not written (mtime checked). The scratch copies are deleted.
+
+**Still to do:** step 3, wiring the side-by-side into the card night (below,
+when done).
