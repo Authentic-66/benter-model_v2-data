@@ -2029,6 +2029,42 @@ Write-up: `tracking/incremental_build_2026-11-08.md`.
   reload of an old day, and config change. Also for review: that same-day
   read is a mild same-day leak in training rows (not changed).
 
+### Code change, 2026-11-11: loading a chart over a loaded day refuses or purges
+
+**Doug, 2026-11-11 (Step 1). No model, input or output change. Live from
+the next load (11/12 morning results load).**
+
+**Which paths kept the card silently.** Every chart load ends in
+`db_loader.ingest_parsed_pdf`. Given a day that is already in the DB, it
+reuses the `race_days` row and each `races` row (`ingest_race_day` /
+`ingest_race` return the existing id), inserts entries with
+`INSERT OR IGNORE` on (race_id, program_num), and appends exotics. So:
+
+| path | before | now |
+|---|---|---|
+| `db_loader.py ingest` / `pipeline` (corpus loads) | **silent**: kept every card row, added no results, appended exotics, recorded the chart as a success | refuses that file (`REFUSED ...`, exit 2, nothing written, `parsed_files` untouched); `--replace` purges the day first and says so |
+| `retrain_pipeline.load_charts` (runbook via `load_chart.py`, every batch since 10/16, Piece 4) | purged only when the day had **entries**; a day with races and no entries kept its old race rows silently | purges any existing day; the line says what it replaced (`[replaced a pre-race card]` / `[replaced a chart]`) |
+| `_load_pending_results.py`, `_load_ct_backlog.py` (one-offs, not in use) | purge first (backlog: only when entries exist) | unchanged; the `ingest_parsed_pdf` refusal now stops the backlog case loudly |
+| `run_validation.py` | fresh DB | unchanged |
+
+Shown on a copy of `.pre-ded1107res.bak` (11/07 card loaded, 87 entries):
+* old `db_loader ingest` of the 11/07 chart: "1 ok, 9 races, 75 entries",
+  exit 0. The DB still had the 87 card entries, 0 with a finish, races
+  without final times, 46 exotics added, and `parsed_files` success = 1.
+* new: refused, exit 2, card and `parsed_files` unchanged. `--replace`:
+  purged (87 entries, 174 derived rows), then 75 entries all with a finish.
+* old `load_charts` on the 11/07 day with its entries removed: kept all 9
+  old race rows. New: purged and reloaded.
+
+**One purge.** `db_loader.purge_day` replaces the two copies
+(`retrain_pipeline.purge_card` now calls it). It deletes the entry-grain
+derived tables (as before, plus any `entry_features*` side table), entries,
+exotics, races and the day. It **refuses** if an entry-grain table it does
+not know exists. It keeps `feature_input_hashes` (the incremental build
+reads removed entries' keys from it) and `pp_entries_raw` (a pre-race card's
+PP rows have no `entry_id`; links from older PP rows into a purged chart day
+are counted and warned about).
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

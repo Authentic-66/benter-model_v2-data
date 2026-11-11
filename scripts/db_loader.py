@@ -1,8 +1,16 @@
 """Load parsed race JSON into the SQLite schema in db_schema.sql.
 
-Idempotent: dedupes horses/trainers/jockeys/owners/sires/dams by normalized
-name. Safe to re-run — UNIQUE constraints on (race_day, race_num) and
-(race_id, program_num) keep the fact tables clean.
+Dedupes horses/trainers/jockeys/owners/sires/dams by normalized name.
+
+**A day that is already in the DB is refused, not merged** (2026-11-11).
+``ingest_race_day``/``ingest_race`` return the existing row and entries go in
+with ``INSERT OR IGNORE`` on (race_id, program_num), so loading a chart over a
+pre-race card (or over an earlier copy of the chart) used to keep the old race
+and entry rows, add only new program numbers, append the exotics a second
+time, and report success. ``ingest_parsed_pdf`` now raises
+``DayAlreadyLoaded`` instead. To replace a day, purge it first:
+``purge_day`` here, ``--replace`` on ``ingest``/``pipeline``,
+``retrain_pipeline.load_charts`` or ``scripts_dpv1/load_chart.py``.
 
 Usage:
   # Initialize DB and ingest JSON sidecars produced by equibase_pdf_parser.py
@@ -389,8 +397,122 @@ class SkippedPDF(Exception):
     """
 
 
+class DayAlreadyLoaded(Exception):
+    """The chart's track and date are already in the DB (a pre-race card or
+    an earlier load). Loading over it would silently keep the old rows; purge
+    the day first (``purge_day``)."""
+
+
+SCHEDULED_TAG = "PP-SCHEDULED"   # race_days.source_pdf prefix of a pre-race card
+
+# Entry-grain tables a purge deletes from (rebuilt by the feature pipeline).
+# Any table whose name starts with "entry_features" is included as well
+# (incremental side tables such as entry_features_dpv1_inc).
+PURGE_DERIVED = ["entry_features_dpv1", "entry_features_v1", "entry_pp_features",
+                 "computed_speed_figures", "computed_speed_figures_dpv1",
+                 "entry_v10_flags"]
+# Entry-grain tables a purge deliberately leaves alone:
+# * feature_input_hashes: the incremental build reads the removed entries'
+#   recorded keys from it to know what the purge touched;
+# * pp_entries_raw: staged PP rows. A pre-race card's rows have no entry_id;
+#   links from older PP rows into a purged chart day are counted and reported.
+PURGE_KEEP = {"feature_input_hashes", "pp_entries_raw"}
+
+
+def day_status(conn: sqlite3.Connection, track_code: str, race_date: str) -> dict | None:
+    """What is loaded for (track, date): None, or kind/races/entries/source."""
+    row = conn.execute(
+        """SELECT rd.id, rd.source_pdf FROM race_days rd
+           JOIN tracks t ON t.id = rd.track_id
+           WHERE t.code = ? AND rd.race_date = ?""",
+        (track_code, race_date)).fetchone()
+    if row is None:
+        return None
+    n_races, n_entries, n_results = conn.execute(
+        """SELECT COUNT(DISTINCT r.id), COUNT(e.id), COUNT(e.finish_pos)
+           FROM races r LEFT JOIN entries e ON e.race_id = r.id
+           WHERE r.race_day_id = ?""", (row[0],)).fetchone()
+    source = row[1] or ""
+    return {"race_day_id": row[0], "source_pdf": source,
+            "kind": "pre-race card" if source.startswith(SCHEDULED_TAG) else "chart",
+            "races": n_races, "entries": n_entries, "with_finish": n_results}
+
+
+def purge_day(conn: sqlite3.Connection, track: str, date: str) -> dict:
+    """Remove one loaded day entirely: derived rows, entries, exotics, races,
+    the day. Raises if an entry-grain table it does not know about exists
+    (better than leaving its rows pointing at deleted entries)."""
+    tables = [r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table'")]
+    derived, unknown = [], []
+    for t in tables:
+        if t == "entries":
+            continue
+        cols = {r[1] for r in conn.execute(f'PRAGMA table_info("{t}")')}
+        if "entry_id" not in cols:
+            continue
+        if t in PURGE_DERIVED or t.startswith("entry_features"):
+            derived.append(t)
+        elif t not in PURGE_KEEP:
+            unknown.append(t)
+    if unknown:
+        raise RuntimeError(
+            f"purge refused: entry-grain table(s) {unknown} are not in "
+            f"db_loader.PURGE_DERIVED or PURGE_KEEP; decide what a purge does "
+            f"to them first")
+
+    entry_ids = [r[0] for r in conn.execute(
+        """SELECT e.id FROM entries e
+           JOIN races r      ON r.id  = e.race_id
+           JOIN race_days rd ON rd.id = r.race_day_id
+           JOIN tracks t     ON t.id  = rd.track_id
+           WHERE t.code = ? AND rd.race_date = ?""", (track, date))]
+    race_ids = [r[0] for r in conn.execute(
+        """SELECT r.id FROM races r
+           JOIN race_days rd ON rd.id = r.race_day_id
+           JOIN tracks t     ON t.id  = rd.track_id
+           WHERE t.code = ? AND rd.race_date = ?""", (track, date))]
+    day_ids = [r[0] for r in conn.execute(
+        """SELECT rd.id FROM race_days rd JOIN tracks t ON t.id = rd.track_id
+           WHERE t.code = ? AND rd.race_date = ?""", (track, date))]
+
+    counts = {"entries": len(entry_ids), "races": len(race_ids),
+              "race_days": len(day_ids), "derived": 0, "exotics": 0,
+              "pp_links_left": 0}
+    if entry_ids:
+        conn.execute("DROP TABLE IF EXISTS temp._purge_ids")
+        conn.execute("CREATE TEMP TABLE _purge_ids (id INTEGER PRIMARY KEY)")
+        conn.executemany("INSERT INTO temp._purge_ids VALUES (?)",
+                         [(i,) for i in entry_ids])
+        sub = "SELECT id FROM temp._purge_ids"
+        for tbl in derived:
+            counts["derived"] += conn.execute(
+                f'DELETE FROM "{tbl}" WHERE entry_id IN ({sub})').rowcount
+        if "pp_entries_raw" in tables:
+            counts["pp_links_left"] = conn.execute(
+                f"SELECT COUNT(*) FROM pp_entries_raw WHERE entry_id IN ({sub})"
+            ).fetchone()[0]
+        conn.execute(f"DELETE FROM entries WHERE id IN ({sub})")
+        conn.execute("DROP TABLE temp._purge_ids")
+    if race_ids:
+        q = ",".join("?" * len(race_ids))
+        counts["exotics"] = conn.execute(
+            f"DELETE FROM exotic_payouts WHERE race_id IN ({q})", race_ids).rowcount
+        conn.execute(f"DELETE FROM races WHERE id IN ({q})", race_ids)
+    if day_ids:
+        q = ",".join("?" * len(day_ids))
+        conn.execute(f"DELETE FROM race_days WHERE id IN ({q})", day_ids)
+    if counts["pp_links_left"]:
+        log.warning("purge %s %s: %d pp_entries_raw rows still point at the "
+                    "purged entries (re-link them with the PP matcher)",
+                    track, date, counts["pp_links_left"])
+    return counts
+
+
 def ingest_parsed_pdf(conn: sqlite3.Connection, parsed: dict[str, Any]) -> dict[str, int]:
-    """Top-level: insert one parsed-PDF dict into the DB. Returns counts."""
+    """Top-level: insert one parsed-PDF dict into the DB. Returns counts.
+
+    Raises ``DayAlreadyLoaded`` when the chart's day is already in the DB."""
     track_code = parsed.get("track_code")
     race_date = parsed.get("race_date")
     race_count = parsed.get("race_count", 0)
@@ -400,6 +522,14 @@ def ingest_parsed_pdf(conn: sqlite3.Connection, parsed: dict[str, Any]) -> dict[
             f"(track={track_code!r}, date={race_date!r}, races={race_count}): "
             f"{parsed.get('source_pdf')}"
         )
+    have = day_status(conn, track_code, race_date)
+    if have is not None:
+        raise DayAlreadyLoaded(
+            f"{track_code} {race_date} is already loaded as a {have['kind']} "
+            f"({have['races']} races, {have['entries']} entries; "
+            f"source {have['source_pdf']!r}). Loading over it would keep those "
+            f"rows. Purge the day first (scripts_dpv1/load_chart.py, "
+            f"retrain_pipeline.load_charts, or db_loader --replace).")
     track_id = get_or_create_track(conn, track_code, parsed.get("track_text"))
 
     # Weather summary uses first race that has one (most cards have one weather block).
@@ -483,10 +613,25 @@ def _cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
-def _ingest_one_json(conn: sqlite3.Connection, json_path: Path) -> tuple[bool, str | None, dict[str, int]]:
+def _replace_day(conn: sqlite3.Connection, parsed: dict[str, Any], replace: bool) -> None:
+    """With ``replace``, purge the chart's day first (and say so)."""
+    if not replace:
+        return
+    t, d = parsed.get("track_code"), parsed.get("race_date")
+    if t and d and day_status(conn, t, d) is not None:
+        have = day_status(conn, t, d)
+        purged = purge_day(conn, t, d)
+        log.warning("--replace: purged %s %s (%s, %d races, %d entries, %d derived "
+                    "rows) before loading", t, d, have["kind"], purged["races"],
+                    purged["entries"], purged["derived"])
+
+
+def _ingest_one_json(conn: sqlite3.Connection, json_path: Path,
+                     replace: bool = False) -> tuple[bool, str | None, dict[str, int]]:
     parsed = json.loads(json_path.read_text(encoding="utf-8"))
     try:
         with conn:  # transaction per PDF — rollback on error
+            _replace_day(conn, parsed, replace)
             counts = ingest_parsed_pdf(conn, parsed)
             warnings = []
             for r in parsed["races"]:
@@ -502,6 +647,11 @@ def _ingest_one_json(conn: sqlite3.Connection, json_path: Path) -> tuple[bool, s
                 warnings_json=json.dumps(warnings) if warnings else None,
             )
         return True, None, counts
+    except DayAlreadyLoaded as e:
+        # Refused: nothing written, and parsed_files is left as it was (a
+        # failure row here would overwrite the day's real success record).
+        log.error("REFUSED %s: %s", json_path.name, e)
+        return False, f"refused: {e}", {"races": 0, "entries": 0, "exotics": 0}
     except Exception as e:
         log.exception("ingest failed for %s", json_path)
         with conn:
@@ -538,7 +688,7 @@ def _cmd_ingest(args: argparse.Namespace) -> int:
     totals = {"races": 0, "entries": 0, "exotics": 0}
     t0 = time.perf_counter()
     for f in files:
-        ok, err, counts = _ingest_one_json(conn, f)
+        ok, err, counts = _ingest_one_json(conn, f, args.replace)
         if ok:
             n_ok += 1
             for k in totals:
@@ -612,6 +762,7 @@ def _cmd_pipeline(args: argparse.Namespace) -> int:
                 parsed = parser.parse_pdf(pdf)
                 cache_file.write_text(json.dumps(parsed, indent=2), encoding="utf-8")
             with conn:
+                _replace_day(conn, parsed, args.replace)
                 counts = ingest_parsed_pdf(conn, parsed)
                 warnings = [w for r in parsed["races"] for w in (r.get("warnings") or [])]
                 record_parsed_file(
@@ -630,6 +781,9 @@ def _cmd_pipeline(args: argparse.Namespace) -> int:
             if i % 25 == 0:
                 log.info("  progress: %d/%d  (%.1f PDFs/min)", i, len(pdfs),
                          (i / max(time.perf_counter() - t0, 1e-9)) * 60.0)
+        except DayAlreadyLoaded as e:
+            log.error("REFUSED %s: %s", pdf.name, e)
+            n_err += 1
         except SkippedPDF as e:
             log.info("SKIP %s: %s", pdf.name, e)
             with conn:
@@ -674,6 +828,8 @@ def main(argv: list[str] | None = None) -> int:
     p_ing.add_argument("--db", required=True)
     p_ing.add_argument("--json-dir", required=True)
     p_ing.add_argument("--limit", type=int, default=0)
+    p_ing.add_argument("--replace", action="store_true",
+                       help="purge a day that is already loaded, then load it")
     p_ing.set_defaults(func=_cmd_ingest)
 
     p_pipe = sub.add_parser("pipeline")
@@ -683,6 +839,9 @@ def main(argv: list[str] | None = None) -> int:
     p_pipe.add_argument("--cache", required=True)
     p_pipe.add_argument("--limit", type=int, default=0)
     p_pipe.add_argument("--force-parse", action="store_true")
+    p_pipe.add_argument("--replace", action="store_true",
+                        help="purge a day that is already loaded, then load it "
+                             "(default: refuse that file, exit 2)")
     p_pipe.add_argument(
         "--exclude", action="append", default=[],
         help="Skip PDFs under this path component (repeatable). e.g. --exclude gp-pps-files",

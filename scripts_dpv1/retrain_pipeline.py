@@ -21,6 +21,9 @@ the pipeline enforces all three.
    ``ingest_race_day``/``ingest_race`` return the *existing* row when the day
    is already present. Loading a chart onto a day already loaded as an upcoming
    card therefore silently drops every result row and reports success.
+   Since 2026-11-11 ``ingest_parsed_pdf`` refuses a day that is still loaded
+   (``DayAlreadyLoaded``), and ``load_charts`` purges any existing day, not
+   only days with entries.
 
 2. **Rebuild features after loading.** Purging a card cascades to
    ``entry_features_dpv1`` and ``computed_speed_figures_dpv1`` — they key on
@@ -227,87 +230,56 @@ def verify_label_guard(db: str, tracks: list[str]) -> dict:
 # ---------------------------------------------------------------------------
 
 def purge_card(conn: sqlite3.Connection, track: str, date: str) -> dict:
-    """Remove one loaded card entirely: derived rows, entries, races, day."""
-    DERIVED = ["entry_features_dpv1", "entry_features_v1", "entry_pp_features",
-               "computed_speed_figures", "computed_speed_figures_dpv1",
-               "entry_v10_flags"]
-    entry_ids = [r[0] for r in conn.execute(
-        """SELECT e.id FROM entries e
-           JOIN races r      ON r.id  = e.race_id
-           JOIN race_days rd ON rd.id = r.race_day_id
-           JOIN tracks t     ON t.id  = rd.track_id
-           WHERE t.code = ? AND rd.race_date = ?""", (track, date))]
-    race_ids = [r[0] for r in conn.execute(
-        """SELECT r.id FROM races r
-           JOIN race_days rd ON rd.id = r.race_day_id
-           JOIN tracks t     ON t.id  = rd.track_id
-           WHERE t.code = ? AND rd.race_date = ?""", (track, date))]
-    day_ids = [r[0] for r in conn.execute(
-        """SELECT rd.id FROM race_days rd JOIN tracks t ON t.id = rd.track_id
-           WHERE t.code = ? AND rd.race_date = ?""", (track, date))]
+    """Remove one loaded day entirely (``db_loader.purge_day``): derived rows,
+    entries, exotics, races, the day."""
+    import db_loader
+    return db_loader.purge_day(conn, track, date)
 
-    counts = {"entries": len(entry_ids), "races": len(race_ids),
-              "derived": 0, "exotics": 0}
-    if entry_ids:
-        q = ",".join("?" * len(entry_ids))
-        for tbl in DERIVED:
-            try:
-                counts["derived"] += conn.execute(
-                    f"DELETE FROM {tbl} WHERE entry_id IN ({q})", entry_ids).rowcount
-            except sqlite3.OperationalError:
-                pass
-        conn.execute(f"DELETE FROM entries WHERE id IN ({q})", entry_ids)
-    if race_ids:
-        q = ",".join("?" * len(race_ids))
-        counts["exotics"] = conn.execute(
-            f"DELETE FROM exotic_payouts WHERE race_id IN ({q})", race_ids).rowcount
-        conn.execute(f"DELETE FROM races WHERE id IN ({q})", race_ids)
-    if day_ids:
-        q = ",".join("?" * len(day_ids))
-        conn.execute(f"DELETE FROM race_days WHERE id IN ({q})", day_ids)
-    return counts
+
+def parse_chart(pdf: Path, cache: Path) -> dict:
+    """Parsed chart dict, from the cache when its sha256 matches the PDF."""
+    import equibase_pdf_parser as parser
+    cache.mkdir(parents=True, exist_ok=True)
+    cached = cache / (pdf.stem + ".json")
+    if cached.exists():
+        try:
+            cand = json.loads(cached.read_text(encoding="utf-8"))
+            if cand.get("file_sha256") == _sha(pdf):
+                return cand
+        except (json.JSONDecodeError, OSError):
+            pass
+    parsed = parser.parse_pdf(pdf)
+    cached.write_text(json.dumps(parsed, indent=2), encoding="utf-8")
+    return parsed
 
 
 def load_charts(conn: sqlite3.Connection, pdfs: list[Path],
                 cache: Path) -> dict:
-    """Parse and ingest charts, purging any day that is already populated."""
-    import db_loader
-    import equibase_pdf_parser as parser
+    """Parse and ingest charts, purging any day that is already loaded.
 
-    cache.mkdir(parents=True, exist_ok=True)
+    A day already in the DB (a pre-race card, an earlier copy of the chart,
+    or races with no entries) is purged first and the line says what was
+    replaced; ``db_loader.ingest_parsed_pdf`` refuses a day that is still
+    there, so nothing is merged. A file that is not a chart, or fails, counts
+    in ``errors`` / ``not_charts``."""
+    import db_loader
+
     totals = {"races": 0, "entries": 0, "exotics": 0, "purged_entries": 0,
-              "cards": 0, "errors": 0}
+              "cards": 0, "errors": 0, "not_charts": 0}
     detail = []
     for pdf in pdfs:
         try:
-            cached = cache / (pdf.stem + ".json")
-            parsed = None
-            if cached.exists():
-                try:
-                    cand = json.loads(cached.read_text(encoding="utf-8"))
-                    if cand.get("file_sha256") == _sha(pdf):
-                        parsed = cand
-                except (json.JSONDecodeError, OSError):
-                    parsed = None
-            if parsed is None:
-                parsed = parser.parse_pdf(pdf)
-                cached.write_text(json.dumps(parsed, indent=2), encoding="utf-8")
+            parsed = parse_chart(pdf, cache)
 
             track, date = parsed.get("track_code"), parsed.get("race_date")
             if not track or not date or not parsed.get("race_count"):
+                totals["not_charts"] += 1
                 log.warning("%s is not a result chart, skipped", pdf.name)
                 continue
             parsed["source_pdf"] = str(pdf.relative_to(REPO)).replace("/", "\\")
 
-            existing = conn.execute(
-                """SELECT COUNT(*) FROM entries e
-                   JOIN races r      ON r.id  = e.race_id
-                   JOIN race_days rd ON rd.id = r.race_day_id
-                   JOIN tracks t     ON t.id  = rd.track_id
-                   WHERE t.code = ? AND rd.race_date = ?""",
-                (track, date)).fetchone()[0]
-
             with conn:
+                existing = db_loader.day_status(conn, track, date)
                 purged = purge_card(conn, track, date) if existing else None
                 counts = db_loader.ingest_parsed_pdf(conn, parsed)
                 warnings = [w for r in parsed["races"]
@@ -326,10 +298,12 @@ def load_charts(conn: sqlite3.Connection, pdfs: list[Path],
                 totals["purged_entries"] += purged["entries"]
             detail.append({"pdf": pdf.name, "track": track, "date": date,
                            "races": counts["races"], "entries": counts["entries"],
-                           "purged": purged["entries"] if purged else 0})
+                           "purged": purged["entries"] if purged else 0,
+                           "replaced": existing["kind"] if existing else None})
             print(f"  {pdf.name:<45} {track} {date}  "
                   f"+{counts['races']}r {counts['entries']}e"
-                  + (f"  (purged {purged['entries']} first)" if purged else ""))
+                  + (f"  (purged {purged['entries']} first)" if purged else "")
+                  + (f" [replaced a {existing['kind']}]" if existing else ""))
         except Exception as exc:  # noqa: BLE001 - one bad chart must not abort
             totals["errors"] += 1
             log.warning("%s failed to load: %s", pdf.name, exc)
@@ -669,7 +643,8 @@ def _cli() -> int:
             loaded = load_charts(conn, pending, REPO / "scripts" / "ct_cache")
             t = loaded["totals"]
             print(f"\n  loaded {t['cards']} card(s): +{t['races']} races, "
-                  f"+{t['entries']} entries, {t['errors']} error(s)")
+                  f"+{t['entries']} entries, {t['errors']} error(s), "
+                  f"{t['not_charts']} not a chart")
             if t["purged_entries"]:
                 print(f"  purged {t['purged_entries']} stale entries first")
     finally:

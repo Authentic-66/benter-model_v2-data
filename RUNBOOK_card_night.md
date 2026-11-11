@@ -17,8 +17,10 @@ python scripts_dpv1/tracking/watch_people_tally.py
   and entries match the chart; M is the card's starters.
 * The totals show `"errors": 0`.
 
-`load_chart.py` purges the pre-race card and then loads the chart. Loading a
-chart over a card any other way silently keeps the card.
+`load_chart.py` purges the pre-race card and then loads the chart. Since
+2026-11-11 no load path keeps a card silently: `db_loader.py ingest` /
+`pipeline` refuse a day that is already loaded (exit 2) unless given
+`--replace` (PHASE_6E "Code change, 2026-11-11").
 
 ## B. Card build
 
