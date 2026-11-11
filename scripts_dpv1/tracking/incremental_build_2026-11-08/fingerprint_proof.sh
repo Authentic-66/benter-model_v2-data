@@ -38,7 +38,7 @@ PY
   python "$N/feature_builder_dpv1.py" build --db "$A" --table entry_features_dpv1_inc 2>&1 | grep -o "done.*\|Error.*"
   python "$N/feature_builder_dpv1.py" build --db "$A" 2>&1 | grep -o "done.*\|Error.*"
   echo "side plan after a main full build (must be none):"; python "$N/feature_incremental.py" plan --db "$A" --table entry_features_dpv1_inc 2>&1 | tail -1
-  python "$R/scripts_dpv1/tracking/incremental_build_2026-11-08/load_chart.py" "$A" "$R/Delta Downs/ded-results-2026/DED110726USA.pdf" "$S/cache" | tail -1
+  python "$N/load_chart.py" "$R/Delta Downs/ded-results-2026/DED110726USA.pdf" --db "$A" --cache "$S/cache" | tail -1
   python "$N/speed_figures_dpv1.py" compute --db "$A" --par-version proof-fp 2>&1 | grep -o "Pars:.*"
   python "$N/feature_builder_dpv1.py" build --db "$A" 2>&1 | grep -o "done.*\|Error.*"
   echo "side update after the 11/07 chart AND a main full build (nightly order):"; python "$N/feature_incremental.py" update --db "$A" --table entry_features_dpv1_inc --no-fallback 2>&1 | tail -1

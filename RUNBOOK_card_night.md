@@ -6,21 +6,31 @@ card, after the 11/09 races. Change the track, the dates and the file names.
 ## A. Results load (previous card's chart), first
 
 ```
-Copy-Item scripts\racing_full.db scripts\racing_full.db.pre-ded1109res.bak
-python scripts_dpv1/tracking/incremental_build_2026-11-08/load_chart.py scripts/racing_full.db "Delta Downs/ded-results-2026/DED110926USA.pdf" scripts/ct_cache
+python scripts_dpv1/load_chart.py "Delta Downs/ded-results-2026/DED110926USA.pdf"
 python scripts_dpv1/score_predictions.py --track DED --date 2026-11-09
 python scripts_dpv1/tracking/watch_people_tally.py
 ```
 
-**Good:**
-* the chart load prints one line ending `+Nr Ne (purged M first)`. N races
-  and entries match the chart; M is the card's starters.
-* The totals show `"errors": 0`.
+`load_chart.py` takes and checks its own backup
+(`scripts\racing_full.db.pre-ded1109res.bak` + `.json`), purges the pre-race
+card and loads the chart (`retrain_pipeline.load_charts`, the same path as
+every chart since 10/16). No `Copy-Item` needed.
 
-`load_chart.py` purges the pre-race card and then loads the chart. Since
-2026-11-11 no load path keeps a card silently: `db_loader.py ingest` /
-`pipeline` refuse a day that is already loaded (exit 2) unless given
-`--replace` (PHASE_6E "Code change, 2026-11-11").
+**Good:**
+* `backup verified: racing_full.db.pre-ded1109res.bak`.
+* One line ending `+Nr Ne (purged M first) [replaced a pre-race card]`.
+  N races and entries match the chart; M is the card's entries.
+* The totals show `"errors": 0`, and the last line is
+  `loaded: DED <date> N races, E entries, E with a finish; replaced a
+  pre-race card of M entries`.
+
+It refuses and writes nothing (`REFUSED: ...`) if the file is not a chart,
+its header and file-name dates disagree, the track is not in the DB, the day
+already holds a chart (`--reload` to replace one, e.g. a re-download), the
+chart has fewer races than the card (truncated), or an existing backup no
+longer matches the DB. Since 2026-11-11 no load path keeps a card silently:
+`db_loader.py ingest` / `pipeline` refuse a day that is already loaded
+(exit 2) unless given `--replace` (PHASE_6E "Code change, 2026-11-11").
 
 ## B. Card build
 
@@ -58,7 +68,8 @@ Always pass `--pp-file`; without it, P(ITM) changes.
 | Speed: many timed cells not in the frozen pars | Stop and ask. Don't pass `--recompute-pars` on the live DB. |
 | Feature build error, or a row count off by more than the card | Stop. The live table was not replaced. Restore the `-run.bak` and ask. |
 | card_picks PP-reader WARNING | Re-run the load (step 2 of B), then card_picks. |
-| Chart load: `errors` > 0, or entries far from the chart | Restore `pre-...res.bak` and ask. Don't build the card on it. |
+| Chart load: `errors` > 0, `FAILED` or `CHECK FAILED` | Restore `pre-...res.bak` and ask. Don't build the card on it. |
+| Chart load: `REFUSED` | Nothing was written. Read the reason: re-download a short chart; `--reload` only for a deliberate re-download over a chart; for "backup exists but the DB has changed", find out what wrote to the DB before moving the old backup aside. |
 
 Restore = `Copy-Item <backup> scripts\racing_full.db` (close every other
 program using the DB first).

@@ -2065,6 +2065,39 @@ reads removed entries' keys from it) and `pp_entries_raw` (a pre-race card's
 PP rows have no `entry_id`; links from older PP rows into a purged chart day
 are counted and warned about).
 
+### Procedure change, 2026-11-11: official chart loader `scripts_dpv1/load_chart.py`
+
+**Doug, 2026-11-11 (Step 2). No model, input or output change. First live
+use: the 11/12 morning results load.**
+
+* Replaces `tracking/incremental_build_2026-11-08/load_chart.py` (removed;
+  the replay harness now calls the new one). Same load path:
+  `retrain_pipeline.load_charts`.
+* **Checked backup**, like `load_pp_card`: on the live DB (or with
+  `--require-backup`) it copies the DB to `racing_full.db.pre-<trk><MMDD>res.bak`,
+  checks the copy's sha256 equals the DB and `integrity_check`, and writes a
+  manifest `.json`. An existing backup is reused only while its sha256 still
+  equals the DB. `--no-backup-check` skips this.
+* **No silent fallback; refuses and writes nothing** when the file is not a
+  chart, header and file-name dates disagree, the track is unknown (would be
+  created), the day already holds a chart (`--reload` to replace), the chart
+  has fewer races than the card, or the existing backup no longer matches.
+  After the load it checks races and entries against the chart (`FAILED` /
+  `CHECK FAILED` otherwise).
+* **Proof, on copies of `.pre-ded1107res.bak` (11/07 card in, 87 entries):**
+  * new loader: backup taken (byte-identical to `.pre-ded1107res.bak`),
+    purged 87, loaded 9 races / 75 entries, all with a finish;
+  * old path (HEAD `retrain_pipeline` + `db_loader`, as the test-folder
+    script ran it for the 11/07 scoring): **all 25 tables identical** to the
+    new loader's DB (`parsed_files.parsed_at` ignored);
+  * and the new loader's race_days, races, entries, exotic_payouts, horses,
+    sires, dams, jockeys, trainers, owners, tracks and parsed_files equal the
+    real record `.ded1111-run.bak` (taken after CC's 11/07 load);
+  * refusals checked: chart over chart, `--reload`, stale backup, backup
+    taken before a change, a PP file, a 7-race chart for the 9-race card,
+    header/file-name date mismatch.
+* Runbook section A uses it; the hand `Copy-Item` backup step is gone.
+
 ### Follow-ups, not started
 
 Queued 2026-08-31. None of these are Phase 6E work; Phase 6E is complete.

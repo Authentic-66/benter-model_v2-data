@@ -34,7 +34,7 @@ case $1 in
   t python "$N/load_pp_card.py" load "$R/Delta Downs/ded-pps-files/ded$2y.pdf" --db "$A" 2>&1 | grep -o "^loaded.*"
   t speed "$A"; t inc ;;
  chart)
-  t python "$H/load_chart.py" "$A" "$R/Delta Downs/ded-results-2026/DED${2}26USA.pdf" "$S/s6/cache"
+  t python "$N/load_chart.py" "$R/Delta Downs/ded-results-2026/DED${2}26USA.pdf" --db "$A" --cache "$S/s6/cache" --reload
   t speed "$A"; t inc ;;
  adv)
   t python "$H/adv_edit.py" "$A" "$S/s6/stash" "$2"
