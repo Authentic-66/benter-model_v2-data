@@ -32,6 +32,31 @@ longer matches the DB. Since 2026-11-11 no load path keeps a card silently:
 `db_loader.py ingest` / `pipeline` refuse a day that is already loaded
 (exit 2) unless given `--replace` (PHASE_6E "Code change, 2026-11-11").
 
+### After the load: scoring checklist (added 2026-11-13)
+
+Fill these for the scored card (all in `scripts_dpv1/tracking/`), then write
+`DED_<date>_review.md` (same layout as the last review) and commit:
+
+* `reranker_changes.csv`: base1/rr1 finish and `both_ran` for the rows
+  logged pre-race; put the race's P(ITM) log loss (base vs reranked) in the
+  note.
+* `high_conf_top1.csv`: grade the pre-race rows (final odds, official
+  finish, $2 win/place; 0 on a loss).
+* `consensus_top1.csv`: one row per post-scratch three-way #1.
+* `top_pick_data_issues.csv`: one row per post-scratch #1.
+* `late_jockey_changes.csv`: one row per PP rider who did not ride (compare
+  the chart's jockeys against `pp_entries_raw.pp_jockey`).
+* `doug_bets.csv` + `bankroll.csv`: Doug's bets, with non-DED tracks kept
+  out of DED scoring and the replay; check the rebate (at least $2 on the
+  DED card).
+* `ticket_replay.py` to a scratch file first. Check that every earlier row
+  is unchanged and that one card adds 34 rows. Count data rows, not file
+  lines: the header made the 11/07 and 11/11 notes one too high.
+
+Gotcha: the missing-last-race check, if run after the chart load, lists the
+scratched DED horses as "chart loaded, horse not matched". They were purged
+with the card, so that is not a data gap. Judge only the starters.
+
 ## B. Card build
 
 ```
