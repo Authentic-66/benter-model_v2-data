@@ -360,6 +360,9 @@ No Devin Magnon, Rylee Magnon or Calhoun starters. Meet tally after 11/12
    is 7 of 40 under the review rule, judged on ITM and log loss, not wins.
 4. **Bankroll:** the 11/12 PP purchase is logged at an assumed $3.85, and the
    11/11 $0.03 gap is still open. Ask Doug for a TwinSpires balance.
+   *Resolved 11/13:* Doug confirmed the $3.85 purchase; both rebates landed
+   and the balance after them ($74.60) matches bankroll.csv exactly, so the
+   -$0.03 reconcile row stands and the gap is closed.
 
 ## Queued (not started)
 

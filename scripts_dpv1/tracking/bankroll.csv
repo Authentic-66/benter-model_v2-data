@@ -5,7 +5,10 @@ date,event,amount,balance
 2026-11-11,DED 11/11 R6 superfecta wheel stake,-3.60,63.97
 2026-11-11,"DED 11/11 R6 superfecta wheel payout (5-1-3-6, $9.06)",9.06,73.03
 2026-11-11,"Reconcile to reported TwinSpires balance after the night ($73.00, before the rebate); unexplained -$0.03, ask Doug",-0.03,73.00
-2026-11-12,"DED 11/12 PP file purchase (ded1112y.pdf, used for the 11/12 card; refunded next day if at least $2 is wagered on the DED 11/12 card). Not reported separately; assumed $3.85 like 11/11, confirm with Doug",-3.85,69.15
+2026-11-12,"DED 11/12 PP file purchase (ded1112y.pdf, used for the 11/12 card; refunded next day if at least $2 is wagered on the DED 11/12 card). Confirmed by Doug 11/13 ($3.85)",-3.85,69.15
 2026-11-12,"DED 11/12 R4-R5 daily double stake (2,4 / 4,7, 4 x $1)",-4.00,65.15
 2026-11-12,CT 11/12 R1 superfecta wheel stake (lost),-1.80,63.35
 2026-11-12,"DED 11/12 R4-R5 daily double payout (2-4, $7.40)",7.40,70.75
+2026-11-13,"DED 11/13 PP file purchase (ded1113y.pdf, used for the 11/13 card; refunded next day if at least $2 is wagered on the DED 11/13 card)",-3.85,66.90
+2026-11-13,"DED 11/11 PP rebate (11/11 DED wagering qualified)",3.85,70.75
+2026-11-13,"DED 11/12 PP rebate (11/12 DED wagering $4.00 qualified). Balance matches TwinSpires $74.60 reported by Doug 11/13; the 11/11 -$0.03 reconcile row is confirmed and that gap is resolved",3.85,74.60
