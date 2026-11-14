@@ -1,0 +1,18 @@
+{
+ "track": "DED",
+ "card_date": "2026-11-14",
+ "backup": "racing_full.db.ded1114-run.bak",
+ "created_utc": "2026-11-14T14:29:38+00:00",
+ "sha256": "5b01b5aa6838d2bc26351a8bb4f84d9e58dc5bf31c27f2ac85be89b4dd0bbc6c",
+ "integrity": "ok",
+ "card_rows_in_backup": {
+  "entries": 0,
+  "pp_entries_raw": 0
+ },
+ "previous_backup": "racing_full.db.ded1113-run.bak",
+ "previous_sha256": "649513d86515a291a20be4ef4fc9a4d41f34951f89160493f1616609f9fba325",
+ "previous_card": {
+  "date": "2026-11-13",
+  "results_loaded": true
+ }
+}
