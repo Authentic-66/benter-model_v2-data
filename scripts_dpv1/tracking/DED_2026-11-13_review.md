@@ -17,9 +17,8 @@ Piece 1–4 code.
   in `don_picks.csv` (blank picks, note); `ticket_replay.py` now skips a
   source's race with no picks. **No consensus races this card.**
 * **Doug:** picks taken from `DED_Picks.xlsx`, sheet "DED 11.13.26", and
-  logged at scoring. The workbook was last saved 11/13 16:54 CST; the chart
-  gives R1 off at 4:45. **Before-post timing is not confirmed** (it doesn't
-  matter for consensus tonight, but it is noted in `doug_picks.csv`).
+  logged at scoring. **Valid, all made before post** (Doug, 11/14): R1–R2
+  at 4:34 PM (R1 off 4:45), R3–R9 at 4:55 PM (before R2, off 5:13).
 * **Scratches (Doug's list, all confirmed by the chart):** R3 #10 Acadian
   Skies (vet), #11 Unosailor (also-eligible), #12 Chainsaw Man
   (also-eligible); R9 #3 Lil J. Henry (vet), #11 One Sure Hit
@@ -368,15 +367,62 @@ logged record runs only):
    at 55.8-1. The model keeps pricing him because he is still on the PP.
 2. **An unlisted late jockey change on the base #1:** R4 #2 Skenes Crews
    (Colby Hernandez → Juan Vargas, 1.2-1 fav, 4th). Doug's list didn't have
-   it; the chart-vs-PP comparison did.
+   it; the chart-vs-PP comparison did. *Doug 11/14:* keep it in
+   `late_jockey_changes.csv` (row kept).
 3. **Possible trainer alias:** PP "Garcia J. Luis" vs chart "Garcia, J."
    (128 starts). The reranked R1 #1 ran without trainer history. Doug decides
-   whether it goes into `name_aliases.csv`.
+   whether it goes into `name_aliases.csv`. *Read-only check 11/14 (nothing
+   added yet):* see "Garcia alias check" below.
 4. **Doug's 11/13 picks** came from the workbook, last saved 16:54 CST, and
    the chart's R1 off time is 4:45. Please confirm they were made before
-   post.
+   post. *Resolved 11/14:* Doug confirmed all were made before post (R1–R2
+   4:34 PM, R3–R9 4:55 PM, before R2); marked valid in `doug_picks.csv`.
 5. **The model_health last-28 ITM alert is on again** (78.6%). It is a hot
-   run on pre-race record runs, as checked on 11/05.
+   run on pre-race record runs, as checked on 11/05. *Doug 11/14:* noted, no
+   action.
+
+## Garcia alias check (2026-11-14, read-only)
+
+**(a) One trainer.** Before 11/13, "Garcia, J." (trainer id 2456) had 128
+starts:
+
+| track | starts | dates |
+|---|---|---|
+| DED | 40 | 2021-01-20 – 2026-10-16 |
+| EVD | 20 | 2022-06-04 – 2025-08-28 |
+| FG | 14 | 2021-11-27 – 2025-03-04 |
+| LAD | 54 | 2022-05-10 – 2026-05-25 |
+
+That is 10–33 starts a year from 2021 to 2026, which looks like one Louisiana
+circuit stable. **120 of the 128 starts are for one owner, Melissa
+Cantacuzene.** Of the rest, 4 are for "Fairchild, Amy and **Garcia, Jose
+Luis**", 3 for Amy Fairchild and 1 for Jose L. Gomez. The "Jose Luis Garcia"
+owner line ties "Garcia, J." to the PP's "Garcia J. Luis". **My Happy Dance's
+only earlier start (DED 10/16 R3, 6th) was trained by "Garcia, J."** for
+Melissa Cantacuzene, and the chart gives the same trainer and owner on 11/13.
+The PP spelled him "Garcia J. Luis" on both of her cards (10/16 and 11/13),
+and on no other PP card in `pp_entries_raw`.
+
+A different "Garcia, Jose" (id 2486, 8 starts, DED/EVD 2021–2024, owners
+Black Diamond LLC and KK Horse Racing) is a separate record. The alias
+would not touch it.
+
+**(b) No change to built rows, so the streak would not reset.**
+* No entry uses the PP-only trainer record "Garcia J. Luis" (id 2892) now.
+  The 11/13 chart load replaced the card entry with the chart's trainer
+  2456. Every existing `entries.trainer_id` stays as it is, so no
+  `entry_features_dpv1` row changes.
+* The alias is read only by `name_match.py` while `load_pp_card.py` loads a
+  new PP card. It changes which trainer id a future card's entries get.
+  Both the full build and the side table read the same entries, so both
+  see the same change.
+* `name_aliases.csv` is not part of the feature build version
+  (`feature_incremental.build_version` hashes the feature config, the
+  feature code files and the pandas/numpy versions). Adding a row does not
+  force a seed or fallback.
+* So the next side-by-side should still compare clean and count toward the
+  14. The only effect: when Garcia next has a PP starter, the model gets his
+  trainer history (129 starts) instead of the "new trainer" prior.
 
 ## Queued (not started)
 
