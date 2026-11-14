@@ -2,8 +2,10 @@
 
 Run after ``load_pp_card.py load``: it reads the card's staged rows in
 ``pp_entries_raw`` and prints every race with an entry whose horse, trainer
-or jockey is on ``tracking/watch_list.csv`` (status ``active``). Read-only; it
-writes nothing.
+or jockey is on ``tracking/watch_list.csv`` (status ``active``). The DB is
+opened read-only. Each run appends one line to ``logs/watch_list_checks.jsonl``
+(UTC time, track/date asked for, cards and entries checked, the hits), so the
+card-night check can confirm the step ran; ``--no-log`` skips it.
 
     python scripts_dpv1/tracking/check_watch_list.py --track DED --date 2026-10-17
 
@@ -23,11 +25,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import re
 import sqlite3
 import sys
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -35,6 +38,7 @@ sys.path.insert(0, str(HERE.parent))
 from dpv1_runtime import DEFAULT_DB  # noqa: E402
 
 WATCH_LIST = HERE / "watch_list.csv"
+RUN_LOG = HERE.parent / "logs" / "watch_list_checks.jsonl"
 _SUFFIXES = {"jr", "sr", "ii", "iii", "iv"}
 
 
@@ -111,14 +115,35 @@ def check(db: str | Path, track: str | None, race_date: str | None):
     return rows, hits
 
 
+def log_run(a, rows, cards, hits, path: Path = RUN_LOG) -> None:
+    """Append one JSON line recording this run (the only file it writes)."""
+    rec = {
+        "run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "track": a.track, "date": a.date, "db": str(Path(a.db).resolve()),
+        "watch_list_active": len(load_watch_list()),
+        "cards": [f"{t} {d}" for t, d in cards], "entries_checked": len(rows),
+        "races_with_hits": len({(r[0], r[1], r[2]) for r, _ in hits}),
+        "hits": [{"track": r[0], "date": r[1], "race": r[2], "pgm": r[3],
+                  "horse": r[4], "why": [f"{w['type']} {w['name']}" for w in h]}
+                 for r, h in hits],
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a", encoding="utf-8", newline="\n") as fh:
+        fh.write(json.dumps(rec) + "\n")
+
+
 def _cli() -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("--track")
     p.add_argument("--date", help="YYYY-MM-DD; default: every card dated today or later")
     p.add_argument("--db", default=str(DEFAULT_DB))
+    p.add_argument("--no-log", action="store_true",
+                   help=f"don't append the run to {RUN_LOG.name}")
     a = p.parse_args()
     rows, hits = check(a.db, a.track, a.date)
     cards = sorted({(r[0], r[1]) for r in rows})
+    if not a.no_log:
+        log_run(a, rows, cards, hits)
     print(f"checked {len(rows)} entries on {len(cards)} card(s): "
           + (", ".join(f"{t} {d}" for t, d in cards) or "none staged"))
     if not hits:
