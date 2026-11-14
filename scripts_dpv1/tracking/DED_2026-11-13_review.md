@@ -13,9 +13,12 @@ Piece 1–4 code.
 * **Picks:** model logged 07:32 CST (`45f4954`). The three high-confidence
   qualifiers (R4, R5, R6) and the three reranker #1 changes (R1, R4, R6)
   were logged with the card.
-* **Don: no picks received** (no POD, EP4 or LP4 either). Logged as missing
-  in `don_picks.csv` (blank picks, note); `ticket_replay.py` now skips a
-  source's race with no picks. **No consensus races this card.**
+* **Don: picks posted on X on 11/14, after the results** (picks, POD, EP4,
+  LP4). Don makes his picks days ahead, so **on Doug's confirmation they are
+  treated as pre-race** and scored; every row carries the note "posted after
+  results; counted on Doug's confirmation". They replace the MISSING rows
+  logged at scoring. (Before that: logged as missing; `ticket_replay.py`
+  skips a source's race with no picks.) **Consensus: R5 and R6.**
 * **Doug:** picks taken from `DED_Picks.xlsx`, sheet "DED 11.13.26", and
   logged at scoring. **Valid, all made before post** (Doug, 11/14): R1–R2
   at 4:34 PM (R1 off 4:45), R3–R9 at 4:55 PM (before R2, off 5:13).
@@ -24,7 +27,10 @@ Piece 1–4 code.
   (also-eligible); R9 #3 Lil J. Henry (vet), #11 One Sure Hit
   (also-eligible), #12 Biblical Stones (also-eligible). **No others.** R9 #11
   was the model's 2nd and R3 #11 its 4th; none was anyone's #1. Doug lost his
-  R9 3rd pick (#3).
+  R9 3rd pick (#3). **Don lost his R3 2nd pick (#11 Unosailor) and his R9 3rd
+  pick (#11 One Sure Hit)**, both also-eligibles, so he has three picks in R3
+  and R9 (no alt given). #11 was also in his EP4 R3 leg (substitute: the
+  post-time favourite, #7 Stormin' Starfist, 5th).
 * **Late jockey changes** (chart riders compared with
   `pp_entries_raw.pp_jockey`):
   * **Javier Antonio Hernandez off all three mounts, the third night
@@ -263,28 +269,35 @@ R1 #5 Nic Sweet Time (65%, 5th), R3 #2 Brother Ron (53%, **won**), #3
 Pocketnaut (53%, 6th), #5 The Wicked Outlaw (53%, **3rd**), #9 Get Back Jack
 (53%, 7th), R8 #2 Bombacha Veloz (55%, 4th).
 
-## Benchmarks: Doug (Don sent no picks)
+## Benchmarks: Don and Doug (Don added 11/14)
 
 * Doug's picks were all regular picks (no passes, no best guesses). He lost
   his R9 3rd pick (#3, scratched), so R9 has three.
 * Doug's #1 = the model's #1 in R2, R3, R5, R6, R7.
+* Don's #1 = the model's #1 in R5, R6, R8, and = Doug's #1 in R4, R5, R6,
+  R9. Don's R3 #1 #6 Heat of Battle unseated his rider (DNF).
 
-| R | Doug | Doug #1 fin | Doug overlap | model | model #1 fin | model overlap |
-|---|---|---|---|---|---|---|
-| 1 | 3-1-2-4 | **2nd** | **3/3** | 1-3-4-6 | **3rd** | 2/3 |
-| 2 | 3-4-2-6 | **1st** | 1/3 | 3-6-1-7 | **1st** | 2/3 |
-| 3 | 7-6-8-3 | 5th | 0/3 | 7-4-5-6 | 5th | 2/3 |
-| 4 | 7-2-1-5 | **1st** | 2/3 | 1-2-4-6 | **2nd** | 1/3 |
-| 5 | 2-5-6-1 | 7th | 1/3 | 2-1-3-7 | 7th | 2/3 |
-| 6 | 1-4-7-8 | **2nd** | 2/3 | 1-4-7-8 | **2nd** | 2/3 |
-| 7 | 2-6-1-3 | **1st** | 1/3 | 2-1-3-4 | **1st** | 2/3 |
-| 8 | 1-6-8-2 | **3rd** | 2/3 | 6-8-1-7 | **2nd** | 2/3 |
-| 9 | 9-6-2 | **1st** | **3/3** | 6-9-2-1 | **3rd** | **3/3** |
+| R | Don | Don #1 fin | Don overlap | Doug | Doug #1 fin | Doug overlap | model | model #1 fin | model overlap |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 7-3-5-6 | 4th | 1/3 | 3-1-2-4 | **2nd** | **3/3** | 1-3-4-6 | **3rd** | 2/3 |
+| 2 | 4-3-6-7 | 4th | 2/3 | 3-4-2-6 | **1st** | 1/3 | 3-6-1-7 | **1st** | 2/3 |
+| 3 | 6-5-7 | DNF | 1/3 | 7-6-8-3 | 5th | 0/3 | 7-4-5-6 | 5th | 2/3 |
+| 4 | 7-4-2-1 | **1st** | 1/3 | 7-2-1-5 | **1st** | 2/3 | 1-2-4-6 | **2nd** | 1/3 |
+| 5 | 2-5-7-6 | 7th | 1/3 | 2-5-6-1 | 7th | 1/3 | 2-1-3-7 | 7th | 2/3 |
+| 6 | 1-4-7-3 | **2nd** | 2/3 | 1-4-7-8 | **2nd** | 2/3 | 1-4-7-8 | **2nd** | 2/3 |
+| 7 | 6-2-7-5 | 6th | 2/3 | 2-6-1-3 | **1st** | 1/3 | 2-1-3-4 | **1st** | 2/3 |
+| 8 | 6-8-7-2 | **2nd** | 1/3 | 1-6-8-2 | **3rd** | 2/3 | 6-8-1-7 | **2nd** | 2/3 |
+| 9 | 9-6-1 | **1st** | 2/3 | 9-6-2 | **1st** | **3/3** | 6-9-2-1 | **3rd** | **3/3** |
 
 | | #1 wins | #1 ITM | top-3 overlap | top-3 wheel | super box | exacta box | $2 win on #1 |
 |---|---|---|---|---|---|---|---|
 | Model | 2 | **7/9** | **18/27** | 1 (R9 $7.87) | 0 | 1 (R6 $6.20) | $9.80 on $18 (−45.6%) |
+| Don | 2 | 4/9 | 13/27 | 0 | 0 | 1 (R6 $6.20) | $11.60 on $18 (−35.6%) |
 | Doug | **4** | **7/9** | 15/27 | **2 (R1 $15.06, R9 $7.87)** | 0 | 1 (R6 $6.20) | **$21.40 on $18 (+18.9%)** |
+
+* **Don's #1 won R4** (#7 Sounds Like Power, $8.00, also Doug's #1; the
+  model's 6th of 7) **and R9** (#9 Vekowin, $3.60). His R1, R2 and R7 #1s ran
+  4th, 4th and 6th.
 
 * **Doug's #1 won four races** (R2, R4, R7, R9). His R4 #1 #7 Sounds Like
   Power was the model's 6th of 7; his R4 exacta box used #2 and #7.
@@ -292,17 +305,20 @@ Pocketnaut (53%, 6th), #5 The Wicked Outlaw (53%, **3rd**), #9 Get Back Jack
 
 ### Consensus #1s (`tracking/consensus_top1.csv`)
 
-None: Don sent no picks. The file is unchanged at **8 W, 15 ITM from 20**.
+Added 11/14 with Don's picks (note "posted after results; counted on Doug's
+confirmation"): **R5 #2 Motor City** (0.8-1, 7th) and **R6 #1 Yuma's Shadow**
+(1.6-1, 2nd, $2.60 place). Both were also high-confidence qualifiers. No
+scratches in R5 or R6. File now **8 W, 16 ITM from 22**.
 
 ### Meet to date, by model version (re-ranked among runners, $2 win on #1)
 
 | span | source | races | #1 W | #1 ITM | overlap | $2 win ROI |
 |---|---|---|---|---|---|---|
 | **11/05–11/13** (name matching ON) | Model | 51 | 15 | 38 (75%) | 88/153 | −22.5% |
-| | Don (to 11/12) | 42 | 15 | 31 (74%) | 75/126 | +9.3% |
+| | Don | 51 | 17 | 35 (69%) | 88/153 | +1.4% |
 | | Doug | 51 | 17 | 30 (59%) | 76/153 | −1.8% |
 | **1.3.2** (10/22–11/13) | Model | 110 | 27 | 70 (64%) | 178/330 | −33.3% |
-| | Don (to 11/12) | 101 | 34 | 67 (66%) | 175/303 | −4.4% |
+| | Don | 110 | 36 | 71 (65%) | 188/330 | −6.9% |
 | | Doug | 108 | 36 | 66 (61%) | 166/324 | −6.9% |
 | **1.3.1** (10/21) | Model | 8 | 2 | 4 (50%) | 15/24 | −40.0% |
 | | Don | 8 | 3 | 5 (62%) | 13/24 | +13.7% |
@@ -310,16 +326,25 @@ None: Don sent no picks. The file is unchanged at **8 W, 15 ITM from 20**.
 | **1.3.0** (10/10–10/17) | Model | 44 | 15 | 25 (57%) | 62/132 | +15.0% |
 | | Don (from 10/14) | 35 | 12 | 21 (60%) | 54/105 | −2.3% |
 | **Meet** (19 cards) | Model | 162 | 44 | 99 (61%) | 255/486 | −20.5% |
-| | Don | 144 | 49 | 93 (65%) | 242/432 | −2.8% |
+| | Don | 153 | 51 | 97 (63%) | 255/459 | −4.8% |
 | | Doug | 116 | 39 | 69 (59%) | 176/348 | −5.1% |
 | | Doug, without best guesses | 113 | 37 | 67 (59%) | 170/339 | −8.7% |
 
-The meet $2 win lines ($257.60 model, $279.80 Don, $220.20 Doug) match the
-ticket replay.
+The meet $2 win lines ($257.60 model, $291.40 Don, $220.20 Doug) match the
+ticket replay (re-run 11/14 with Don's 11/13 picks: 11 Don rows added, all
+567 earlier rows unchanged).
 
 ### Don's bets (`tracking/don_bets.csv`)
 
-None received for 11/13.
+Posted 11/14 with his picks; counted on Doug's confirmation.
+
+| bet | ticket | cost | result |
+|---|---|---|---|
+| POD | R8 #6 Jojo Bean (ML 2/1) | – | **2nd** at 2.7-1 ($3.80 place) |
+| EP4 R2–R5 | 3,4,6 / 5,6,7,11 / 2,4,7 / 2,5 (72 × $0.50) | $36 | lost: R3 (winner #2 Brother Ron; #11 scratched → fav #7, 5th); R5 also missed (#1 Asaasy) |
+| LP4 R6–R9 | 1,4 / 2,6,7 / 2,6,7,8 / 6,9 (48 × $0.50) | $24 | lost: R8 (winner #5 Miss Metoyer); R6, R7 and R9 legs hit |
+
+$60 on the two Pick 4s, $0 back.
 
 ### Doug's bets (`tracking/doug_bets.csv`)
 
