@@ -50,8 +50,26 @@ Fill these for the scored card (all in `scripts_dpv1/tracking/`), then write
   out of DED scoring and the replay; check the rebate (at least $2 on the
   DED card).
 * `ticket_replay.py` to a scratch file first. Check that every earlier row
-  is unchanged and that one card adds 34 rows. Count data rows, not file
-  lines: the header made the 11/07 and 11/11 notes one too high.
+  is unchanged and that one card adds 34 rows (model 12, Don 11, Doug 11;
+  fewer when a source sent no picks, e.g. 23 on 11/13). Count data rows,
+  not file lines: the header made the 11/07 and 11/11 notes one too high.
+* **A source sent no picks** (Don, 11/13): add one row per race to its
+  picks file with blank picks and a `MISSING: no picks received` note. The
+  replay skips those races, and there are no consensus races that night.
+* **Doug's picks taken from `DED_Picks.xlsx` at scoring:** confirm with Doug
+  that they were made before post before marking them valid.
+* **Late jockey changes:** always compare every chart rider with
+  `pp_entries_raw.pp_jockey`, not only Doug's list. On 11/13 the comparison
+  found one more change (R4 #2 Skenes Crews).
+* **A horse that did not finish** (e.g. lost rider): the load stores
+  `finish_status = 'DNF'` with no finish position, and scoring counts it as
+  a starter that missed the board. Report it; nothing to fix.
+* **New people at the card load:** if a "new" trainer or jockey has a
+  charted twin under another spelling, check identity read-only (starts by
+  track and date, owners, the horse's earlier trainer), then add a row to
+  `scripts_dpv1/name_aliases.csv` only when Doug approves (Calhoun 11/04,
+  Garcia 11/14). The alias is not in the feature build version, so it does
+  not reset the side-by-side streak.
 
 Gotcha: the missing-last-race check, if run after the chart load, lists the
 scratched DED horses as "chart loaded, horse not matched". They were purged
