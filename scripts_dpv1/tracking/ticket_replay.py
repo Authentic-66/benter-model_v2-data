@@ -83,6 +83,8 @@ def csv_picks(path, use_alt):
         k = (r["race_date"], int(r["race_num"]))
         ran = set(runners.get(k, []))
         picks = [r[f"pick{i}"].strip() for i in range(1, 5) if r[f"pick{i}"].strip()]
+        if not picks:   # source sent no picks for the card (logged as MISSING): no tickets
+            continue
         n = len(picks)
         keep = [p for p in picks if p in ran]
         alt = (r.get("alt") or "").strip()
