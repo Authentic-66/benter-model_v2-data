@@ -7232,6 +7232,30 @@ when it is built, and an OFF switch that reproduces 1.3.2's logged runs.
    last-race track, and how many of them item 1 already covers. Adding a
    track is a model-input change (track-keyed features would see races they
    did not see in training).
+   * **Fetch-test findings (2026-11-14,
+     `tracking/missing_last_race_fetch_test.md`).** The missing-last-race
+     gap is in shippers from tracks we have no data for. DED 11/04–11/13,
+     51 flagged starters in two groups (`tracking/missing_last_race_tally.py`):
+     * **no-data tracks: 30 starters, 14 in the money vs 9.3 expected**
+       (PRM 5, ARP 4, GIL 4, LS 3, RP 2, SWF 2, ten others once each);
+     * data tracks (EVD/LAD late or truncated charts, one MNR): 21 starters,
+       7 vs 6.5 expected, close to the price.
+   * **Single-chart fetches can't fix it.** A fetched line from a no-data
+     track gets no speed figure (no pars for the track; the par never
+     borrows from another track), so the speed and class terms stay blank.
+     Most of those horses' jockeys and trainers are also new to the DB. The
+     model has never been trained on races from those tracks, so it needs the
+     track's data in bulk, pars frozen with it and **a retrain**. On the 11/04
+     test (data-track horses, charts on disk) loading the missing lines made
+     log loss worse (0.554 → 0.619 line only, 0.590 whole chart), and every
+     fetch night fell back to a full build in the incremental side-by-side.
+     No nightly fetch step (Doug, 2026-11-14).
+   * **Suggestion: move this item up in 1.4** (ahead of items 2–3), since it
+     is where the measured gap is. Item 1 (PP-date days off) still covers
+     days off for these horses in the meantime. The first step is unchanged:
+     the read-only count of DED starters by last-race track over the meet,
+     to pick the few feeder tracks (PRM, ARP, GIL, LS look first) whose
+     charts would be loaded, with pars, before the 1.4 retrain.
 5. **Same-day features as of start of day** (added 2026-11-09, Doug). Compute
    `days_since_jockey_last_win` and `days_since_trainer_last_win` from wins
    on dates **strictly before** the race date, the rule every other

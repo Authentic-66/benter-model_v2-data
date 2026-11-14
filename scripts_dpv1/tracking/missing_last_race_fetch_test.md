@@ -6,9 +6,9 @@ features are built?
 
 **Short answer: not as a nightly step yet.**
 
-1. **Most of the gap is at tracks outside the corpus.** The 19 horses whose
-   missing race was at EVD or LAD (corpus tracks) were already well priced:
-   6 in the money against 5.9 expected. The calibration gap is in the 30
+1. **Most of the gap is at tracks outside the corpus.** The 21 horses whose
+   missing race was at a track we have data for (EVD/LAD, one MNR) were
+   close to their price: 7 in the money against 6.5 expected. The calibration gap is in the 30
    horses whose last race was outside the corpus: 14 in the money against
    9.3 expected. For those tracks a fetched line gets **no speed figure**,
    because there are no pars for the track.
@@ -32,37 +32,42 @@ the same before and after the scratch work. The scripts and outputs are in
 
 ## 1. Missing-last-race horses, DED 11/04–11/13
 
-Source: `missing_last.py`, `missing_last.txt`, `missing_last.json`.
+Source: `tracking/missing_last_race_tally.py` (standing script, added
+2026-11-14), output in `missing_last_race_fetch_test/tally_1104-1113.txt`.
 
 For each card, the script parses the PP file and takes each horse's latest
-dated running line. It then checks whether that race was in the DB when the
-record run was made.
+dated running line. It then checks whether that race was in the card's own
+`-run.bak`, the DB as it was right before that night's PP load.
 
 **Correction to the running tally.** The reviews' tally said **52 starters,
-22 in the money against 16.1 expected**. The corrected count is **50
-starters, 21 in the money against 15.5 expected (4 wins against 5.0)**.
+22 in the money against 16.1 expected**. The corrected count is **51
+starters, 21 in the money against 15.8 expected (4 wins against 5.1)**.
+That is the old tally minus one horse:
 
-* **Bug:** the list script matched PP blocks on program number plus the first
-  8 letters of the name. On 11/04, R7 #6 **Daddy's Code** was given R3 #6
-  **Daddy's Last Sweet**'s block. Daddy's Code actually last ran DED 10/21,
-  which was in the DB. The match now uses the full name.
-* **DNFs:** two DNF starters had been left out because of the status's
-  letter case; they are now counted.
-* After those two fixes, one starter of the old 52 is still unaccounted for.
+* **Removed: 11/04 R7 #6 Daddy's Code** (2nd, P(ITM) 0.23). The first list
+  script matched PP blocks on program number plus the first 8 letters of
+  the name, so he was given R3 #6 **Daddy's Last Sweet**'s block. His real
+  last race, DED 10/21, was in the DB. The match now uses the full name.
+* **Kept: 11/06 R9 #6 Dat Hint** (EVD 6/11, 5th). He was the horse missing
+  from my first recount of 50. The first script checked the horse's line
+  against the **current** DB. His race was missing from the truncated EVD
+  6/11 chart on 11/06 and came in later with the re-download, so it looked
+  "in DB". The script now checks the card's `-run.bak`, which also drops the
+  scratched-horse "horse not matched" rows.
+
+Kept as **two groups** from now on (Doug, 2026-11-14):
 
 | group | starters | in the money | sum of P(ITM) | wins | sum of P(win) |
 |---|---|---|---|---|---|
-| **A.** 11/04, chart in the corpus but loaded only on 11/05 (EVD/LAD) | 19 | 6 | 5.86 | 1 | 1.94 |
-| **B.** last race at a track outside the corpus | 30 | **14** | **9.34** | 3 | 3.01 |
-| **C.** corpus chart missing (MNR 10/05, corrupt at Equibase) | 1 | 1 | 0.33 | 0 | 0.10 |
-| **all** | 50 | 21 | 15.52 | 4 | 5.05 |
+| **A. data tracks:** EVD/LAD (19 on 11/04 whose charts loaded on 11/05; Dat Hint, truncated EVD chart), plus Wave Maker (MNR 10/05, corrupt at Equibase) | 21 | 7 | 6.49 | 1 | 2.13 |
+| **B. no-data tracks:** last race at a track with no data in the DB | 30 | **14** | **9.34** | 3 | 3.01 |
+| **both** | 51 | 21 | 15.83 | 4 | 5.14 |
+| all other starters, same cards | 431 | 156 | 146.8 | 55 | 49.2 |
 
 Group B tracks: PRM 5, ARP 4, GIL 4, LS 3, RP 2, SWF 2, and one each at ATO,
 BAQ, FON, BTP, EUR, HCN, DMR, IND, CBY and MED. Every flagged starter, with
-card, race, last race, finish, odds and logged P(ITM), is in
-`missing_last.txt`. Horses flagged "chart loaded, horse not matched" there
-are scratched DED horses that were purged with their card, not data gaps
-(runbook A gotcha).
+card, race, last race, group, finish, odds and logged P(ITM), is in the
+tally output.
 
 ## 2. Fetching from Equibase
 
@@ -78,7 +83,7 @@ are scratched DED horses that were purged with their card, not data gaps
 * **Archived-name fallback:** not tested. Doug's message left the example
   archived URL as "[paste one here]". The fetch list gives each chart's
   archived file name (`<TRK><MMDDYY>USA.pdf`), but no archived URL.
-* **Fetch list:** `fetch_list.csv` covers the 31 charts groups B and C need,
+* **Fetch list:** `fetch_list.csv` covers 31 charts: the 30 group-B races plus MNR 10/05,
   one row per chart. Each row has the recent URL, the archived name, the
   long name to save under, the chart's age on 11/14 (23–210 days) and the
   horses it is for.
@@ -87,12 +92,13 @@ are scratched DED horses that were purged with their card, not data gaps
   * With Doug's downloader, the same list will show at what age Equibase
     switches a chart from the recent URL to the archived one.
 * **Charts already on disk** (Fairmount Park, Mahoning Valley) match none of
-  the 50 horses. I used them only for the side-by-side test in section 5.
+  the 51 horses. I used them only for the side-by-side test in section 5.
 
 ## 3. Load test: DED 11/04, three arms on scratch copies
 
-Group A is the only group with charts on disk. Their 14 EVD/LAD charts were
-loaded into the live DB on 11/05, after the 11/04 card ran.
+The 19 group-A horses of 11/04 are the only ones with charts on disk. Their
+14 EVD/LAD charts were loaded into the live DB on 11/05, after the 11/04
+card ran.
 
 `fetch_arm.py` rebuilds the 11/04 card from `racing_full.db.ded1104-run.bak`
 on a scratch copy, in the order a nightly step would use:
@@ -181,9 +187,9 @@ those charts, and the jockey and trainer rates.
 | line | 19 | 6.25 | 6 | 0.619 | 0.213 | 0.599 | 4 / 6 |
 | full | 19 | 6.06 | 6 | 0.590 | 0.200 | 0.593 | 4 / **7** |
 
-* **Calibration:** group A was not under-priced before the fetch (5.86
+* **Calibration:** the 19 tested horses were not under-priced before the fetch (5.86
   expected, 6 actual). Loading the lines pushed it slightly over (6.25 and
-  6.06). It does nothing for the meet-wide gap (15.5 expected, 21 actual),
+  6.06). It does nothing for the meet-wide gap (15.8 expected, 21 actual),
   which is in group B.
 * **#1:** only the full arm changes a #1. In R4 it moves from #6 Cutting
   Class to #1 Phila Street, who ran 2nd (P(ITM) 0.334 → 0.485 line → 0.511
@@ -270,9 +276,10 @@ those charts, and the jockey and trainer rates.
 
 | file | what |
 |---|---|
-| `missing_last.py`, `.txt`, `.json` | the list (full-name PP block match) |
-| `fetch_list.csv` | 31 charts for groups B and C: URLs, names, age, horses; none fetched |
-| `targets.json` | the 21 group-A targets on 11/04 (Daddy's Code is a false positive, excluded at comparison) |
+| `../missing_last_race_tally.py` | the list, now a standing script (run-time backup check, two groups) |
+| `tally_1104-1113.txt`, `.json` | its output for 11/04–11/13 |
+| `fetch_list.csv` | 31 charts (group B + MNR 10/05): URLs, names, age, horses; none fetched |
+| `targets.json` | the 21 11/04 targets (Daddy's Code is a false positive, excluded at comparison) |
 | `fetch_arm.py` | one card, one arm, on a scratch copy |
 | `arm_1104_{base,line,full}_{scores,features}.csv`, `_meta.json` | arm outputs |
 | `compare_arms.py`, `compare_output.txt` | section 3–4 numbers |

@@ -252,6 +252,12 @@ expected, ITM 3 vs 1.72. **Tally 11/04–11/13: 52 starters, ITM 22 vs 16.1
 expected, W 4 vs 5.3.** All other 11/13 starters: W 9 vs 8.0 expected, ITM
 24 vs 23.8. None of the six scratched horses was flagged.
 
+**Corrected 2026-11-14** (`missing_last_race_fetch_test.md`, section 1):
+**51 starters, ITM 21 vs 15.8, W 4 vs 5.1**. 11/04 R7 Daddy's Code was a
+false flag (PP-block prefix match). Split from now on: **data tracks 21
+starters, ITM 7 vs 6.5; no-data tracks 30, ITM 14 vs 9.3**
+(`missing_last_race_tally.py`).
+
 ## First-time starters in tonight's maidens
 
 | R | first-time starters | finishes | model ranks | winner |

@@ -71,9 +71,14 @@ Fill these for the scored card (all in `scripts_dpv1/tracking/`), then write
   Garcia 11/14). The alias is not in the feature build version, so it does
   not reset the side-by-side streak.
 
-Gotcha: the missing-last-race check, if run after the chart load, lists the
-scratched DED horses as "chart loaded, horse not matched". They were purged
-with the card, so that is not a data gap. Judge only the starters.
+* **Missing-last-race tally:** `python
+  scripts_dpv1/tracking/missing_last_race_tally.py` (read-only; `--to
+  <date>` to stop at the scored card). In the review, always report the two
+  groups separately (Doug, 2026-11-14): **data tracks** (EVD/LAD/MNR...: a
+  chart loaded late, truncated or not loaded) and **no-data tracks**
+  (shippers from tracks with no data in the DB). It checks each horse
+  against the card's own `-run.bak`, so scratched horses and charts loaded
+  later no longer show up as gaps; it needs that card's `-run.bak` on disk.
 
 ## B. Card build
 

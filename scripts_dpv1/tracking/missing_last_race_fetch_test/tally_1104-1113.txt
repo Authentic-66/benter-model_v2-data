@@ -1,0 +1,86 @@
+cards: 11-04, 11-05, 11-06, 11-07, 11-11, 11-12, 11-13  (scratched horses left out)
+
+| card | R | horse | last race | why | group | P(ITM) | odds | fin |
+|---|---|---|---|---|---|---|---|---|
+| 11-04 | 1 | #1 Miss Landlock | EVD 08-27 | chart loaded after run (2026-11-05) | data tracks | 0.486 | 3.8 | 2 |
+| 11-04 | 1 | #4 Faye L. | EVD 08-29 | chart loaded after run (2026-11-05) | data tracks | 0.368 | 4.3 | 3 |
+| 11-04 | 1 | #5 Magical Deal | EVD 07-31 | chart loaded after run (2026-11-05) | data tracks | 0.119 | 84.9 | 9 |
+| 11-04 | 1 | #10 She's a Target | EVD 08-22 | chart loaded after run (2026-11-05) | data tracks | 0.196 | 23.9 | 6 |
+| 11-04 | 2 | #1 Whatdidwedo | EVD 08-08 | chart loaded after run (2026-11-05) | data tracks | 0.348 | 57.4 | 4 |
+| 11-04 | 2 | #6 Rescue Squad | EVD 08-06 | chart loaded after run (2026-11-05) | data tracks | 0.279 | 6.7 | 5 |
+| 11-04 | 3 | #4 Queenofpoker | EVD 08-27 | chart loaded after run (2026-11-05) | data tracks | 0.187 | 2.8 | 5 |
+| 11-04 | 3 | #5 Royal Coast | LAD 09-23 | chart loaded after run (2026-11-05) | data tracks | 0.209 | 49.6 | 8 |
+| 11-04 | 3 | #6 Daddy's Last Sweet | LAD 09-21 | chart loaded after run (2026-11-05) | data tracks | 0.394 | 7.6 | 3 |
+| 11-04 | 3 | #7 Onedayatatime | EVD 08-28 | chart loaded after run (2026-11-05) | data tracks | 0.384 | 35.9 | 6 |
+| 11-04 | 3 | #8 Our Castle Queen | LAD 09-21 | chart loaded after run (2026-11-05) | data tracks | 0.269 | 12.3 | 7 |
+| 11-04 | 4 | #1 Phila Street | EVD 08-08 | chart loaded after run (2026-11-05) | data tracks | 0.334 | 2.7 | 2 |
+| 11-04 | 4 | #3 Time to Tell | PRM 08-15 | no data for track | no-data tracks | 0.456 | 6.9 | 1 |
+| 11-04 | 4 | #5 Girlie's Max | LAD 09-28 | chart loaded after run (2026-11-05) | data tracks | 0.237 | 49.6 | 8 |
+| 11-04 | 4 | #7 E Z Words | EVD 08-27 | chart loaded after run (2026-11-05) | data tracks | 0.287 | 26.8 | 3 |
+| 11-04 | 6 | #4 Mr. Brad's Cowboy | LAD 09-28 | chart loaded after run (2026-11-05) | data tracks | 0.409 | 18.8 | 7 |
+| 11-04 | 6 | #8 Midshakin | PRM 09-04 | no data for track | no-data tracks | 0.283 | 5.9 | 3 |
+| 11-04 | 6 | #9 Blue Chair Bay | LAD 09-22 | chart loaded after run (2026-11-05) | data tracks | 0.495 | 5.4 | 8 |
+| 11-04 | 7 | #2 El Dan | EVD 09-07 | chart loaded after run (2026-11-05) | data tracks | 0.297 | 9.8 | 8 |
+| 11-04 | 7 | #7 The Boss Soss | EVD 07-10 | chart loaded after run (2026-11-05) | data tracks | 0.313 | 17.8 | 1 |
+| 11-04 | 8 | #5 S D's Takeover | EVD 09-04 | chart loaded after run (2026-11-05) | data tracks | 0.250 | 26.2 | 4 |
+| 11-04 | 8 | #10 Heats Hero | RP 10-09 | no data for track | no-data tracks | 0.362 | 4.3 | None |
+| 11-05 | 2 | #6 Chatty Milligan | ARP 08-14 | no data for track | no-data tracks | 0.240 | 32.3 | 5 |
+| 11-05 | 7 | #2 Wave Maker | MNR 10-05 | chart not loaded | data tracks | 0.325 | 1.0 | 3 |
+| 11-05 | 7 | #4 Gracie Baby | ARP 07-10 | no data for track | no-data tracks | 0.195 | 39.0 | 6 |
+| 11-05 | 7 | #7 I Forgot the Time | PRM 09-26 | no data for track | no-data tracks | 0.344 | 3.8 | 5 |
+| 11-05 | 7 | #8 Kason's Buckaroo | SWF 09-12 | no data for track | no-data tracks | 0.327 | 15.7 | 4 |
+| 11-06 | 4 | #4 Special Moment | GIL 07-05 | no data for track | no-data tracks | 0.154 | 25.5 | 3 |
+| 11-06 | 4 | #5 My Uncle Leon | ARP 08-01 | no data for track | no-data tracks | 0.256 | 3.5 | 7 |
+| 11-06 | 4 | #11 Jabran | ATO 09-07 | no data for track | no-data tracks | 0.109 | 12.8 | 1 |
+| 11-06 | 5 | #5 Josh's Dream | LS 06-27 | no data for track | no-data tracks | 0.257 | 8.4 | 2 |
+| 11-06 | 5 | #9 Mud On My Boots | GIL 08-29 | no data for track | no-data tracks | 0.156 | 12.8 | 6 |
+| 11-06 | 6 | #2 Brahms Boy | GIL 08-30 | no data for track | no-data tracks | 0.353 | 2.3 | 2 |
+| 11-06 | 8 | #2 Tennessee Moon | ARP 08-08 | no data for track | no-data tracks | 0.369 | 16.0 | 6 |
+| 11-06 | 8 | #6 Blushing Belle | LS 07-11 | no data for track | no-data tracks | 0.164 | 67.1 | 9 |
+| 11-06 | 8 | #8 D's a Rock | BAQ 05-14 | no data for track | no-data tracks | 0.277 | 4.1 | 2 |
+| 11-06 | 9 | #6 Dat Hint | EVD 06-11 | chart incomplete at run | data tracks | 0.303 | 18.3 | 5 |
+| 11-07 | 1 | #10 Midnight Breeze | LS 07-12 | no data for track | no-data tracks | 0.212 | 4.8 | 1 |
+| 11-07 | 5 | #5 Fierce Cat | FON 04-18 | no data for track | no-data tracks | 0.465 | 4.9 | 4 |
+| 11-07 | 7 | #1 Our Last Chance | PRM 09-20 | no data for track | no-data tracks | 0.341 | 9.1 | 3 |
+| 11-07 | 7 | #2 Paynted Blue | SWF 08-30 | no data for track | no-data tracks | 0.533 | 6.1 | 2 |
+| 11-12 | 2 | #1 Papas Lady | BTP 10-01 | no data for track | no-data tracks | 0.365 | 3.6 | 3 |
+| 11-12 | 2 | #2 Kingston Lady | EUR 10-17 | no data for track | no-data tracks | 0.473 | 32.2 | 6 |
+| 11-12 | 4 | #1 Scallywag | HCN 08-21 | no data for track | no-data tracks | 0.345 | 17.0 | 8 |
+| 11-12 | 5 | #7 H Q Wilson | DMR 08-16 | no data for track | no-data tracks | 0.341 | 12.4 | 4 |
+| 11-12 | 5 | #10 Carry the Flag | GIL 08-16 | no data for track | no-data tracks | 0.250 | 18.4 | 5 |
+| 11-13 | 1 | #3 Rosie Spoonbill | IND 10-06 | no data for track | no-data tracks | 0.503 | 2.1 | 2 |
+| 11-13 | 1 | #5 Nic Sweet Time | CBY 08-09 | no data for track | no-data tracks | 0.324 | 10.0 | 5 |
+| 11-13 | 6 | #6 Norma Jean Bling | RP 10-22 | no data for track | no-data tracks | 0.206 | 27.4 | 7 |
+| 11-13 | 7 | #3 Seasonal Love | MED 10-02 | no data for track | no-data tracks | 0.454 | 4.8 | 3 |
+| 11-13 | 7 | #7 El Rojo Vivo | PRM 09-25 | no data for track | no-data tracks | 0.229 | 5.0 | 2 |
+
+| span | group | starters | ITM | exp ITM | W | exp W |
+|---|---|---|---|---|---|---|
+| 11-04 | data tracks |  19 |   6 |   5.9 |  1 |  1.9 |
+| 11-04 | no-data tracks |   3 |   2 |   1.1 |  1 |  0.4 |
+| 11-04 | **both** |  22 |   8 |   7.0 |  2 |  2.3 |
+| 11-05 | data tracks |   1 |   1 |   0.3 |  0 |  0.1 |
+| 11-05 | no-data tracks |   4 |   0 |   1.1 |  0 |  0.4 |
+| 11-05 | **both** |   5 |   1 |   1.4 |  0 |  0.5 |
+| 11-06 | data tracks |   1 |   0 |   0.3 |  0 |  0.1 |
+| 11-06 | no-data tracks |   9 |   5 |   2.1 |  1 |  0.7 |
+| 11-06 | **both** |  10 |   5 |   2.4 |  1 |  0.8 |
+| 11-07 | data tracks |   0 |   0 |   0.0 |  0 |  0.0 |
+| 11-07 | no-data tracks |   4 |   3 |   1.6 |  1 |  0.5 |
+| 11-07 | **both** |   4 |   3 |   1.6 |  1 |  0.5 |
+| 11-11 | data tracks |   0 |   0 |   0.0 |  0 |  0.0 |
+| 11-11 | no-data tracks |   0 |   0 |   0.0 |  0 |  0.0 |
+| 11-11 | **both** |   0 |   0 |   0.0 |  0 |  0.0 |
+| 11-12 | data tracks |   0 |   0 |   0.0 |  0 |  0.0 |
+| 11-12 | no-data tracks |   5 |   1 |   1.8 |  0 |  0.6 |
+| 11-12 | **both** |   5 |   1 |   1.8 |  0 |  0.6 |
+| 11-13 | data tracks |   0 |   0 |   0.0 |  0 |  0.0 |
+| 11-13 | no-data tracks |   5 |   3 |   1.7 |  0 |  0.6 |
+| 11-13 | **both** |   5 |   3 |   1.7 |  0 |  0.6 |
+| all | data tracks |  21 |   7 |   6.5 |  1 |  2.1 |
+| all | no-data tracks |  30 |  14 |   9.3 |  3 |  3.0 |
+| all | **both** |  51 |  21 |  15.8 |  4 |  5.1 |
+| all | all other starters | 431 | 156 | 146.8 | 55 | 49.2 |
+
+last-race tracks, no-data group: {'PRM': 5, 'ARP': 4, 'GIL': 4, 'LS': 3, 'RP': 2, 'SWF': 2, 'ATO': 1, 'BAQ': 1, 'FON': 1, 'BTP': 1, 'EUR': 1, 'HCN': 1, 'DMR': 1, 'IND': 1, 'CBY': 1, 'MED': 1}
+other flagged rows (no PP block): []
