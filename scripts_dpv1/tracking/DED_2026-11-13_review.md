@@ -376,7 +376,9 @@ logged record runs only):
 4. **Doug's 11/13 picks** came from the workbook, last saved 16:54 CST, and
    the chart's R1 off time is 4:45. Please confirm they were made before
    post. *Resolved 11/14:* Doug confirmed all were made before post (R1–R2
-   4:34 PM, R3–R9 4:55 PM, before R2); marked valid in `doug_picks.csv`.
+   4:34 PM, R3–R9 4:55 PM, before R2); marked valid in `doug_picks.csv`. The
+   workbook's 16:54 save time is not a conflict: Doug saved it, then sent the
+   picks.
 5. **The model_health last-28 ITM alert is on again** (78.6%). It is a hot
    run on pre-race record runs, as checked on 11/05. *Doug 11/14:* noted, no
    action.
@@ -423,6 +425,12 @@ would not touch it.
 * So the next side-by-side should still compare clean and count toward the
   14. The only effect: when Garcia next has a PP starter, the model gets his
   trainer history (129 starts) instead of the "new trainer" prior.
+
+**Added 2026-11-14 at Doug's request:** `name_aliases.csv` row `trainers,
+Garcia J. Luis -> Garcia, J.`, the same pattern as Calhoun. Checked read-only
+with `name_match.resolve_person`: "Garcia J. Luis" now resolves by alias to
+trainer 2456, "Garcia Jose" still resolves exactly to 2486 ("Garcia, Jose"),
+and Calhoun is unchanged. It takes effect from the next PP load.
 
 ## Queued (not started)
 
