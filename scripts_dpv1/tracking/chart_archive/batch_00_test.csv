@@ -1,0 +1,53 @@
+track,country,folder,date,recheck,purpose,date_source
+PRM,usa,Prairie Meadows,2022-07-24,,feeder 2022,estimated (2023 pattern)
+PRM,usa,Prairie Meadows,2023-07-23,,feeder 2023,known (2023 XML)
+PRM,usa,Prairie Meadows,2024-08-16,,feeder 2024,known (DED PP running line)
+PRM,usa,Prairie Meadows,2025-08-02,,feeder 2025,known (DED PP running line)
+PRM,usa,Prairie Meadows,2026-07-18,,feeder 2026,known (DED PP running line)
+ARP,usa,Arapahoe Park,2022-08-01,,feeder 2022,estimated (2023 pattern)
+ARP,usa,Arapahoe Park,2023-07-31,,feeder 2023,known (2023 XML)
+ARP,usa,Arapahoe Park,2024-07-29,,feeder 2024,estimated (2023 pattern)
+ARP,usa,Arapahoe Park,2025-10-19,,feeder 2025,known (DED PP running line)
+ARP,usa,Arapahoe Park,2026-07-12,,feeder 2026,known (DED PP running line)
+GIL,usa,Gillespie County,2022-08-13,,feeder 2022,estimated (2023 pattern)
+GIL,usa,Gillespie County,2023-08-12,,feeder 2023,known (2023 XML)
+GIL,usa,Gillespie County,2024-08-24,,feeder 2024,known (DED PP running line)
+GIL,usa,Gillespie County,2025-08-10,,feeder 2025,known (DED PP running line)
+GIL,usa,Gillespie County,2026-08-15,,feeder 2026,known (DED PP running line)
+LS,usa,Lone Star Park,2022-05-29,,feeder 2022,estimated (2023 pattern)
+LS,usa,Lone Star Park,2023-05-28,,feeder 2023,known (2023 XML)
+LS,usa,Lone Star Park,2024-06-23,,feeder 2024,known (DED PP running line)
+LS,usa,Lone Star Park,2025-06-01,,feeder 2025,known (DED PP running line)
+LS,usa,Lone Star Park,2026-05-30,,feeder 2026,known (DED PP running line)
+ATO,usa,Atokad Downs,2022-06-05,,feeder 2022,estimated (2023 pattern)
+ATO,usa,Atokad Downs,2023-06-04,,feeder 2023,known (2023 XML)
+ATO,usa,Atokad Downs,2024-06-02,,feeder 2024,estimated (2023 pattern)
+ATO,usa,Atokad Downs,2025-06-01,,feeder 2025,estimated (2023 pattern)
+ATO,usa,Atokad Downs,2026-09-05,,feeder 2026,known (DED PP running line)
+RP,usa,Remington Park,2022-10-20,,feeder 2022,estimated (2023 pattern)
+RP,usa,Remington Park,2023-10-19,,feeder 2023,known (2023 XML)
+RP,usa,Remington Park,2024-10-11,,feeder 2024,known (DED PP running line)
+RP,usa,Remington Park,2025-10-10,,feeder 2025,known (DED PP running line)
+RP,usa,Remington Park,2026-09-10,,feeder 2026,known (DED PP running line)
+SWF,usa,Sweetwater Downs,2022-09-11,,feeder 2022,estimated (2023 pattern)
+SWF,usa,Sweetwater Downs,2023-09-10,,feeder 2023,known (2023 XML)
+SWF,usa,Sweetwater Downs,2024-09-08,,feeder 2024,estimated (2023 pattern)
+SWF,usa,Sweetwater Downs,2025-08-16,,feeder 2025,known (DED PP running line)
+SWF,usa,Sweetwater Downs,2026-09-12,,feeder 2026,known (DED PP running line)
+WO,usa,Woodbine,2023-08-27,,"Canadian, usa path",known (2023 XML)
+WO,can,Woodbine,2023-08-27,1,"Canadian, can path (same date; recheck so it runs even if usa worked)",known (2023 XML)
+CMR,usa,Camarero,2023-07-07,,"Puerto Rico (Camarero), usa path",known (2023 XML)
+FAN,usa,Fairmount Park,2022-08-06,,Fairmount 2022 code check (FAN),estimated (2023 pattern)
+FP,usa,Fairmount Park,2022-08-06,1,Fairmount 2022 code check (FP),estimated (2023 pattern)
+CT,usa,CharlesTown,2026-11-14,,recent-date check (1 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-13,,recent-date check (2 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-12,,recent-date check (3 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-11,,recent-date check (4 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-07,,recent-date check (8 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-06,,recent-date check (9 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-05,,recent-date check (10 days old),CT Wed-Sat pattern
+CT,usa,CharlesTown,2026-11-04,,recent-date check (11 days old),CT Wed-Sat pattern
+CT,usa,chart_archive_recheck\CharlesTown,2026-10-31,1,long-name address for a chart we hold under the short name (15 days old),"known (on disk, short name)"
+CT,usa,chart_archive_recheck\CharlesTown,2026-10-30,1,long-name address for a chart we hold under the short name (16 days old),"known (on disk, short name)"
+CT,usa,chart_archive_recheck\CharlesTown,2026-10-29,1,long-name address for a chart we hold under the short name (17 days old),"known (on disk, short name)"
+CT,usa,chart_archive_recheck\CharlesTown,2026-10-28,1,long-name address for a chart we hold under the short name (18 days old),"known (on disk, short name)"
