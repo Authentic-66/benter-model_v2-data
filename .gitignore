@@ -26,3 +26,30 @@ scripts_dpv1/_pacefix/
 # --- Experiment-arm fold predictions; their .pkl siblings are tracked ---
 scripts_dpv1/dpv1_fold_predictions_*_step3_*.csv
 scripts_dpv1/dpv1_fold_predictions_*_classctx_*.csv
+
+# --- Chart archive downloads (tools/chart_downloader.ps1; Doug 2026-11-15) ---
+# Archive result charts are NOT committed (~2.3 GB). The plan, batches, inventory
+# and download logs ARE committed, so the archive can be rebuilt from Equibase.
+# Rule: ignore result-chart PDFs in <Track>/<trk>-results-<year>/ for every
+# track EXCEPT the folders the live loader reads (whitelisted below); those stay
+# tracked as before. Already-tracked files are not affected by .gitignore.
+/*/*-results-*/*.pdf
+# live: retrain_pipeline TRACK_DIRS (default) + EXTRA_TRACK_DIRS (--all-tracks)
+!/CharlesTown/*-results-*/*.pdf
+!/Ellis/*-results-*/*.pdf
+!/Gulfstream Park/*-results-*/*.pdf
+!/Mountaineer/*-results-*/*.pdf
+!/Delta Downs/*-results-*/*.pdf
+!/Evangeline Downs/*-results-*/*.pdf
+!/Fair Grounds/*-results-*/*.pdf
+!/Fairmount Park/*-results-*/*.pdf
+# live: nightly DED-card shipper charts loaded with load_chart.py
+!/Louisiana Downs/*-results-*/*.pdf
+# Mahoning Valley's existing charts are in mvr-<year>-results/ (pattern above does
+# not match them, so they stay tracked); archive downloads go to mvr-results-<year>/
+# and are ignored.
+
+# --- Downloader transcripts (screen output, 2026-11-16). Kept on disk only: the
+# PowerShell transcript header carries the user and machine name. The CSV logs
+# are the committed record.
+/chart_download_transcript_*.txt

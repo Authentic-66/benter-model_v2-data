@@ -29,6 +29,10 @@
   Log: CSV (timestamp,track,date,status,detail), appended. Status is
   ok / skip / none (404, no race day) / error / stop.
 
+  Transcript: each real run also writes everything shown on screen to
+  chart_download_transcript_<yyyyMMdd_HHmmss>.txt next to the CSV log
+  (not on -DryRun).
+
 .EXAMPLE
   .\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batch_00_test.csv
 .EXAMPLE
@@ -46,6 +50,18 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if (-not $LogPath) { $LogPath = Join-Path $Root ("chart_download_log_{0}.csv" -f (Get-Date -Format 'yyyyMMdd')) }
+
+# Transcript (added 2026-11-16): everything printed on screen also goes to a
+# timestamped text file next to the CSV log, so the summary survives if the
+# window closes. Not on -DryRun (a dry run writes nothing).
+$TranscriptPath = ''
+if (-not $DryRun) {
+    $logDir = Split-Path -Parent ([System.IO.Path]::GetFullPath($LogPath))
+    $TranscriptPath = Join-Path $logDir ("chart_download_transcript_{0}.txt" -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+    Start-Transcript -Path $TranscriptPath -NoClobber | Out-Null
+    Write-Host "Transcript: $TranscriptPath"
+}
+try {
 
 # ---------------------------------------------------------------- Get-Chart
 # Doug's function. Only change: the country ("usa" before) comes from the job,
@@ -167,3 +183,8 @@ if ($stopReason) {
 Write-Host ("Requests: {0}{1}" -f $requests, $(if ($DryRun) { ' (dry run, none sent)' } else { '' }))
 Write-Host ("Downloaded: {0}   Already had: {1}   No race day: {2}   Errors: {3}" -f $stats.ok, $stats.skip, $stats.none, $stats.error)
 if (-not $DryRun) { Write-Host "Log: $LogPath" }
+}
+finally {
+    # also runs on an error or Ctrl+C, so the transcript is closed and kept
+    if ($TranscriptPath) { Stop-Transcript | Out-Null }
+}

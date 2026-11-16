@@ -3,15 +3,20 @@
 Plan and prep only (2026-11-15). **Claude made no request to Equibase.** Doug runs
 every download with `tools/chart_downloader.ps1`. Nothing pushed.
 
-**Status 2026-11-15 night:** Doug ran the test batch (52 requests: 45 charts,
-7 × 404, 0 errors, no bot check, no 403; log `chart_download_log_20261115.csv`).
-The plan below is **rebuilt from its results** (§6). Next: the feeders.
+**Status 2026-11-16:** feeders done (batch_01 + batch_02, results in §7).
+Archive PDFs are **not committed** from here on (`.gitignore`, except the
+folders the live loader reads); the logs are. Next: the feeder follow-up
+(11 requests), then group b, one batch per session.
 
 ```powershell
 cd 'D:\Benter Model_v2 Data\benter-model_v2-data'
-.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_01.csv
-.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_02.csv
+.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\followup_feeders_01.csv
+.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_03.csv
 ```
+
+Do **not** rerun `build_plan.py` before batches 03–07: it renumbers the
+batches (group a would shrink to the 2 LS retries) and group b is unchanged
+by the feeder logs.
 
 Feeders = `batch_01` (1,500 requests: PRM, ARP, GIL, LS, ATO, part of RP) +
 `batch_02` (578: rest of RP, SWF): about 2.7 h + 1 h at the test's measured
@@ -261,6 +266,38 @@ same text once whitespace and one stray watermark glyph per page are ignored
 **Next:** run `batches/batch_01.csv` and `batch_02.csv` (commands at the top),
 one per session (cap 1,500). After each, compare each track's hits with
 `estimate_by_track_year.csv`, and build the ATO follow-up from the log.
+
+## 7. Feeders: batch_01 + batch_02 (Doug, 2026-11-15/16)
+
+Rebuilt from the logs (the window closed overnight). **Both ran to the end:**
+every job in the CSV is in the log, in order; no `stop` row, no 403.
+
+| batch | log | ran | requests | ok | 404 | errors | s/req |
+|---|---|---|---|---|---|---|---|
+| 01 | `chart_download_log_20261115.csv` rows 53–1552 | 11/15 21:29 → 11/16 00:07 | 1,500 | 827 | 671 | 2 | 6.3 |
+| 02 | `chart_download_log_20261116.csv` | 11/16 05:07 → 06:09 | 578 | 299 | 279 | 0 | 6.4 |
+
+The 2 errors are single `not a PDF` responses (LS 2022-04-29, LS 2026-04-24),
+each followed by an ok, so not a block. 1,126 new PDFs = 1,126 `ok` rows.
+
+| track | downloaded | expected (estimate) | 404 rate | note |
+|---|---|---|---|---|
+| PRM | 394 | 395 | 15% | on target |
+| ARP | 105 | 176 | 57% | **short**: 2024 6 (Sep 7–22 only), 2025 12 (Sep 13 – Nov 14); 2026 races Fri–Sun, Fridays probed only on PP dates |
+| GIL | 34 | 30 | 66% | on target (7 a year) |
+| LS | 201 | 205 | 51% | on target; 2 retries |
+| ATO | 7 | 8 | 94% | 2022: no Saturday hit; 2024 May 11; 2025 Aug 16; 2026 Aug 29–30, Sep 5–7 |
+| RP | 304 | 313 | 50% | on target |
+| SWF | 81 | 75 | 39% | on target |
+| **total** | **1,126** | **1,202** | **46%** | |
+
+**Follow-up** `batches/followup_feeders_01.csv` (11 requests): ATO Fri/Sun/Mon
+around each Saturday hit not already covered (2024-05-10/12/13,
+2025-08-15/17/18, 2026-08-28, 08-31, 09-04) + the 2 LS retries. ATO 2022 had no
+Saturday hit in May–Oct; not followed up (a Sunday-only or outside-window meet
+would need a separate probe). **ARP open:** the 2024 and 2025 meets look moved
+or cut short and 2026 runs Fri–Sun; a probe of Fridays and of Sep–Nov 2025 is
+not built yet.
 
 ## Not done / open
 
