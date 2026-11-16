@@ -346,9 +346,13 @@ No holiday Monday hit. The two weeks after each meet's last day were probed and
 only, and every Saturday 404'd. Fridays were never probed for 2022.
 
 **ARP 2022 Friday probe** (`batches/probe_arp_02_2022fri.csv`, built 11/16 at
-Doug's request, not run yet): 18 Fridays, Jun 3 – Sep 30 2022, none logged
-before. Dry run: 18 requests. The end of the 2022 meet is also unchecked: the
-last probe date was Sun 9/25 (ok); Mon 9/26 and later were never asked.
+Doug's request): 18 Fridays, Jun 3 – Sep 30 2022. **Run 11/16 10:02–10:04:
+18 × 404**, 0 errors. ARP 2022 raced Sun + Mon only (to at least Sun 9/25).
+
+**ARP 2022 end-of-meet probe** (`batches/probe_arp_03_2022end.csv`, built
+11/16, not run yet): every Fri, Sat, Sun and Mon from Sep 30 to Nov 30 2022,
+minus dates already logged (Fri 9/30): 35 requests (dry run 35). Mon 9/26 is
+not in it (outside the window Doug set).
 
 ## 9. Live-track dates in group b (`live_track_dates_b03_07.csv`)
 
@@ -374,9 +378,11 @@ raced Wednesdays in Jan–Feb 2024 and 2025, but the DB has none in 2026) and th
 8 Tuesdays a day before each (GP did not race Tuesdays then, so probably 404).
 Loading any of these is a later planned rebuild, not now.
 
-**After batch_04 runs (open):** report which of these 16 dates downloaded
+**After batch_04 runs:** report which of these 16 dates downloaded
 (`ok` in the log). Any that did are gaps in the live DB: list them here for the
-planned rebuild; **do not load them.** Run batch_04 **as committed**: a
+planned rebuild; **do not load them.** **Result (batch_04, 11/16): all 16 were
+404**, so GP did not race Tue/Wed in Jan–Feb 2026 and the DB has no gap there.
+(Other batch_04 live-track results: section 12.) Run batch_04 **as committed**: a
 rebuilt plan (with the fixed inventory) no longer contains these dates at all,
 because they fall inside GP 2026's span on disk and the builder treats dates
 inside a span as non-race days.
@@ -438,6 +444,37 @@ season edges; no files landed in the live folders and nothing is held for a
 rebuild. (FG 2026 Mar 23 – Apr 9 and Nov 3–14: no races; DED New Year
 edges: no races.) The DED/LAD/FG estimates assumed edge race days that did
 not exist.
+
+## 12. batch_04 (Doug, 2026-11-16 10:04 → 12:38)
+
+Log `chart_download_log_20261116.csv` (rows from 10:04:30), transcript
+`chart_download_transcript_20261116_100429.txt`. **Ran to the end:** 1,500
+jobs in order, 1,466 requests (34 GP skipped, already on disk under the
+hand-saved names), 832 ok, 634 × 404, 0 errors, no stop, 6.3 s/request.
+
+| track | requests | downloaded | expected (estimate) | 404 rate | note |
+|---|---|---|---|---|---|
+| DEL | 120 | 78 | 85 (2026) | 35% | 2025 last 12 rows all 404 (2025 = 75 in all); DEL total 403 vs 425 |
+| HOU | 299 | 201 | 210 | 33% | on target |
+| IND | 831 | 547 | 464 + part of 2026 | 34% | 2022 127, 2023 116, 2024 124, 2025 123; 2026 57 of the first 93 (100 more rows in batch_05) |
+| ELP | 185 | 0 | 49 | 100% | live track: no races on any season-edge date |
+| GP | 31 | 6 | 69 | 81% | live track; estimate counted the 34 hand-named charts as new |
+
+**Live tracks:**
+
+* GP 2026 Tue/Wed Jan 6 – Feb 25 (16 dates): **all 404**, no live-DB gap.
+* ELP (185 dates, incl. 2026 after 08-23): all 404, no gap.
+* **GP November 2026: 6 downloaded**, all after the DB's last GP day
+  (2026-10-31): 11-01 (14 pages), 11-06 (11), 11-07 (14), 11-08 (15),
+  11-13 (12, 82 KB), 11-14 (13). Header dates match. **Gaps in the live DB,
+  for the planned rebuild; not loaded, not committed** (untracked in
+  `Gulfstream Park/gp-results-2026/`). `retrain_pipeline.discover_charts`
+  lists all 6 under HELD (checked read-only 11/16). GP 11-03/04/05 and
+  11-10/11/12 were 404 (no racing Tue–Thu).
+
+**Running total (11/15–11/16 logs):** 2,980 new charts from 5,244 requests
+(test batch 45, batch_01 827, batch_02 299, follow-up 1, ARP probe 45,
+batch_03 931, ARP Fridays 0, batch_04 832).
 
 ## Not done / open
 
