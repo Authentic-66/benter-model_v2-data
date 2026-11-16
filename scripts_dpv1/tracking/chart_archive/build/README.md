@@ -5,7 +5,7 @@ Run from the repo root, with a scratch folder `<S>` for the intermediate JSON:
 ```
 python -I scripts_dpv1/tracking/chart_archive/build/parse_xml.py "D:/From Downloads/2023 Result Charts" <S>/xml2023.json
 python scripts_dpv1/tracking/chart_archive/build/lastrace.py <S>/lastrace.json      # ~25 min, parses all DED PP files
-<inventory>: <S>/inventory.json (list of chart PDFs on D:, both naming styles; see PLAN.md section 2)
+python -I scripts_dpv1/tracking/chart_archive/build/inventory.py D:/ <S>/inventory.json   # ~20 s; chart PDFs on D:, all naming styles, archive downloads left out
 python -I scripts_dpv1/tracking/chart_archive/build/build_plan.py <S>
 ```
 
@@ -27,3 +27,9 @@ python -I scripts_dpv1/tracking/chart_archive/build/build_plan.py scripts_dpv1/t
 stale, which only matters for the windows (the downloader indexes the disk itself
 at every start, so nothing is downloaded twice). Regenerate it before rebuilding
 batches after real downloads.
+
+2026-11-16: regenerated with `inventory.py` (adds the 47 hand-named GP 2026
+charts; otherwise identical to the 11/15 snapshot). The inventory means "charts
+that existed before the archive": `inventory.py` leaves out every archive download
+(logged ok and a job in a batch file), so archive dates are counted through the
+logs, not as swept ranges.

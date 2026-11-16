@@ -3,6 +3,13 @@
     python scripts_dpv1/retrain_pipeline.py            # dry run (default)
     python scripts_dpv1/retrain_pipeline.py --execute  # actually do it
 
+    python scripts_dpv1/retrain_pipeline.py --execute --load-archive
+        # planned corpus rebuild only: also load chart-archive downloads
+
+Chart-archive downloads (any chart whose track and date are a job in a
+scripts_dpv1/tracking/chart_archive batch file) are HELD and never loaded
+without --load-archive (2026-11-16; see RUNBOOK_card_night.md).
+
 Loads any result charts that are on disk but not in the database, rebuilds
 features, trains a candidate model to a dated artifact, evaluates it against
 the current one, and prints a recommendation.
@@ -70,6 +77,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -110,6 +118,17 @@ EXTRA_TRACK_DIRS = {
     "FP": "Fairmount Park",
 }
 
+# Chart-archive guard (2026-11-16). The chart archive (tools/chart_downloader.ps1,
+# scripts_dpv1/tracking/chart_archive) downloads years of charts into the same
+# track folders this pipeline scans. Loading them would expand the corpus, and
+# that has to be a planned rebuild. So a chart whose (track, date) is a job in
+# any chart-archive batch file is HELD unless --load-archive is given. Charts
+# downloaded for card nights are not in those files and are unaffected.
+ARCHIVE_DIR = DPV1_DIR / "tracking" / "chart_archive"
+_RE_LONG = re.compile(r"^(\d{8})-(?:usa|can)-([a-z]+)-a-d\.standard\.pdf$", re.I)
+_RE_SHORT = re.compile(r"^([a-z]+?)(\d{2})(\d{2})(\d{2})(?:usa|can)?\d?\.pdf$", re.I)
+_RE_DOTTED = re.compile(r"^(\d{2})\.(\d{2})\.(\d{2}) ([a-z]+) results\.pdf$", re.I)
+
 KEEP_MODEL_VERSIONS = 5
 MIN_RACES_FOR_RECOMMENDATION = 500
 # A metric has to move by more than this to count as a real change rather than
@@ -133,7 +152,44 @@ def _rule(title: str) -> None:
 # Phase 1 - discover charts that are on disk but not in the database
 # ---------------------------------------------------------------------------
 
-def discover_charts(conn: sqlite3.Connection, all_tracks: bool = False) -> dict:
+def chart_key(pdf: Path) -> tuple[str, str] | None:
+    """(TRACK, yyyymmdd) from a chart file name, in any naming style on disk."""
+    n = pdf.name
+    m = _RE_LONG.match(n)
+    if m:
+        return m.group(2).upper(), m.group(1)
+    m = _RE_SHORT.match(n)
+    if m:
+        return m.group(1).upper(), f"20{m.group(4)}{m.group(2)}{m.group(3)}"
+    m = _RE_DOTTED.match(n)
+    if m:
+        return m.group(4).upper(), f"20{m.group(3)}{m.group(1)}{m.group(2)}"
+    return None
+
+
+def archive_jobs() -> set[tuple[str, str]]:
+    """(TRACK, yyyymmdd) of every job in the chart-archive batch files.
+
+    Recheck rows (test batch only) re-fetched a chart already on disk under
+    another name, so they do not mark that date as archive.
+    """
+    files = [ARCHIVE_DIR / "batch_00_test.csv"]
+    files += sorted(p for p in (ARCHIVE_DIR / "batches").glob("*.csv")
+                    if p.name != "batch_index.csv")
+    out: set[tuple[str, str]] = set()
+    for f in files:
+        if not f.exists():
+            continue
+        df = pd.read_csv(f, dtype=str).fillna("")
+        if "recheck" in df.columns:
+            df = df[df["recheck"].str.strip() != "1"]
+        for trk, d in zip(df["track"], df["date"]):
+            out.add((trk.strip().upper(), d.strip().replace("-", "")))
+    return out
+
+
+def discover_charts(conn: sqlite3.Connection, all_tracks: bool = False,
+                    load_archive: bool = False) -> dict:
     """Result charts present on disk and absent from ``parsed_files``.
 
     Matched three ways -- repo-relative path, bare filename, and sha256 -- and
@@ -151,13 +207,18 @@ def discover_charts(conn: sqlite3.Connection, all_tracks: bool = False) -> dict:
     if all_tracks:
         dirs.update(EXTRA_TRACK_DIRS)
 
+    archive = set() if load_archive else archive_jobs()
     pending: dict[str, list[Path]] = {}
+    held: dict[str, list[Path]] = {}
     dupes: list[tuple[Path, str]] = []
     for code, folder in sorted(dirs.items()):
         found = []
         for pdf in sorted((REPO / folder).glob("*-results-*/*.pdf")):
             rel = str(pdf.relative_to(REPO)).replace("\\", "/").lower()
             if rel in known or pdf.name.lower() in known_names:
+                continue
+            if chart_key(pdf) in archive:
+                held.setdefault(code, []).append(pdf)
                 continue
             if _sha(pdf) in known_shas:
                 dupes.append((pdf, "content already loaded under another name"))
@@ -172,7 +233,8 @@ def discover_charts(conn: sqlite3.Connection, all_tracks: bool = False) -> dict:
             n = sum(1 for _ in (REPO / folder).glob("*-results-*/*.pdf"))
             if n:
                 skipped[code] = n
-    return {"pending": pending, "dupes": dupes, "skipped_tracks": skipped}
+    return {"pending": pending, "dupes": dupes, "skipped_tracks": skipped,
+            "archive_held": held}
 
 
 # ---------------------------------------------------------------------------
@@ -562,6 +624,9 @@ def _cli() -> int:
                    help="current model, the comparison baseline")
     p.add_argument("--all-tracks", action="store_true",
                    help="also load charts for tracks outside the training set")
+    p.add_argument("--load-archive", action="store_true",
+                   help="also load chart-archive downloads (held by default; "
+                        "a planned corpus rebuild only)")
     p.add_argument("--skip-load", action="store_true",
                    help="skip chart loading; retrain on the corpus as it is")
     p.add_argument("--version", default=None,
@@ -598,7 +663,8 @@ def _cli() -> int:
     try:
         # --- Phase 1: discover -------------------------------------------
         _rule("1. NEW RESULT CHARTS")
-        disc = discover_charts(conn, all_tracks=args.all_tracks)
+        disc = discover_charts(conn, all_tracks=args.all_tracks,
+                               load_archive=args.load_archive)
         pending = [p for v in disc["pending"].values() for p in v]
         for pdf, why in disc["dupes"]:
             print(f"  SKIP  {pdf.name}  ({why})")
@@ -611,6 +677,13 @@ def _cli() -> int:
                     print(f"       ... and {len(files) - 20} more")
         else:
             print("  none -- the database is current with what is on disk")
+        if disc["archive_held"]:
+            n_held = sum(len(v) for v in disc["archive_held"].values())
+            print(f"\n  HELD -- {n_held} chart-archive download(s) NOT loaded "
+                  "(--load-archive to include; planned rebuild only):")
+            for code, files in sorted(disc["archive_held"].items()):
+                names = sorted(f.name for f in files)
+                print(f"       {code}: {len(files)} chart(s), {names[0]} .. {names[-1]}")
         if disc["skipped_tracks"]:
             print("\n  not loaded (outside the training tracks; --all-tracks to include):")
             for code, n in disc["skipped_tracks"].items():

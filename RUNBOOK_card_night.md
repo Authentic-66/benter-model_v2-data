@@ -150,6 +150,25 @@ equal True`, `picks: N rows, 0 diffs`, and `result: clean; streak K of 14`.
   prints the streak, and it warns if no comparison has run for 7 days. In
   that case, run a full build and then `run --step weekly`.
 
+## Chart archive downloads and the live DB (added 2026-11-16)
+
+The chart archive (`tools/chart_downloader.ps1`, batches in
+`scripts_dpv1/tracking/chart_archive/`) saves charts into the same track
+folders as the live charts (CharlesTown, Ellis, Gulfstream Park, Mountaineer,
+Delta Downs, Evangeline Downs, Fair Grounds, Louisiana Downs, Fairmount Park).
+
+* Card night is not affected: section A loads only the one chart named to
+  `load_chart.py`, and the side-by-side reads only the DB.
+* `retrain_pipeline.py --execute` loads every chart on disk that is not in the
+  DB, **except** chart-archive downloads: any chart whose track and date are a
+  job in a chart-archive batch file is **HELD** and listed under "HELD" in
+  section 1 of its output. Only `--load-archive` loads them, and that is for a
+  planned corpus rebuild only, never a routine retrain.
+* `db_loader.py pipeline --pdf-dir` and `_load_ct_backlog.py` load whole
+  folders with no such guard. Don't run them on the live DB.
+* Archive charts in the live-track folders are committed to git only together
+  with the change that loads them into the DB.
+
 ## If a check fails
 
 | Symptom | Do this |
@@ -165,6 +184,7 @@ equal True`, `picks: N rows, 0 diffs`, and `result: clean; streak K of 14`.
 | card_picks header shows another model than `dpv1.3.2-5track-stretch` | Stop. Don't use or send the picks. Check `scripts_dpv1/dpv1.pkl` and ask. |
 | card_picks header says `name matching: OFF` | Stop. Check `name_match_config.json` and that `BENTER_NAME_MATCH` is not set, then reload the card (B from the backup) and ask. |
 | Chart load: `errors` > 0, `FAILED` or `CHECK FAILED` | Restore `pre-...res.bak` and ask. Don't build the card on it. |
+| retrain_pipeline lists charts under "HELD" | Expected: those are chart-archive downloads. Don't add `--load-archive` unless the archive load is the planned job. |
 | Chart load: `REFUSED` | Nothing was written. Read the reason: re-download a short chart; `--reload` only for a deliberate re-download over a chart; for "backup exists but the DB has changed", find out what wrote to the DB before moving the old backup aside. |
 
 Restore = `Copy-Item <backup> scripts\racing_full.db` (close every other

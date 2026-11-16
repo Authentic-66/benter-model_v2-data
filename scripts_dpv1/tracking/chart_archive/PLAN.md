@@ -17,12 +17,15 @@ cd 'D:\Benter Model_v2 Data\benter-model_v2-data'
 
 **Live DB safety.** The card-night runbook only loads the chart it names
 (`load_chart.py <one pdf>`), and the side-by-side reads only the DB, so new
-files in the live folders change nothing by themselves. **One exception:**
-`retrain_pipeline.py --execute` *without* `--skip-load` scans
-`CharlesTown`, `Ellis`, `Gulfstream Park` and `Mountaineer` (plus `Delta
-Downs`, `Evangeline Downs`, `Fair Grounds` and `Fairmount Park` with
-`--all-tracks`) and loads every chart not yet in `parsed_files`. Until the
-archive charts are deliberately loaded, run a retrain only with `--skip-load`.
+files in the live folders change nothing by themselves.
+`retrain_pipeline.py --execute` scans `CharlesTown`, `Ellis`, `Gulfstream
+Park` and `Mountaineer` (plus `Delta Downs`, `Evangeline Downs`, `Fair Grounds`
+and `Fairmount Park` with `--all-tracks`) and loads every chart not yet in
+`parsed_files`, **but since 11/16 it holds every chart-archive download** (a
+chart whose track and date are a job in a batch file here, recheck rows
+excepted) and lists them under "HELD". Only `--load-archive` loads them, for a
+planned rebuild (RUNBOOK_card_night.md). On 11/16 it holds the 8 CT test-batch
+charts (11/04–11/14), which a plain `--execute` would otherwise have loaded.
 `db_loader.py pipeline --pdf-dir` and `_load_ct_backlog.py`
 (`ct-results-2026`) also load a whole folder; neither is in the runbook. No
 scheduled task runs any project script (checked 11/16).
@@ -352,13 +355,23 @@ raced Wednesdays in Jan–Feb 2024 and 2025, but the DB has none in 2026) and th
 8 Tuesdays a day before each (GP did not race Tuesdays then, so probably 404).
 Loading any of these is a later planned rebuild, not now.
 
+**After batch_04 runs (open):** report which of these 16 dates downloaded
+(`ok` in the log). Any that did are gaps in the live DB: list them here for the
+planned rebuild; **do not load them.** Run batch_04 **as committed**: a
+rebuilt plan (with the fixed inventory) no longer contains these dates at all,
+because they fall inside GP 2026's span on disk and the builder treats dates
+inside a span as non-race days.
+
 **GP 2026 hand-saved names.** `Gulfstream Park\gp-results-2026` holds 47 charts
 named `GP020126.pdf` or `01.01.26 GP Results.pdf`, which the 11/15 inventory and
 the downloader index did not recognise. They are all charted in the DB. The
 downloader index now recognises both styles (only inside a `*results*` folder),
 so batch_04 skips the 34 that are in it (dry run: 1,466 requests, 34 already
-had). `build/inputs/inventory.json` still lacks them; fix that before any
-`build_plan.py` rerun.
+had). **Inventory fixed 11/16:** new `build/inventory.py` (read-only scan, all
+four naming styles, archive downloads left out) regenerated
+`build/inputs/inventory.json`: exactly the 47 GP files added, nothing else
+changed (5,157 → 5,204 files). A scratch rebuild then has no GP Jan–Feb 2026 rows
+(the committed batch_04 has 50).
 
 ## 10. Known gaps (`known_gaps.csv`)
 
