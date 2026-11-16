@@ -1,9 +1,9 @@
 type,name,window,first_date,starts,wins,itm,win_pct,itm_pct,roi_2_win,logged_starts,model_sum_p_itm,logged_actual_itm,itm_minus_model
-trainer,Ronnie P. Ward,2026 meet,2026-10-10,36,4,15,0.111,0.417,-0.589,36,11.2,15,3.8
-trainer,Ronnie P. Ward,all DED in DB,2021-01-05,717,58,245,0.081,0.342,-0.434,36,11.2,15,3.8
-jockey,Devin H. Magnon,2026 meet,2026-10-10,32,4,10,0.125,0.312,0.244,32,10.23,10,-0.23
-jockey,Devin H. Magnon,all DED in DB,2021-01-04,636,67,253,0.105,0.398,-0.216,32,10.23,10,-0.23
-trainer,Rylee Magnon,2026 meet,2026-10-14,10,1,2,0.1,0.2,1.24,10,3.27,2,-1.27
-trainer,Rylee Magnon,all DED in DB,2021-01-04,251,34,119,0.135,0.474,-0.102,10,3.27,2,-1.27
+trainer,Ronnie P. Ward,2026 meet,2026-10-10,41,4,16,0.098,0.39,-0.639,41,13.24,16,2.76
+trainer,Ronnie P. Ward,all DED in DB,2021-01-05,722,58,246,0.08,0.341,-0.438,41,13.24,16,2.76
+jockey,Devin H. Magnon,2026 meet,2026-10-10,34,4,10,0.118,0.294,0.171,34,10.83,10,-0.83
+jockey,Devin H. Magnon,all DED in DB,2021-01-04,638,67,253,0.105,0.397,-0.218,34,10.83,10,-0.83
+trainer,Rylee Magnon,2026 meet,2026-10-14,11,1,2,0.091,0.182,1.036,11,3.67,2,-1.67
+trainer,Rylee Magnon,all DED in DB,2021-01-04,252,34,119,0.135,0.472,-0.106,11,3.67,2,-1.67
 trainer,W.B. Calhoun,2026 meet,2026-10-10,19,4,9,0.211,0.474,-0.047,19,6.24,9,2.76
 trainer,W.B. Calhoun,all DED in DB,2021-01-12,203,41,94,0.202,0.463,-0.054,19,6.24,9,2.76
