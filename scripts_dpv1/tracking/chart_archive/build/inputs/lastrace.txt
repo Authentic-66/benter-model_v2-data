@@ -1,0 +1,22 @@
+ded1010y.pdf 87
+ded1014y.pdf 167
+ded1015y.pdf 255
+ded1016y.pdf 354
+ded1017y.pdf 455
+ded1021y.pdf 528
+ded1022y.pdf 603
+ded1023y.pdf 685
+ded1024y.pdf 764
+ded1028y.pdf 846
+ded1029y.pdf 921
+ded1030y.pdf 1021
+ded1104y.pdf 1098
+ded1105y.pdf 1167
+ded1106y.pdf 1256
+ded1107y.pdf 1343
+ded1111y.pdf 1414
+ded1112y.pdf 1481
+ded1113y.pdf 1559
+ded1114y.pdf 1651
+[('EVD', 561), ('DED', 480), ('LAD', 335), (None, 121), ('SWF', 19), ('FG', 18), ('PRM', 16), ('LS', 15), ('ARP', 13), ('GIL', 13), ('CBY', 10), ('ATO', 7), ('RP', 7), ('HCN', 5), ('OP', 5), ('ELP', 2), ('DEL', 2), ('HOU', 2), ('WO', 2), ('IND', 2), ('EUR', 2), ('GP', 2), ('CNL', 1), ('CT', 1), ('CD', 1), ('ALB', 1), ('LEG', 1), ('MNR', 1), ('BAQ', 1), ('FON', 1), ('BTP', 1), ('DMR', 1), ('MED', 1), ('KEE', 1)]
+all PP lines: [('EVD', 4619), ('DED', 2612), ('LAD', 1491), ('FG', 1163), ('LS', 406), ('OP', 303), ('HOU', 241), ('FON', 183), ('ARP', 142), ('PRM', 127), ('CD', 98), ('CBY', 96), ('GP', 85), ('RP', 81), ('GIL', 73), ('HCN', 56), ('SWF', 54), ('IND', 49), ('TP', 48), ('LEG', 44), ('KEE', 42), ('TAM', 33), ('ELP', 29), ('CNL', 29), ('SA', 28), ('EDR', 27), ('HPO', 25), ('DEL', 25), ('DMR', 25), ('HAW', 21), ('WRD', 21), ('BTP', 19), ('FMT', 17), ('ATO', 17), ('AQU', 15), ('LRL', 13), ('MNR', 10), ('FE', 8), ('WO', 7), ('TUP', 6), ('BAQ', 6), ('SAR', 6), ('MVR', 6), ('CT', 5), ('LRC', 4), ('TDN', 4), ('MTH', 4), ('PEN', 4), ('FPK', 3), ('FL', 3), ('PID', 2), ('WYO', 2), ('MED', 2), ('EUR', 2), ('SUN', 1), ('ALB', 1), ('KD', 1), ('PLN', 1), ('FER', 1), ('TIM', 1)]
