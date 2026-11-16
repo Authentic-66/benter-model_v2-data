@@ -19,6 +19,7 @@
   Already on disk = either naming style, anywhere under -Root:
     long : 20221101-usa-mnr-a-d.standard.pdf
     short: MNR110122USA.pdf  (also MNR110122USA8.pdf style suffixes)
+    and, inside a *results* folder only: GP020126.pdf, "01.01.26 GP Results.pdf"
   The index is built once at start, so a chart in an older folder layout
   (e.g. Mahoning Valley\mvr-2025-results) is not downloaded again. Get-Chart
   also keeps its own Test-Path check in the target folder.
@@ -96,11 +97,20 @@ function Get-ChartIndex([string]$Base) {
     $idx = @{}
     $reLong  = '^(\d{8})-(usa|can)-([a-z]+)-a-d\.standard\.pdf$'
     $reShort = '^([A-Za-z]+?)(\d{2})(\d{2})(\d{2})(USA|CAN)\d?\.pdf$'
+    $reShortNoCtry = '^([A-Za-z]+)(\d{2})(\d{2})(\d{2})\.pdf$'
+    $reDotted = '^(\d{2})\.(\d{2})\.(\d{2}) ([A-Za-z]+) Results\.pdf$'
     Get-ChildItem -Path $Base -Recurse -File -Filter *.pdf -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -notmatch '\\_bad_charts\\' } | ForEach-Object {
             $n = $_.Name
             if ($n -match $reLong) { $idx[("{0}|{1}" -f $Matches[3].ToUpper(), $Matches[1])] = $_.FullName }
             elseif ($n -match $reShort) { $idx[("{0}|20{1}{2}{3}" -f $Matches[1].ToUpper(), $Matches[4], $Matches[2], $Matches[3])] = $_.FullName }
+            # 2026-11-16: two more hand-saved styles, only inside a *results* folder
+            # (Gulfstream Park\gp-results-2026 has 47): GP020126.pdf (no country) and
+            # "01.01.26 GP Results.pdf".
+            elseif ($_.DirectoryName -match 'results') {
+                if ($n -match $reShortNoCtry) { $idx[("{0}|20{1}{2}{3}" -f $Matches[1].ToUpper(), $Matches[4], $Matches[2], $Matches[3])] = $_.FullName }
+                elseif ($n -match $reDotted) { $idx[("{0}|20{1}{2}{3}" -f $Matches[4].ToUpper(), $Matches[3], $Matches[1], $Matches[2])] = $_.FullName }
+            }
         }
     return $idx
 }

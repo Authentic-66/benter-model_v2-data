@@ -3,16 +3,29 @@
 Plan and prep only (2026-11-15). **Claude made no request to Equibase.** Doug runs
 every download with `tools/chart_downloader.ps1`. Nothing pushed.
 
-**Status 2026-11-16:** feeders done (batch_01 + batch_02, results in §7).
-Archive PDFs are **not committed** from here on (`.gitignore`, except the
-folders the live loader reads); the logs are. Next: the feeder follow-up
-(11 requests), then group b, one batch per session.
+**Status 2026-11-16:** feeders and the feeder follow-up are done (§7). Archive
+PDFs are **not committed** (`.gitignore`). Live-track charts (the
+DED/EVD/LAD/FG/CT/GP/ELP/MNR folders) are committed **only together with the
+change that loads them into the DB** (Doug 11/16); the logs are committed each
+time. Next: the ARP probe (119 requests) and group b, one batch per session.
 
 ```powershell
 cd 'D:\Benter Model_v2 Data\benter-model_v2-data'
-.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\followup_feeders_01.csv
+.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\probe_arp_01.csv
 .\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_03.csv
 ```
+
+**Live DB safety.** The card-night runbook only loads the chart it names
+(`load_chart.py <one pdf>`), and the side-by-side reads only the DB, so new
+files in the live folders change nothing by themselves. **One exception:**
+`retrain_pipeline.py --execute` *without* `--skip-load` scans
+`CharlesTown`, `Ellis`, `Gulfstream Park` and `Mountaineer` (plus `Delta
+Downs`, `Evangeline Downs`, `Fair Grounds` and `Fairmount Park` with
+`--all-tracks`) and loads every chart not yet in `parsed_files`. Until the
+archive charts are deliberately loaded, run a retrain only with `--skip-load`.
+`db_loader.py pipeline --pdf-dir` and `_load_ct_backlog.py`
+(`ct-results-2026`) also load a whole folder; neither is in the runbook. No
+scheduled task runs any project script (checked 11/16).
 
 Do **not** rerun `build_plan.py` before batches 03–07: it renumbers the
 batches (group a would shrink to the 2 LS retries) and group b is unchanged
@@ -298,6 +311,53 @@ Saturday hit in May–Oct; not followed up (a Sunday-only or outside-window meet
 would need a separate probe). **ARP open:** the 2024 and 2025 meets look moved
 or cut short and 2026 runs Fri–Sun; a probe of Fridays and of Sep–Nov 2025 is
 not built yet.
+
+**Follow-up run (Doug, 11/16 06:35, log `chart_download_log_20261116.csv`):**
+ATO 2024-05-10 ok; the other 8 ATO dates 404 (so ATO = 2024 May 10–11,
+2025 Aug 16 only, 2026 Aug 29–30 + Sep 5–7). Both LS retries were `not a PDF`
+**again**. Each of those two dates gives a non-PDF every time while the
+requests around them are fine, so it is the dates, not a block. They are not
+retried; whether those days raced is open.
+
+## 8. ARP probe (`batches/probe_arp_01.csv`, 119 requests)
+
+Every Fri, Sat and Sun from Jun 1 to Nov 30 (2026: to Nov 14), plus the
+holiday Mondays in that span (Labor Day and Columbus Day each year, Veterans
+Day 2024-11-11), for 2024–2026. Dates already on disk or logged ok/404 are taken
+out: 2024 49 requests (6 on disk, 27 logged 404), 2025 39 (13, 29), 2026 31
+(29, 13).
+
+## 9. Live-track dates in group b (`live_track_dates_b03_07.csv`)
+
+Group b has 322 rows in the live-loader folders (DED 9, EVD 23, FG 35 and
+LAD 23 in batch_03; ELP 185 and GP 65 in batch_04; CT 27 in batch_06; MNR 32 in
+batch_07). By construction the plan only probes dates **outside** each year's
+span of charts on disk, so nearly all are season edges, and many will be 404s:
+
+| track | rows | why not on disk |
+|---|---|---|
+| DED | 9 | New Year edges (Dec 30–Jan 3) of 2022/24/25/26 |
+| EVD | 23 | 7 before DB coverage (2022 March); 16 opening week (late March / early April) before each year's first chart |
+| LAD | 23 | 8 before DB coverage (2022 April); 15 late-April opening days |
+| FG | 35 | 30 after DB coverage (2026, after 03-22: not loaded yet); 5 year-end edges |
+| ELP | 185 | 129 late May / June dates from the 2023 meet (DB years start Jul 3–8, except 2023 Jun 10); 40 late Aug / early Sep; 16 after DB coverage (2026 after 08-23) |
+| GP | 65 | 34 **already on disk** under hand-saved names (below); 16 Tue/Wed Jan–Feb 2026; 12 after DB coverage (2026 after 10-31); 3 year-end |
+| CT | 27 | Christmas/New Year edges (Dec 17 – Jan 5) |
+| MNR | 32 | Dec 10–27 meet end and mid-April opening; 4 after DB coverage (2026 after 11-04) |
+
+**Inside a year's charted span in the DB (possible gaps), only GP 2026:**
+the 8 Wednesdays 01-07, 01-14, 01-21, 01-28, 02-04, 02-11, 02-18, 02-25 (GP
+raced Wednesdays in Jan–Feb 2024 and 2025, but the DB has none in 2026) and the
+8 Tuesdays a day before each (GP did not race Tuesdays then, so probably 404).
+Loading any of these is a later planned rebuild, not now.
+
+**GP 2026 hand-saved names.** `Gulfstream Park\gp-results-2026` holds 47 charts
+named `GP020126.pdf` or `01.01.26 GP Results.pdf`, which the 11/15 inventory and
+the downloader index did not recognise. They are all charted in the DB. The
+downloader index now recognises both styles (only inside a `*results*` folder),
+so batch_04 skips the 34 that are in it (dry run: 1,466 requests, 34 already
+had). `build/inputs/inventory.json` still lacks them; fix that before any
+`build_plan.py` rerun.
 
 ## Not done / open
 
