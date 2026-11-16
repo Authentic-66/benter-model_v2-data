@@ -26,6 +26,10 @@ for lp in sorted(glob.glob(REPO + r"\chart_download_log_*.csv")):
     for r in csv.DictReader(open(lp, encoding="ascii", errors="replace")):
         if r["status"] == "ok": dl_ok.add((r["track"], r["date"]))
         elif r["status"] == "none": dl_404.add((r["track"], r["date"]))
+# known gaps (charts corrupt or missing at Equibase): never put in a batch; each one is
+# retried once by hand from its own retry batch (see known_gaps.csv, PLAN.md section 10)
+known_gaps = {(r["track"].strip().upper(), r["date"].strip())
+              for r in csv.DictReader(open(OUT + r"\known_gaps.csv", encoding="utf-8"))}
 
 # ---------------------------------------------------------------- track facts from 2023 XMLs
 T = defaultdict(lambda: dict(name="", days_all=[], tb_days=[], tb_races=0, races=0, breeds=Counter()))
@@ -220,7 +224,8 @@ for code in sorted(prio, key=lambda c: prio[c]):
         if y != 2023 and disk:
             cand = [d for d in cand if d < disk[0] or d > disk[-1]]
         trk = "FP" if (code == "FAN" and y >= 2025) else code
-        todo = [d for d in cand if (code, d.isoformat()) not in have and (trk, d.isoformat()) not in dl_404]
+        todo = [d for d in cand if (code, d.isoformat()) not in have and (trk, d.isoformat()) not in dl_404
+                and (trk, d.isoformat()) not in known_gaps]
         exp_days = n23 if y in (2022, 2023, 2024, 2025) else round(n23 * frac26)
         if clos and y > clos.year: exp_days = 0
         if clos and y == clos.year: exp_days = sum(1 for d in t["tb_days"] if (d.month, d.day) <= (clos.month, clos.day))

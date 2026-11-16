@@ -44,7 +44,8 @@ pace (6.5 s per request), about 1,200 charts expected.
 | `batch_00_test.csv` | test batch, 52 rows, **run 2026-11-15** (kept as run; the build no longer rewrites it) |
 | `batches/batch_01.csv` … `batch_20.csv` | all jobs in priority order, ≤1,500 requests each, **a new batch at each group boundary** (01–02 feeders, 03–07 group b, 08–20 group c); `batch_index.csv` lists the tracks in each |
 | `extra_pp_only_tracks.csv` | known HCN / EUR dates from DED PP lines (not in any batch; see §1) |
-| `build/` | the read-only scripts that made all of the above, and `inputs/`. `build_plan.py` also reads every `chart_download_log_*.csv` in the repo root (ok = on disk, 404 = never asked again) |
+| `build/` | the read-only scripts that made all of the above, and `inputs/`. `build_plan.py` also reads every `chart_download_log_*.csv` in the repo root (ok = on disk, 404 = never asked again) and `known_gaps.csv` (never asked again; §10) |
+| `known_gaps.csv` | charts corrupt at Equibase: excluded from batches, each retried once by hand (§10) |
 | `../../../tools/chart_downloader.ps1` | the downloader |
 
 ## 1. Master track list (`tracks.csv`)
@@ -358,6 +359,29 @@ downloader index now recognises both styles (only inside a `*results*` folder),
 so batch_04 skips the 34 that are in it (dry run: 1,466 requests, 34 already
 had). `build/inputs/inventory.json` still lacks them; fix that before any
 `build_plan.py` rerun.
+
+## 10. Known gaps (`known_gaps.csv`)
+
+Charts that are corrupt or missing **at Equibase**. `build_plan.py` reads this
+file and never puts these dates in a batch (tested 11/16 on a scratch copy:
+the LS dates drop out with the list and come back without it). Each one is
+retried **once**, by hand, after its `retry_after` date, from its own small
+batch; then `status` is set to `fixed` or `permanent`.
+
+| track | date | problem | retry after | how |
+|---|---|---|---|---|
+| MNR | 2026-10-05 | downloaded 11/07, damaged (Unexpected EOF) | 2026-11-21 | by hand (live track; `load_chart.py --reload`) |
+| LS | 2022-04-29 | not a PDF twice (11/15, 11/16); won't load on equibase.com (Doug) | 2026-11-30 | `batches/retry_ls_after_20261130.csv` |
+| LS | 2026-04-24 | same | 2026-11-30 | same batch |
+
+```powershell
+# on or after 2026-11-30, once only
+.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\retry_ls_after_20261130.csv
+```
+
+The 8 known gaps from `../chart_audit_2026-11-07.md` (image pages, short
+files, EVD 2023-08-10) are files on disk, so the builder never asks for them
+anyway; they are not in this list.
 
 ## Not done / open
 

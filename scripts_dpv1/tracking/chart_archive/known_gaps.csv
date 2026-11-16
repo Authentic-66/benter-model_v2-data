@@ -1,0 +1,4 @@
+track,date,problem,found,retry_after,retry_batch,status
+MNR,2026-10-05,"downloaded 11/07 but damaged (Unexpected EOF); corrupt at Equibase",2026-11-07,2026-11-21,"by hand (live track: Mountaineer; load with load_chart.py --reload)",open
+LS,2022-04-29,"not a PDF on 11/15 and 11/16; does not load on equibase.com either (Doug); corrupt at Equibase",2026-11-16,2026-11-30,batches/retry_ls_after_20261130.csv,open
+LS,2026-04-24,"not a PDF on 11/15 and 11/16; does not load on equibase.com either (Doug); corrupt at Equibase",2026-11-16,2026-11-30,batches/retry_ls_after_20261130.csv,open
