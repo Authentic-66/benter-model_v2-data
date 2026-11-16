@@ -343,8 +343,12 @@ in 2024 and 2025 and race Fri–Sun:
 
 No holiday Monday hit. The two weeks after each meet's last day were probed and
 404'd, so the ends look complete. 2022 (25 charts) has hits on Sundays and Mondays
-only, and every Saturday 404'd. Fridays were never probed for 2022 (about 17 dates,
-not built).
+only, and every Saturday 404'd. Fridays were never probed for 2022.
+
+**ARP 2022 Friday probe** (`batches/probe_arp_02_2022fri.csv`, built 11/16 at
+Doug's request, not run yet): 18 Fridays, Jun 3 – Sep 30 2022, none logged
+before. Dry run: 18 requests. The end of the 2022 meet is also unchecked: the
+last probe date was Sun 9/25 (ok); Mon 9/26 and later were never asked.
 
 ## 9. Live-track dates in group b (`live_track_dates_b03_07.csv`)
 
@@ -410,6 +414,30 @@ batch; then `status` is set to `fixed` or `permanent`.
 The 8 known gaps from `../chart_audit_2026-11-07.md` (image pages, short
 files, EVD 2023-08-10) are files on disk, so the builder never asks for them
 anyway; they are not in this list.
+
+## 11. batch_03 (Doug, 2026-11-16 06:54 → 09:36)
+
+Log `chart_download_log_20261116.csv` (rows from 06:54:01), transcript
+`chart_download_transcript_20261116_065400.txt`. **Ran to the end:** 1,500
+requests, every job logged in order, 931 ok, 569 × 404, 0 errors, no stop,
+no 403, 6.5 s/request.
+
+| track | requests | downloaded | expected (estimate) | 404 rate | note |
+|---|---|---|---|---|---|
+| CBY | 457 | 275 | 265 | 40% | on target (2022 65, 2023 53, 2024 54, 2025 52, 2026 51) |
+| OP | 550 | 331 | 332 | 40% | on target |
+| DEL | 403 | 325 | 255 + part of 2025 | 19% | 2022 88, 2023 85, 2024 77; 2025 75 of the first 97 (12 more rows in batch_04) |
+| EVD | 23 | 0 | 0 | 100% | live track |
+| DED | 9 | 0 | 22 | 100% | live track |
+| LAD | 23 | 0 | 4 | 100% | live track |
+| FG | 35 | 0 | 6 | 100% | live track |
+
+**Live tracks: nothing downloaded.** All 90 DED/EVD/LAD/FG dates (section 9)
+were 404, so the DB already has every chart these tracks ran in the probed
+season edges; no files landed in the live folders and nothing is held for a
+rebuild. (FG 2026 Mar 23 – Apr 9 and Nov 3–14: no races; DED New Year
+edges: no races.) The DED/LAD/FG estimates assumed edge race days that did
+not exist.
 
 ## Not done / open
 
