@@ -1,0 +1,248 @@
+{
+ "KB_PER_RACE": 16.1,
+ "jobs": 27717,
+ "batches": 20,
+ "test_rows": 44,
+ "by_group": {
+  "a": {
+   "requests": 2078,
+   "new": 1202,
+   "mb": 177.7
+  },
+  "b": {
+   "requests": 7038,
+   "new": 4379,
+   "mb": 621.0000000000002
+  },
+  "c": {
+   "requests": 18601,
+   "new": 10913,
+   "mb": 1474.4999999999939
+  }
+ },
+ "total": {
+  "requests": 27717,
+  "new": 16494,
+  "mb": 2273.2
+ },
+ "pp_last_race": [
+  [
+   "EVD",
+   561
+  ],
+  [
+   "DED",
+   480
+  ],
+  [
+   "LAD",
+   335
+  ],
+  [
+   "SWF",
+   19
+  ],
+  [
+   "FG",
+   18
+  ],
+  [
+   "PRM",
+   16
+  ],
+  [
+   "LS",
+   15
+  ],
+  [
+   "ARP",
+   13
+  ],
+  [
+   "GIL",
+   13
+  ],
+  [
+   "CBY",
+   10
+  ],
+  [
+   "ATO",
+   7
+  ],
+  [
+   "RP",
+   7
+  ],
+  [
+   "HCN",
+   5
+  ],
+  [
+   "OP",
+   5
+  ],
+  [
+   "ELP",
+   2
+  ],
+  [
+   "DEL",
+   2
+  ],
+  [
+   "HOU",
+   2
+  ],
+  [
+   "WO",
+   2
+  ],
+  [
+   "IND",
+   2
+  ],
+  [
+   "EUR",
+   2
+  ],
+  [
+   "GP",
+   2
+  ],
+  [
+   "CNL",
+   1
+  ],
+  [
+   "CT",
+   1
+  ],
+  [
+   "CD",
+   1
+  ],
+  [
+   "ALB",
+   1
+  ],
+  [
+   "LEG",
+   1
+  ],
+  [
+   "MNR",
+   1
+  ],
+  [
+   "BAQ",
+   1
+  ],
+  [
+   "FON",
+   1
+  ],
+  [
+   "BTP",
+   1
+  ],
+  [
+   "DMR",
+   1
+  ],
+  [
+   "MED",
+   1
+  ],
+  [
+   "KEE",
+   1
+  ]
+ ],
+ "pp_not_in_xml": {
+  "HCN": 5,
+  "EUR": 2
+ },
+ "pp_lines_not_in_xml": {
+  "HCN": 56,
+  "FPK": 3,
+  "EUR": 2
+ },
+ "ts_not_in_xml": [
+  "Stockton",
+  "Northlands Park (closed)",
+  "Gulfstream Park West (closed)",
+  "Les Bois Park",
+  "Atlantic City",
+  "Portland Meadows (closed)"
+ ],
+ "xml_tb_not_on_ts": [
+  "AIK",
+  "ATO",
+  "BAQ",
+  "BKF",
+  "CAM",
+  "CAS",
+  "CHA",
+  "CHE",
+  "CHL",
+  "CLS",
+  "CMR",
+  "CNL",
+  "CPW",
+  "DG",
+  "EDR",
+  "ELK",
+  "ELY",
+  "FAR",
+  "FH",
+  "FL",
+  "FMT",
+  "FX",
+  "GF",
+  "GIL",
+  "GLN",
+  "GN",
+  "GPR",
+  "GRM",
+  "GRP",
+  "GV",
+  "HPO",
+  "LBG",
+  "LEG",
+  "MAL",
+  "MC",
+  "MED",
+  "MID",
+  "MIL",
+  "MON",
+  "MTP",
+  "MVR",
+  "ODH",
+  "ONE",
+  "PMT",
+  "POD",
+  "PRV",
+  "PW",
+  "SHW",
+  "SON",
+  "SWF",
+  "TIL",
+  "TIM",
+  "TRY",
+  "UN",
+  "UNI",
+  "WIL",
+  "WNT",
+  "WYO"
+ ],
+ "qh_only": [
+  "AJX",
+  "FPL",
+  "FTP",
+  "JRM",
+  "RET",
+  "SRM",
+  "WBR"
+ ]
+}

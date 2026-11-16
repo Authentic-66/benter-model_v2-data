@@ -1,7 +1,7 @@
 """Build the chart-archive plan files (no network).
 
-Inputs (scratch): xml2023.json (2023 TCH XMLs), inventory.json (charts on D:),
-lastrace.json (DED PP files this meet). Output: scripts_dpv1/tracking/chart_archive/.
+Inputs (build/inputs): xml2023.json (2023 TCH XMLs), inventory.json (charts on D:),
+lastrace.json (DED PP files this meet), plus every chart_download_log_*.csv in the repo root. Output: scripts_dpv1/tracking/chart_archive/.
 """
 import csv, json, sys, os
 from collections import Counter, defaultdict
@@ -18,6 +18,14 @@ CAP = 1500
 xml = json.load(open(A + r"\xml2023.json"))
 inv = json.load(open(A + r"\inventory.json"))
 lr = json.load(open(A + r"\lastrace.json"))
+REPO = r"D:\Benter Model_v2 Data\benter-model_v2-data"
+# download logs written by tools/chart_downloader.ps1 (Doug's runs): ok -> on disk, none -> 404
+import glob
+dl_ok, dl_404 = set(), set()
+for lp in sorted(glob.glob(REPO + r"\chart_download_log_*.csv")):
+    for r in csv.DictReader(open(lp, encoding="ascii", errors="replace")):
+        if r["status"] == "ok": dl_ok.add((r["track"], r["date"]))
+        elif r["status"] == "none": dl_404.add((r["track"], r["date"]))
 
 # ---------------------------------------------------------------- track facts from 2023 XMLs
 T = defaultdict(lambda: dict(name="", days_all=[], tb_days=[], tb_races=0, races=0, breeds=Counter()))
@@ -32,6 +40,7 @@ for r in xml:
 
 CANADA = {"ASD", "CTD", "CTM", "FE", "GPR", "HST", "LBG", "MIL", "WO", "AJX"}
 PUERTO_RICO = {"CMR"}
+DROPPED = {"CMR": "dropped: Puerto Rico; test 2023-07-07 404 under usa; Doug 2026-11-15: US and Canada only"}
 # National Steeplechase / hunt-meet cards (TB, 1-3 days a year, mostly jump races)
 STEEPLE = {"AIK", "CAM", "CHA", "CHE", "CHL", "FH", "FX", "GLN", "GN", "GRM", "GV", "MAL", "MID", "MON", "MTP",
            "ODH", "PMT", "PW", "SHW", "TRY", "UNI", "WIL", "WNT"}
@@ -83,6 +92,7 @@ def folder(code):
 def category(code):
     t = T[code]
     if t["tb_races"] == 0: return "qh-only (skip)"
+    if code in DROPPED: return "dropped"
     if code in STEEPLE: return "steeplechase/hunt meet"
     if len(t["tb_days"]) <= 25: return "small / fair meet"
     return "main"
@@ -95,7 +105,12 @@ for r in inv:
         have.add((r["track"], r["date"]))
         if r["track"] in ("FAN", "FP"):           # Fairmount: FAN 2023-2024, FP from 2025
             have.add(("FAN", r["date"]))
+have_inv = set(have)        # charts on disk before the archive downloads (11/15 inventory)
 on_disk = Counter((r["track"], r["date"][:4]) for r in inv if not r["bad"] and r["pdf"])
+for (trk, d) in dl_ok:
+    have.add((trk, d))
+    if trk == "FP": have.add(("FAN", d))
+    if (trk, d) not in have_inv: on_disk[(trk, d[:4])] += 1
 
 # ---------------------------------------------------------------- DED PP last-race tracks
 last = Counter(r["last_trk"] for r in lr["rows"] if r.get("last_trk"))
@@ -118,6 +133,16 @@ def window(code, y):
     t = T[code]; tb = sorted(t["tb_days"])
     if y == 2023:
         return set(tb)
+    if code == "ATO":
+        # Atokad races 2-5 days a year and the meet moves (2023: Jun 3-4; 2026: Aug 29-Sep 7),
+        # so the 2023 pattern is useless. Scan every Saturday May 1-Oct 31 plus PP-known dates;
+        # each Saturday hit gets Fri/Sun/Mon follow-ups from the log (follow-up batch).
+        out = {d for d in pp_pairs.get(code, set()) if d.year == y and d <= END}
+        d = date(y, 5, 1)
+        while d <= min(date(y, 10, 31), END):
+            if d.weekday() == 5: out.add(d)
+            d += timedelta(days=1)
+        return out
     wd = {d.weekday() for d in tb}
     near = set()
     for d in tb:
@@ -147,7 +172,7 @@ KB_PER_RACE = sorted(kb)[len(kb) // 2]
 # ---------------------------------------------------------------- priority
 prio = {}
 for i, c in enumerate(FEEDERS): prio[c] = ("a", i + 1)
-rest = [c for c in T if c not in prio and T[c]["tb_races"] > 0]
+rest = [c for c in T if c not in prio and T[c]["tb_races"] > 0 and c not in DROPPED]
 b = sorted([c for c in rest if last.get(c, 0) > 0], key=lambda c: (-last[c], c))
 for i, c in enumerate(b): prio[c] = ("b", i + 1)
 cc = sorted([c for c in rest if c not in prio],
@@ -160,7 +185,7 @@ for code in sorted(T, key=lambda c: (prio.get(c, ("z", 0)), c)):
     t = T[code]; tb = sorted(t["tb_days"])
     months = sorted({d.month for d in tb})
     wds = Counter(d.strftime("%a") for d in tb)
-    st = CLOSED.get(code, (None, "open"))[1]
+    st = DROPPED.get(code) or CLOSED.get(code, (None, "open"))[1]
     rows.append(dict(
         priority_group=prio.get(code, ("skip", ""))[0], priority_rank=prio.get(code, ("", ""))[1], track_code=code,
         track_name=t["name"] or NAMES.get(code, ""), folder=folder(code),
@@ -189,11 +214,13 @@ for code in sorted(prio, key=lambda c: prio[c]):
     for y in YEARS:
         cand = sorted(window(code, y))
         # years with charts on disk: the earlier downloads swept those date ranges, so a
-        # gap inside [first, last] on disk is a non-race day; probe only outside it
-        disk = sorted(date.fromisoformat(dd) for (tt, dd) in have if tt == code and dd[:4] == str(y))
+        # gap inside [first, last] on disk is a non-race day; probe only outside it.
+        # Only the pre-archive inventory counts as a sweep (a test-batch chart is one date).
+        disk = sorted(date.fromisoformat(dd) for (tt, dd) in have_inv if tt == code and dd[:4] == str(y))
         if y != 2023 and disk:
             cand = [d for d in cand if d < disk[0] or d > disk[-1]]
-        todo = [d for d in cand if (code, d.isoformat()) not in have]
+        trk = "FP" if (code == "FAN" and y >= 2025) else code
+        todo = [d for d in cand if (code, d.isoformat()) not in have and (trk, d.isoformat()) not in dl_404]
         exp_days = n23 if y in (2022, 2023, 2024, 2025) else round(n23 * frac26)
         if clos and y > clos.year: exp_days = 0
         if clos and y == clos.year: exp_days = sum(1 for d in t["tb_days"] if (d.month, d.day) <= (clos.month, clos.day))
@@ -202,9 +229,8 @@ for code in sorted(prio, key=lambda c: prio[c]):
         est.append(dict(group=prio[code][0], track=code, year=y, candidates=len(cand), on_disk=len(cand) - len(todo),
                         requests=len(todo), expected_race_days=exp_days, expected_new_charts=exp_new,
                         expected_mb=round(exp_new * KB_PER_RACE * xml_rpd.get(code, 8) / 1024, 1)))
-        trk = "FP" if (code == "FAN" and y >= 2025) else code
         for d in todo:
-            jobs.append(dict(group=prio[code][0], rank=prio[code][1], track=trk, country="usa",
+            jobs.append(dict(group=prio[code][0], rank=prio[code][1], track=trk, country="can" if code in CANADA else "usa",
                              folder=folder(code), date=d.isoformat()))
 
 with open(OUT + r"\estimate_by_track_year.csv", "w", newline="", encoding="utf-8") as f:
@@ -215,22 +241,27 @@ bdir = OUT + r"\batches"
 os.makedirs(bdir, exist_ok=True)
 for fn in os.listdir(bdir):
     os.remove(os.path.join(bdir, fn))
+# a new batch starts at each priority-group boundary (a, b, c), so a batch never mixes groups
+parts = []
+for g in ("a", "b", "c"):
+    gj = [j for j in jobs if j["group"] == g]
+    parts += [gj[i:i + CAP] for i in range(0, len(gj), CAP)]
 nb = 0
-for i in range(0, len(jobs), CAP):
+batch_index = []
+for part in parts:
     nb += 1
     with open(bdir + rf"\batch_{nb:02d}.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["track", "country", "folder", "date"], extrasaction="ignore")
-        w.writeheader(); w.writerows(jobs[i:i + CAP])
-batch_index = []
-for i in range(0, len(jobs), CAP):
-    part = jobs[i:i + CAP]
-    batch_index.append(dict(batch=f"batch_{i // CAP + 1:02d}.csv", rows=len(part),
+        w.writeheader(); w.writerows(part)
+    batch_index.append(dict(batch=f"batch_{nb:02d}.csv", rows=len(part),
                             groups="".join(sorted({j["group"] for j in part})),
                             tracks=" ".join(dict.fromkeys(j["track"] for j in part))))
 with open(bdir + r"\batch_index.csv", "w", newline="", encoding="utf-8") as f:
     w = csv.DictWriter(f, fieldnames=list(batch_index[0])); w.writeheader(); w.writerows(batch_index)
 
 # ---------------------------------------------------------------- test batch
+# batch_00_test.csv is kept as run on 2026-11-15 (log: chart_download_log_20261115.csv); not rewritten
+WRITE_TEST = not os.path.exists(OUT + r"\batch_00_test.csv")
 test = []
 def mid_date(code, y):
     """A likely race day in year y: the 2023 race day nearest the middle of the meet,
@@ -272,8 +303,9 @@ for dd in (31, 30, 29, 28):
     test.append(dict(track="CT", country="usa", folder=r"chart_archive_recheck\CharlesTown", date=d.isoformat(), recheck="1",
                      purpose=f"long-name address for a chart we hold under the short name ({(date(2026, 11, 15) - d).days} days old)",
                      date_source="known (on disk, short name)"))
-with open(OUT + r"\batch_00_test.csv", "w", newline="", encoding="utf-8") as f:
-    w = csv.DictWriter(f, fieldnames=list(test[0])); w.writeheader(); w.writerows(test)
+if WRITE_TEST:
+    with open(OUT + r"\batch_00_test.csv", "w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=list(test[0])); w.writeheader(); w.writerows(test)
 
 # PP-only tracks (not in the 2023 XMLs): real dates from DED PP running lines; not in any batch
 with open(OUT + r"\extra_pp_only_tracks.csv", "w", newline="", encoding="utf-8") as f:

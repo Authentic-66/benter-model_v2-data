@@ -142,6 +142,10 @@ foreach ($j in $jobs) {
     Write-Host ("  {0} {1} {2}: {3}" -f $trk, $dstr, $status, $detail)
 
     if ($status -eq 'ok') { $index[$key] = 'downloaded' }
+    # a 404 or error leaves the year folder empty if it was new: remove it (only when empty)
+    if ($status -ne 'ok' -and (Test-Path $dir) -and -not (Get-ChildItem -Path $dir -Force | Select-Object -First 1)) {
+        Remove-Item -Path $dir -ErrorAction SilentlyContinue
+    }
     if ($detail -eq 'HTTP 403') { $n403++ }
     if ($detail -eq 'not a PDF') { $notPdfRun++ } else { $notPdfRun = 0 }
     if ($n403 -ge 3) { $stopReason = '3 HTTP 403 responses'; break }

@@ -1,7 +1,21 @@
 # Chart archive: Equibase result charts, US/Canada Thoroughbred, 2022 → today
 
-Plan and prep only (2026-11-15). **No request was made to Equibase.** Doug runs
+Plan and prep only (2026-11-15). **Claude made no request to Equibase.** Doug runs
 every download with `tools/chart_downloader.ps1`. Nothing pushed.
+
+**Status 2026-11-15 night:** Doug ran the test batch (52 requests: 45 charts,
+7 × 404, 0 errors, no bot check, no 403; log `chart_download_log_20261115.csv`).
+The plan below is **rebuilt from its results** (§6). Next: the feeders.
+
+```powershell
+cd 'D:\Benter Model_v2 Data\benter-model_v2-data'
+.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_01.csv
+.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_02.csv
+```
+
+Feeders = `batch_01` (1,500 requests: PRM, ARP, GIL, LS, ATO, part of RP) +
+`batch_02` (578: rest of RP, SWF): about 2.7 h + 1 h at the test's measured
+pace (6.5 s per request), about 1,200 charts expected.
 
 ## Files
 
@@ -9,10 +23,10 @@ every download with `tools/chart_downloader.ps1`. Nothing pushed.
 |---|---|
 | `tracks.csv` | master list: 126 track codes from the 2023 XMLs, with category, country, status, 2023 race days/dates/months/weekdays, TwinSpires check, DED PP last-race count, charts on disk, priority |
 | `estimate_by_track_year.csv` | per track × year: candidate dates, already on disk, requests, expected race days, expected new charts, expected MB |
-| `batch_00_test.csv` | test batch, 52 rows (run first) |
-| `batches/batch_01.csv` … `batch_20.csv` | all jobs in priority order, ≤1,500 requests each; `batch_index.csv` lists the tracks in each |
+| `batch_00_test.csv` | test batch, 52 rows, **run 2026-11-15** (kept as run; the build no longer rewrites it) |
+| `batches/batch_01.csv` … `batch_20.csv` | all jobs in priority order, ≤1,500 requests each, **a new batch at each group boundary** (01–02 feeders, 03–07 group b, 08–20 group c); `batch_index.csv` lists the tracks in each |
 | `extra_pp_only_tracks.csv` | known HCN / EUR dates from DED PP lines (not in any batch; see §1) |
-| `build/` | the three read-only scripts that made all of the above (rerun after the test) |
+| `build/` | the read-only scripts that made all of the above, and `inputs/`. `build_plan.py` also reads every `chart_download_log_*.csv` in the repo root (ok = on disk, 404 = never asked again) |
 | `../../../tools/chart_downloader.ps1` | the downloader |
 
 ## 1. Master track list (`tracks.csv`)
@@ -29,10 +43,12 @@ counted. The XMLs have no country field: country is from the track.
 | small / fair meet (≤25 TB days) | 41 | includes feeders GIL, ATO, SWF |
 | steeplechase / hunt meet | 23 | AIK, CAM, CHA, CHE, CHL, FH, FX, GLN, GN, GRM, GV, MAL, MID, MON, MTP, ODH, PMT, PW, SHW, TRY, UNI, WIL, WNT (1–3 days a year; last in the queue) |
 | QH-only in 2023 (skipped) | 7 | AJX, FPL, FTP, JRM, **RET**, SRM, WBR. Retama had no TB race in 2023 (QH and Arabian only) although TwinSpires lists it |
+| dropped | 1 | **CMR** (Camarero, Puerto Rico): 404 on a known 2023 race day under `usa`; Doug 11/15: US and Canada only |
 
 **Country:** Canada = WO, ASD, HST, FE, CTM, CTD, LBG, GPR, MIL (and AJX, QH).
-**CMR (Camarero) is Puerto Rico**, which is neither US-state nor Canada but is on
-Equibase; it is in the plan (1,525 TB races in 2023) behind a test row.
+**Canadian charts are under `can`** (test: WO 2023-08-27 404 under `usa`, ok
+under `can`), so every job for those nine tracks has `country=can` (2,673
+jobs). The file is saved as `<yyyymmdd>-can-<trk>-a-d.standard.pdf`.
 
 **Closed tracks:**
 
@@ -62,9 +78,9 @@ kept.
   will mostly 404, and HCN needs its own windows. 13 known dates are in
   `extra_pp_only_tracks.csv`.
 * **EUR**: Eureka Downs, Kansas. 2 last-race horses, one date (2026-10-17).
-* **FPK**: Brisnet's code for Fairmount Park (PP lines 2025). Equibase uses FAN
-  (2023–2024 charts on disk) and FP (2025–2026 on disk). **2022 is unknown:**
-  the test has the same 2022 date under FAN and FP.
+* **FPK**: Brisnet's code for Fairmount Park (PP lines 2025). Equibase uses
+  **FAN for 2022–2024** (test: 2022-08-06 ok as FAN, 404 as FP) and **FP from
+  2025**. The batches follow that split.
 * Every other DED PP last-race code is also a code in the 2023 XMLs (same letters; I did not check each is the same track).
 
 ## 2. Inventory (charts already on D:)
@@ -105,34 +121,50 @@ second download.
   (this keeps split meets split) and (b) it falls on a **weekday the track raced
   in 2023**. Real dates from DED PP running lines are added even outside the
   window.
+* **Atokad (ATO) has its own rule.** It races 2–5 days a year and the meet
+  moves (2023: Jun 3–4; 2026 from PP lines: Aug 29–30, Sep 5–7). The
+  2023-based guesses for 2022, 2024 and 2025 all 404'd (Jun 5, Jun 2, Jun 1).
+  So for those years and 2026: **every Saturday May 1 – Oct 31** plus the
+  PP-known dates (26–29 requests a year, 108 in all, vs 38 before). A race
+  weekend almost always has a Saturday; after `batch_01`, each Saturday hit
+  gets a small follow-up (Fri, Sun, Mon of that weekend) built from the log.
 * **Tracks with charts on disk:** the earlier downloads swept their date ranges,
   so for those years only dates **before the first or after the last chart on
   disk** are probed. A gap inside the range is treated as a non-race day.
 * Closed tracks are cut at the closing date (GG 2024-06-09; PLN after 2024).
+* **Logs feed back in:** a date the downloader logged `ok` counts as on disk,
+  and a date it logged `none` (404) is never put in a batch again. The test
+  charts count as single dates, not as swept ranges.
+* **End date 2026-11-14.** The test showed charts are at the long-name address
+  the next day (CT 11/14 fetched 11/15), so nothing is held back. Dates after
+  11/14 need a later top-up batch (rerun `build_plan.py` with a new `END`).
 
 **Expected race days** for a year = the track's 2023 TB days (2026 prorated to
 11/14). **Size** = 16.1 KB per race (median of the charts on disk) × the track's
 races per day.
 
+Rebuilt 2026-11-15 after the test (CMR dropped, Canada on `can`, ATO Saturday
+scan, test charts and 404s taken out). Before: 29,317 requests, ≈17,600 charts.
+
 | year | requests | expected new charts | expected MB |
 |---|---|---|---|
-| 2022 | 6,824 | 3,666 | 499 |
-| 2023 | 3,646 | 3,646 | 496 |
-| 2024 | 6,587 | 3,563 | 486 |
-| 2025 | 6,337 | 3,435 | 469 |
-| 2026 | 5,923 | 3,256 | 445 |
-| **total** | **29,317** | **≈17,600** | **≈2.4 GB** |
+| 2022 | 6,469 | 3,447 | 474 |
+| 2023 | 3,426 | 3,426 | 471 |
+| 2024 | 6,233 | 3,346 | 461 |
+| 2025 | 5,984 | 3,217 | 444 |
+| 2026 | 5,605 | 3,058 | 422 |
+| **total** | **27,717** | **≈16,500** | **≈2.3 GB** |
 
-| priority group | requests | expected new charts | expected MB |
-|---|---|---|---|
-| a. feeders | 2,040 | 1,233 | 181 |
-| b. DED PP last-race tracks | 7,049 | 4,389 | 622 |
-| c. everything else | 20,228 | 11,944 | 1,591 |
+| priority group | batches | requests | expected new charts | expected MB |
+|---|---|---|---|---|
+| a. feeders | 01–02 | 2,078 | 1,202 | 178 |
+| b. DED PP last-race tracks | 03–07 | 7,038 | 4,379 | 621 |
+| c. everything else | 08–20 | 18,601 | 10,913 | 1,474 |
 
-About 60% of requests should be hits; the rest are 404s on non-race days. At
-the 4–8 s delay (about 7 s per request with the response), a 1,500-request
-batch takes about **3 hours**; all 20 batches about **57 hours**. Disk is not a
-constraint (2.4 GB of 705 GB free).
+About 60% of requests should be hits; the rest are 404s on non-race days. The
+test ran at **6.5 s per request** (52 in 5 min 37 s), so a 1,500-request batch
+takes about **2.7 hours** and all 20 batches about **50 hours**. Disk is not a
+constraint (2.3 GB of 705 GB free).
 
 **Known weak spots:**
 * A track that changed its race weekdays after 2023 will have missed dates
@@ -146,8 +178,7 @@ constraint (2.4 GB of 705 GB free).
 
 ## 4. Priority order
 
-* **a. Feeders:** PRM, ARP, GIL, LS, ATO, RP, SWF (batch_01 and the start of
-  batch_02).
+* **a. Feeders:** PRM, ARP, GIL, LS, ATO, RP, SWF (batch_01 and batch_02).
 * **b. DED PP last-race tracks, by count this meet** (all 20 PP files, 1,651
   horses; 121 with no running line): EVD 561, DED 480, LAD 335, FG 18, CBY 10,
   OP 5, then DEL, ELP, GP, HOU, IND, WO (2 each), then ALB, BAQ, BTP, CD, CNL,
@@ -183,13 +214,12 @@ to get past a bot check; a block stops the run. The only change inside
   per track, then
   `Downloaded: X   Already had: Y   No race day: Z   Errors: N`.
 * **`-DryRun`:** no requests, nothing logged; prints what it would fetch.
-  Checked on the test batch: 52 would-fetch rows, 5,146 charts indexed.
-
-```powershell
-cd 'D:\Benter Model_v2 Data\benter-model_v2-data'
-.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batch_00_test.csv
-.\tools\chart_downloader.ps1 -JobsCsv .\scripts_dpv1\tracking\chart_archive\batches\batch_01.csv
-```
+  Checked on the test batch (52 would-fetch, 5,146 charts indexed) and, after
+  the rebuild, on batch_01 (1,500 would-fetch, 0 already on disk, 5,187
+  indexed) and batch_05 (WO rows go to `can`).
+* **Empty folders (added 11/15):** a 404 or error now removes the year folder
+  if it is empty, so a no-race probe leaves no empty `xxx-results-<year>`
+  folder. The request line is untouched.
 
 **Fairmount folder:** the FAN-coded jobs (2022–2024) create `fan-results-<year>`,
 while the existing folders are `fp-results-<year>`. Skipping is unaffected (the
@@ -207,25 +237,37 @@ if you want one folder.
 | 8 | CT 11/14 back to 11/04 (Wed–Sat; 1–11 days old), not on disk | how soon a chart appears at the long-name address |
 | 4 | CT 10/28–10/31 (15–18 days old), on disk under the short name only; `recheck=1`, saved to `chart_archive_recheck\CharlesTown\` | whether the long-name address has caught up by 2–3 weeks. Delete that folder afterwards |
 
-**After the test:**
-1. If WO works only with `can`: set `country=can` for the Canadian tracks'
-   rows (WO, ASD, HST, FE, CTM, CTD, LBG, GPR, MIL), or I regenerate the
-   batches.
-2. If CMR 404s on a known 2023 date: drop CMR (batches 07–08) or test another
-   path.
-3. Fairmount 2022: keep whichever code worked.
-4. If the newest CT dates 404 at the long name: hold back the last N days of
-   2026 in each batch until they move (N = the age where they start to work).
-5. If the run stops on not-a-PDF: Equibase is serving the bot check to this
-   client. Stop there; nothing in the downloader works around it.
+**Results (Doug ran it 2026-11-15, 21:15–21:20; 52 requests, 45 ok, 7 × 404,
+0 errors, no bot check, no 403):**
 
-Then run `batches/batch_01.csv` … in order, one per session (cap 1,500), and
-compare each track's hits with `estimate_by_track_year.csv`.
+| question | answer | change made |
+|---|---|---|
+| long-name URL, 2022–2026 | works every year | none |
+| Canadian path | WO: 404 under `usa`, ok under `can` | `country=can` for all 9 Canadian tracks |
+| Puerto Rico | CMR 2023-07-07 404 (a known race day) | CMR dropped (Doug: US and Canada only) |
+| Fairmount 2022 code | FAN ok, FP 404 | FAN 2022–2024, FP 2025+ |
+| recent-date lag | CT 11/04–11/14 all ok on 11/15 (11/14 one day old) | nothing held back |
+| bot check at 4–8 s | none, no 403 | none |
+| feeder guesses | 404: ARP 2024-07-29 (a Monday; ARP raced Sat–Mon in 2023), ATO 2022-06-05, 2024-06-02, 2025-06-01 | these were single test dates; the batches probe the full window for every year. ATO now has the Saturday scan (§3) |
+
+**CT recheck (10/28–10/31):** each long-name copy matched the short-name copy
+already on disk: same page count (8, 9, 8, 8), same races (8 each), and the
+same text once whitespace and one stray watermark glyph per page are ignored
+(file sizes differ by 9–26 bytes). The `chart_archive_recheck` folder (4 PDFs,
+640,588 bytes) was deleted. Empty folders left by the 404s were also removed:
+`Fairmount Park\fp-results-2022`, `Camarero\` (with `cmr-results-2023`),
+`Atokad Downs\ato-results-2022`, `-2024`, `-2025`, `Arapahoe Park\arp-results-2024`.
+
+**Next:** run `batches/batch_01.csv` and `batch_02.csv` (commands at the top),
+one per session (cap 1,500). After each, compare each track's hits with
+`estimate_by_track_year.csv`, and build the ATO follow-up from the log.
 
 ## Not done / open
 
 * GPW 2022, Stockton, Les Bois, Atlantic City, Retama TB: no codes or dates, so
   no jobs. HCN and EUR: dates listed separately, not in a batch.
+* Other small meets can move as ATO did. The per-track hit check after each
+  batch is how a shortfall shows up.
 * Loading these charts into the DB is a separate decision (pars, feature build,
   retrain; see PHASE_6D_ROADMAP 1.4 item 4). This plan only fills the archive.
 * GG's closing date and the PM/NP dates are from memory, not checked against a
