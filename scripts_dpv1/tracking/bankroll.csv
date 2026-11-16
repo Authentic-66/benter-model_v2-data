@@ -16,3 +16,13 @@ date,event,amount,balance
 2026-11-13,"LRL 11/13 R5 exacta stake (4 / 1,7, $1, lost; personal)",-2.00,70.60
 2026-11-13,"CT 11/13 R2 superfecta box stake (4,5,6,7 x $0.10, lost; personal)",-2.40,68.20
 2026-11-13,"CT 11/13 R6 $2 win stake (#5, lost; personal)",-2.00,66.20
+2026-11-14,DED 11/13 PP rebate (11/13 DED wagering $2.00 qualified; posted 11/14 5:26 AM),3.85,70.05
+2026-11-14,"DED 11/14 PP file purchase (ded1114y.pdf, used for the 11/14 card; posted 11/14 8:20 AM; refunded next day if at least $2 is wagered on the DED 11/14 card)",-3.85,66.20
+2026-11-14,"DED 11/14 R1 superfecta wheel stake (1,4,6 / 1,4,6 / 1,4,6 / ALL x $0.10, lost)",-3.00,63.20
+2026-11-14,"CT 11/14 R7 superfecta key stake (4 / 1,6,8,9 x3 x $0.10, lost; personal)",-2.40,60.80
+2026-11-15,"WO 11/15 R9 trifecta key stake (2 / 5,6 / 5,6 x $0.20, lost; personal)",-0.40,60.40
+2026-11-15,"DMR 11/15 R3 $2 show stake (#2, lost; personal)",-2.00,58.40
+2026-11-15,"DMR 11/15 R2 superfecta box stake (1,4,5,6 x $0.10; personal)",-2.40,56.00
+2026-11-15,DMR 11/15 R2 superfecta box payout ($12.66; personal),12.66,68.66
+2026-11-15,"WO 11/15 R6 trifecta box stake (1,2,7 x $0.20, lost; personal)",-1.20,67.46
+2026-11-15,DED 11/14 PP rebate (11/14 DED wagering $3.00 qualified). Inferred from balance; not yet seen in history. Balance then matches TwinSpires $71.31 reported by Doug 11/15; confirm on the next reconcile,3.85,71.31
