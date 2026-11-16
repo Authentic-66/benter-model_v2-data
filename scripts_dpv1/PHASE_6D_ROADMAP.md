@@ -7179,6 +7179,46 @@ the logged 1.3.2 record run reproduced row for row on every card. In short:
 * **Pass mark: NOT YET SET.** Doug writes it here before the 40th
   qualifying race is scored and before anyone tallies the qualifying
   races. Until then this is tracking only and no real money follows it.
+* **Over-4-1 subset: FINAL odds (decided 2026-11-15, Doug; CLOSED).** Kept
+  as pre-registered on 11/06: "over 4-1" = final odds above 4.0 (exactly
+  4-1 is out). The nightly reviews keep a morning-line column **for
+  reference only**; it is not part of the test and is not judged. (Raised in
+  the 11/14 review: after 17 races the two bases pick 3 horses each, 2 in
+  common.)
+* **OPEN: pass mark (Doug picks before race 40; 17 of 40 graded at
+  2026-11-14).** Candidates drafted 2026-11-15 at Doug's request, below.
+  **Caveat:** the bullet above says the mark is set "before anyone tallies
+  the qualifying races"; the nightly reviews already show the running tally
+  (17 races: 4 W, 10 ITM, win ROI −45.9%, place ROI −5.6%), and these
+  drafts were written with it in view. To keep the mark from being fitted
+  to those 17, every bar below is set from **expected values or break-even,
+  computed at grading over the 40 races' own logged inputs**, not from the
+  results so far. Numbers in brackets are what the 17 races' inputs imply
+  when scaled to 40 races, for scale only.
+  * **Expected values used.** Model ITM: sum of logged P(ITM) (17 races:
+    11.2 expected vs 10 actual; at 40 ≈ **26.4, SD 3.0**). Model wins: sum
+    of logged `p_win` (17: 4.4 vs 4; at 40 ≈ **10.4, SD 2.8**). Market wins:
+    sum of 1/(final odds+1) (17: 6.4; at 40 ≈ **15.0**; includes the
+    takeout overround, so it is a strict bar). The model's `p_win` on these
+    horses averages 0.26 against the market's 0.37: **the crowd makes them
+    stronger win favourites than the model does.** ROI: no pool model, so
+    the bar is break-even (0%). Sampling error on a 40-race ROI, from the 17
+    payouts: about **±16 points** (1 SE) for win and for place.
+  * **A. Calibration (ITM).** Pass if #1 ITM ≥ model-expected ITM − 1 SD
+    over the 40 [≈ 23 of 40]. Tests whether P(ITM) > 0.60 means what it
+    says on the model's strongest picks. Says nothing about money.
+  * **B. Place money, with an ITM guard.** Pass if $2 place ROI ≥ 0% **and**
+    A holds. The bet the test would turn into. With SE ±16 points, a true
+    −10% place ROI still passes about one time in four, so a pass is weak
+    evidence; a fail is clearer.
+  * **C. Win edge over the crowd.** Pass if #1 wins ≥ market-expected wins
+    [≈ 15 of 40] **and** $2 win ROI ≥ 0%. The hardest bar: it asks the
+    model to beat the odds board on the horses the crowd already likes.
+  * Over-4-1 subset: reported separately under whichever mark is chosen,
+    with its own counts; too few races (3 so far) to carry a pass mark of
+    its own.
+  * Doug writes the chosen mark (A, B, C or another) here, dated, before the
+    40th qualifying race is graded.
 * **Inputs inside the window.** Name matching is ON for all of it (from
   11/05). The starter-allowance loader fix (`bb5b1a5`) changes race-type
   input from DED 11/07, the first card loaded after it (11/07 has no

@@ -42,6 +42,9 @@ Fill these for the scored card (all in `scripts_dpv1/tracking/`), then write
   note.
 * `high_conf_top1.csv`: grade the pre-race rows (final odds, official
   finish, $2 win/place; 0 on a loss).
+  Over-4-1 subset = FINAL odds over 4.0 (Doug 2026-11-15, as
+  pre-registered). In the review, show the morning-line view as reference
+  only. Pass mark: see PHASE_6D_ROADMAP (open until Doug picks, before race 40).
 * `consensus_top1.csv`: one row per post-scratch three-way #1.
 * `top_pick_data_issues.csv`: one row per post-scratch #1.
 * `late_jockey_changes.csv`: one row per PP rider who did not ride (compare
