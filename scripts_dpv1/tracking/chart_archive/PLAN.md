@@ -331,6 +331,21 @@ Day 2024-11-11), for 2024–2026. Dates already on disk or logged ok/404 are tak
 out: 2024 49 requests (6 on disk, 27 logged 404), 2025 39 (13, 29), 2026 31
 (29, 13).
 
+**Result (Doug, 11/16 06:40–06:53; log `chart_download_log_20261116.csv`):**
+119 requests, 45 ok, 74 × 404, 0 errors, no stop. The meets **moved to the fall**
+in 2024 and 2025 and race Fri–Sun:
+
+| year | new | ARP charts on disk now | meet (from the hits) |
+|---|---|---|---|
+| 2024 | 27 | 33 | Fri 9/06 – Sun 11/17 |
+| 2025 | 17 | 30 | Fri 9/12 – Sun 11/16 |
+| 2026 | 1 (Fri 7/31) | 30 | Fri 6/12 – Sun 8/16 |
+
+No holiday Monday hit. The two weeks after each meet's last day were probed and
+404'd, so the ends look complete. 2022 (25 charts) has hits on Sundays and Mondays
+only, and every Saturday 404'd. Fridays were never probed for 2022 (about 17 dates,
+not built).
+
 ## 9. Live-track dates in group b (`live_track_dates_b03_07.csv`)
 
 Group b has 322 rows in the live-loader folders (DED 9, EVD 23, FG 35 and
