@@ -514,3 +514,24 @@ No live-track rows in batch_05.
   retrain; see PHASE_6D_ROADMAP 1.4 item 4). This plan only fills the archive.
 * GG's closing date and the PM/NP dates are from memory, not checked against a
   source (TwinSpires only says "closed").
+
+## Where things stand (2026-11-16, end of session; next session Thursday 11/19 or later)
+
+* **Done:** test batch, batch_01–05, feeder follow-up, ARP probes 01–03.
+  4,096 new charts from 6,779 requests. All logs committed (last e2d118c).
+* **Next run:** batch_06 (1,500 requests: BTP, CD, CNL, CT, DMR; 27 CT
+  Christmas/New Year edge dates), then batch_07 (MNR live rows), then
+  group c (batch_08–20). After each one: summary per track (section 11
+  format), commit the log only, list any live-track dates that downloaded.
+* **Held, untracked, not loaded:** 6 GP Nov 2026 charts
+  (`Gulfstream Park/gp-results-2026/20261101…20261114-usa-gp-a-d.standard.pdf`),
+  live-DB gaps for the planned rebuild (section 12). Don't commit or load
+  them except with that rebuild.
+* **Small follow-ups (not built):** ARP 2022-09-26 (1 request, finishes ARP
+  2022); WO 2023-11-17 (one `not a PDF` in batch_05; re-ask once, then
+  `known_gaps.csv` if it repeats); BAQ 2026 (1 chart vs 26 expected: check
+  which code the 2026 meet used).
+* **Dated retries:** MNR 2026-10-05 after 11/21 (by hand, live track);
+  LS x2 on/after 11/30 (`batches/retry_ls_after_20261130.csv`).
+* **Roadmap:** PHASE_6D_ROADMAP "Queued after this" #4, chart top-up for the
+  DB's 8 tracks, starts after the side-by-side streak passes.
