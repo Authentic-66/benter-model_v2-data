@@ -350,9 +350,15 @@ Doug's request): 18 Fridays, Jun 3 – Sep 30 2022. **Run 11/16 10:02–10:04:
 18 × 404**, 0 errors. ARP 2022 raced Sun + Mon only (to at least Sun 9/25).
 
 **ARP 2022 end-of-meet probe** (`batches/probe_arp_03_2022end.csv`, built
-11/16, not run yet): every Fri, Sat, Sun and Mon from Sep 30 to Nov 30 2022,
-minus dates already logged (Fri 9/30): 35 requests (dry run 35). Mon 9/26 is
-not in it (outside the window Doug set).
+11/16): every Fri, Sat, Sun and Mon from Sep 30 to Nov 30 2022, minus dates
+already logged (Fri 9/30): 35 requests. **Run 11/16 13:15–13:19: 3 ok
+(Sat 10/01, Sun 10/02, Mon 10/03), 32 × 404, 0 errors.** Nothing after 10/03.
+
+**ARP 2022 = 28 charts, Sun 7/03 – Mon 10/03** (Sun + Mon, plus the closing
+Saturday 10/01). Every Fri/Sat/Sun/Mon from Jun 3 to Nov 28 is now asked
+**except Mon 9/26**, which no probe covered (the first probe stopped at 9/25,
+the end probe started at 9/30). It is very likely a race day (every other
+Monday from 7/04 to 10/03 has a chart): one request to finish 2022.
 
 ## 9. Live-track dates in group b (`live_track_dates_b03_07.csv`)
 
@@ -475,6 +481,28 @@ hand-saved names), 832 ok, 634 × 404, 0 errors, no stop, 6.3 s/request.
 **Running total (11/15–11/16 logs):** 2,980 new charts from 5,244 requests
 (test batch 45, batch_01 827, batch_02 299, follow-up 1, ARP probe 45,
 batch_03 931, ARP Fridays 0, batch_04 832).
+
+## 13. batch_05 (Doug, 2026-11-16 13:19 → 16:00)
+
+Log `chart_download_log_20261116.csv` (rows from 13:19:27), transcript
+`chart_download_transcript_20261116_131926.txt`. **Ran to the end:** 1,500
+requests in order, 1,113 ok, 386 × 404, **1 error**, no stop, no 403,
+6.4 s/request. The error is one `not a PDF` for WO 2023-11-17, followed by an
+ok (a single bad response, not a block). It is not logged ok or 404, so a
+later rebuild would ask for it again; if it repeats, add it to `known_gaps.csv`.
+
+| track | requests | downloaded | expected (estimate) | 404 rate | note |
+|---|---|---|---|---|---|
+| IND | 100 | 69 | (2026) | 31% | IND 2026 done: 126 vs 113; IND total 616 vs 577 |
+| WO | 712 | 622 | 619 | 13% | on target (2023 126 of 127: the 1 error) |
+| ALB | 281 | 178 | 170 | 37% | on target |
+| BAQ | 239 | 121 | 130 | 49% | 2022 28, 2023 26, 2024 32 (Jun 23 – Nov 3), 2025 34 (Jun 29 – Nov 2); **2026 1** (May 14 only) vs 26: BAQ 2026 probably raced under another code; not checked |
+| BTP | 168 | 123 | 93 + part of 2023 | 27% | 2022 93; 2023 30 so far (rest in batch_06) |
+
+No live-track rows in batch_05.
+
+**Running total (11/15–11/16 logs):** 4,096 new charts from 6,779 requests
+(+ ARP end probe 3, batch_05 1,113).
 
 ## Not done / open
 

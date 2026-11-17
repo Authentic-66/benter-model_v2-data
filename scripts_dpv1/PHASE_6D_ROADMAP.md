@@ -7353,6 +7353,45 @@ moved into the 1.4 candidate above.
 3. **Shippers investigation** (read-only). Background is Gap #1 above; its
    diagnosis was reversed (the model over-rates unseen horses rather than
    burying them).
+4. **Regular top-up of recent charts for the DB's tracks** (added
+   2026-11-16, Doug). **Start only after the incremental side-by-side streak
+   passes** (14 clean nights): every chart load makes that night fall back to
+   a full build. Keep every track the live DB covers current, so horses
+   shipping from them aren't counted as missing their last race.
+   * **Tracks.** The live DB has 8: GP, CT, MNR, EVD, LAD, FG, ELP and DED.
+     Latest chart day in the DB on 11/16: DED 11-14, MNR 11-04, GP and CT
+     10-31, LAD 09-30, EVD 09-07, ELP 08-23, FG 03-22 (2026).
+     **FP is not in the DB** (its charts are on disk but unloaded), so
+     adding FP is a new track and a model-input change (1.4 item 4), not a
+     top-up.
+   * **What it would have fixed (read-only count, 2026-11-16).** The 21
+     data-track missing-last-race starters, DED 11/04–11/13
+     (`tracking/missing_last_race_tally.py --to 2026-11-13`):
+     * **19 fixed by any regular top-up.** 13 EVD and 6 LAD lines, all on the
+       11/04 card, raced Jul 10 – Sep 28 (37–117 days before the card). Their
+       charts were loaded the next day (11/05, the 44-chart EVD/LAD load). Any
+       cadence up to monthly would have had them in.
+     * **1 fixed only with a completeness check.** 11/06 R9 Dat Hint, EVD
+       6/11: the chart was in the DB but truncated. The re-download fixed it
+       (a5b7f1e), so the top-up needs to compare race counts against the card
+       or PP and re-download short charts.
+     * **1 not fixable.** 11/05 R7 Wave Maker, MNR 10/05: the chart is
+       corrupt at Equibase (`chart_archive/known_gaps.csv`, retry after
+       11/21).
+     * After 11/05 the data-track group is 2 horses in 6 cards, so most of
+       the gap was the one-off EVD/LAD backlog. The top-up stops it coming
+       back.
+   * **Caution from the 11/14 fetch test** (1.4 item 4). Loading those same
+     11/04 lines made that card's log loss **worse** (0.554 → 0.590, whole
+     charts). "Fixed" here means the last race is in the DB, not that the
+     picks get better. Measure the first top-ups the same way: log loss and
+     #1 ITM on the affected horses, with the top-up vs without.
+   * **How.** Doug downloads (chart_downloader, his rules). Load each chart
+     with `load_chart.py`, one named chart at a time, after the card-night
+     backup. Never use a folder load (the retrain guard holds archive charts,
+     and `db_loader pipeline --pdf-dir` has no guard). Pars stay frozen.
+     Charts for these tracks are already arriving through the chart archive
+     (e.g. GP 11-01 to 11-14, held, `chart_archive/PLAN.md` section 12).
 
 ### Next session's list (read-only checks)
 
