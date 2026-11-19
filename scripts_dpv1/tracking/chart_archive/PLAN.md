@@ -504,6 +504,123 @@ No live-track rows in batch_05.
 **Running total (11/15–11/16 logs):** 4,096 new charts from 6,779 requests
 (+ ARP end probe 3, batch_05 1,113).
 
+## 14. batch_06 – batch_14 (Doug, 2026-11-16 18:42 → 2026-11-19 09:12)
+
+Logs `chart_download_log_20261116.csv` (rows from 18:42) through
+`_20261119.csv`; one transcript per run. Speed 6.1–6.4 s/request on every
+full run. "est" = the plan's expected new charts for the jobs actually asked.
+
+| batch | ran | asked | ok | est | 404 | errors | end |
+|---|---|---|---|---|---|---|---|
+| 06 | 11/16 18:42–21:19 | 1,500 | 846 | 800 | 652 (43%) | 2 | ran to the end |
+| 07 | 11/17 05:33–07:22 | 1,038 | 582 | 578 | 455 (44%) | 1 | ran to the end |
+| 08 | 11/17 10:08–12:46 | 1,500 | 965 | 961 | 535 (36%) | 0 | ran to the end |
+| 09 | 11/17 14:37–17:13 | 1,500 | 814 | 877 | 686 (46%) | 0 | ran to the end |
+| 10 | 11/17 17:14–19:50 | 1,500 | 885 | 909 | 615 (41%) | 0 | ran to the end |
+| 11 | 11/17 19:51–22:29 | 1,500 | 1,039 | 1,043 | 461 (31%) | 0 | ran to the end |
+| 12 | 11/18 05:08–07:46 | 1,500 | 798 | 795 | 701 (47%) | 1 | ran to the end |
+| 13 | 11/18 07:53–09:46 | 1,068 of 1,500 | 781 | 799 | 284 (27%) | 3 | **STOPPED: 3 not-a-PDF in a row (bot check)** |
+| 14 | 11/18 14:32, 11/19 09:12 | 3 + 3 | 0 | – | 0 | 3 + 3 | **STOPPED twice on the first 3 requests** |
+
+**6,710 new charts** from 11,109 requests. Single `not a PDF` errors (each
+followed by an ok, not a block): BTP 2026-05-15, CD 2023-05-12, KEE
+2025-10-04, AQU 2026-04-25. They are not logged ok/404, so a rebuild asks
+again.
+
+**The block.** batch_13 stopped at 09:46 on 11/18 after TUP 2026-04-11/12/13
+came back as HTML (the Imperva page). Both restarts (batch_14, 11/18 14:32
+and 11/19 09:12) stopped on their first three requests (LA 2026-01-11/17/18).
+No 403s. Per the rules nothing was changed in the request. The 435 jobs
+batch_13 never got (TUP 40 incl. the 3 blocked, LA 395) are in
+`batches/batch_13_rest.csv`.
+
+Per track (ok / est, 404 rate):
+
+* 06: BTP 337/342 (29%), CD 338/280 (52%), CNL 140/135 (39%), **CT 0/14
+  (27 × 404)**, DMR 31/29.
+* 07: DMR 188/176, FON 172/210 (34%), KEE 164/160, LEG 13/5, MED 41/25,
+  **MNR 4/2 (28 × 404)**.
+* 08: PRX 728/737, LRL 237/224. 09: LRL 391/439 (49%), PEN 423/438.
+* 10: PEN 167/197 (58%), GG 308/314, MVR 390/373, TDN 20/25.
+* 11: TDN 492/480, TAM 431/445, AQU 116/118. 12: AQU 307/319, SA 471/451
+  (53%), FL 20/25. 13: FL 417/411 (9%), TUP 364/388 of the asked.
+
+**Live-track downloads (held: not loaded, not committed):** **MNR
+2026-11-08, 11-09, 11-10, 11-11** (`Mountaineer/mnr-results-2026/`), after
+the DB's last MNR chart (11/04): live-DB gaps for the planned rebuild, like
+the 6 GP Nov 2026 charts. CT: all 27 Christmas/New Year edge dates 404,
+nothing held.
+
+**Running total:** 4,096 (through batch_05) + 6,710 = **10,806 new charts**
+from 17,888 requests.
+
+## 15. BEL / BAQ / AQU, drops and missing codes (2026-11-19, no requests)
+
+**Belmont.** BEL was closed July 2023 – September 2026 (NYRA ran as BAQ at
+Aqueduct; the 2024–25 Belmont Stakes were at Saratoga). batch_16 had BEL
+jobs for Apr–Jul of every year: the **244 jobs for 2024, 2025 and 2026 are
+dropped** (moved to `batches/dropped_bel_closed_20261119.csv`; batch_16 now
+1,256 rows). BEL 2022 (81) and 2023 May–Jul (38) stay. **build_plan.py
+would put them back** (its windows come from 2023 race days): exclude them
+before any rebuild.
+
+What the logs show:
+
+* **AQU 2026:** charts 1/01–4/26; **5/01–5/14 all 404, and 10/19–11/14 all
+  404.** Nothing ran under AQU in the spring after 4/26 or this fall.
+* **BAQ 2026:** only 5/14 (ok). Its other 52 jobs were Sep 2 – Nov 12, all
+  404 (that is BEL). The spring/summer meet (about 4/30 – 7/12, before
+  Saratoga) was never asked.
+* **BAQ 2024 / 2025:** charts from 6/23 and 6/29 (one PP-known date each)
+  then Sep–Nov. Their **spring/summer meets were never asked either** (the
+  2023 window was fall only).
+* Doug's BEL bet on 11/07 confirms BEL racing this fall.
+
+**Proposed probes (not built):**
+
+| probe | dates | requests |
+|---|---|---|
+| BEL 2026, stage 1 | Saturdays 9/05 – 11/14 | 11 |
+| BEL 2026, stage 2 | Thu/Fri/Sun inside the span stage 1 finds (9/03 – 11/14 at most) | ≤ 32 |
+| BAQ 2026 | Thu–Sun 4/30 – 7/12, less 5/14 (have) and 6/04–07 | 39 |
+| SAR, Belmont Stakes weeks | 2024 6/06–09, 2025 6/05–08, 2026 6/04–07 | 12 |
+| BAQ 2024 | Thu–Sun 4/25 – 7/07, less 6/23 (have) and 6/06–09 | 39 |
+| BAQ 2025 | Thu–Sun 4/24 – 7/06, less 6/29 (have) and 6/05–08 | 39 |
+
+(If the 2026 Belmont Stakes was not at Saratoga, the 2026 SAR rows 404 and
+the BAQ week 6/04–07 needs adding.)
+
+**Sharp drops in 2024–2026** (fully asked track-years, non-live tracks,
+on-disk + new vs the estimate and 2022/23):
+
+| track-year | have | expected | read |
+|---|---|---|---|
+| BAQ 2026 | 1 | 26 | meet/code change (above) |
+| GG 2024 | 66 | 121 (2022/23) | real: Golden Gate closed mid-2024; 2025/26 correctly have no jobs |
+| TUP 2024 | 57 | 82 | Jan 2024 mostly 404 (late start); fall meets never asked (2023 had none), but Dec 2025 has 2 PP-known charts |
+| FAN 2025/26 | 0 | 60 | the FAN → FP rename (known); batch_15 not run yet |
+
+MVR looked short in the estimate but is not: `tracks.csv` shows 44 (2025) and
+63 (2026) charts on disk that the estimate's `on_disk` column does not.
+The live DB tracks (CT, DED, ELP, EVD, FG, GP, LAD, MNR) look short only
+because just their season edges were asked. Tracks in batch_14–20 (not run)
+cannot be judged yet.
+
+**Codes missing from `tracks.csv`** (DED PP lines 10/10–11/19, incl. ded1118y
+and ded1119y, and Doug's bet logs; every bet-log code is in `tracks.csv`):
+
+| code | seen | proposal |
+|---|---|---|
+| HCN | 62 PP lines, 5 last races; dates 7/24 – 8/23/2026 (Fri–Sun) | probe the 13 PP-known 2026 dates + Fri–Sun 7/10 – 9/06 (14) + 2025 Saturdays 7/19 – 8/30 as a code check (7). If HCN 2025 hits, CLS's batch_19 jobs should move to HCN |
+| FPK | 2 PP lines (2025-07-08 Tue, 2025-09-06 Sat), no last race | not identified: Doug to name the track before any probe |
+| EUR | 3 lines (Europe) | out of scope (US + Canada only) |
+
+**Also proposed:** TUP fall Saturdays 2024 10/05 – 12/28, 2025 10/04 – 12/27,
+2026 10/03 – 11/14 (33) to find the fall meets.
+
+**Mop-up batch built:** `batches/mopup_01.csv` = ARP 2022-09-26 + WO
+2023-11-17 (re-asked once; if it fails again, it goes in `known_gaps.csv`).
+
 ## Not done / open
 
 * GPW 2022, Stockton, Les Bois, Atlantic City, Retama TB: no codes or dates, so
@@ -515,7 +632,28 @@ No live-track rows in batch_05.
 * GG's closing date and the PM/NP dates are from memory, not checked against a
   source (TwinSpires only says "closed").
 
-## Where things stand (2026-11-16, end of session; next session Thursday 11/19 or later)
+## Where things stand (2026-11-19)
+
+* **Done:** test batch, batch_01–12, feeder follow-up, ARP probes 01–03;
+  batch_13 to job 1,068. **10,806 new charts** from 17,888 requests. Logs
+  through 11/19 committed.
+* **Blocked since 11/18 09:46** (the Imperva page; batch_13 and two restarts
+  stopped on not-a-PDF). Nothing to change in the downloader. Next run, after
+  a pause: `mopup_01.csv` (2 requests) first; if both come back as a PDF or a
+  404, then `batch_13_rest.csv` (435), then batch_14 as committed. If they
+  come back as not-a-PDF, wait longer.
+* **Held, untracked, not loaded:** 6 GP Nov 2026 + 4 MNR Nov 2026 charts
+  (11/08–11/11), live-DB gaps for the planned rebuild.
+* **BEL:** 244 closed-period jobs dropped from batch_16. Probes proposed
+  (section 15): BEL 2026, BAQ 2024–26 spring/summer, SAR Belmont Stakes
+  weeks, HCN, TUP fall. FPK needs identifying. Not built until Doug says.
+* **Dated retries:** MNR 2026-10-05 after 11/21 (by hand, live track);
+  LS x2 on/after 11/30 (`batches/retry_ls_after_20261130.csv`).
+* **Roadmap:** PHASE_6D_ROADMAP "Queued after this" #4, chart top-up for the
+  DB's 8 tracks, starts after the side-by-side streak passes (4 of 14 on
+  11/19).
+
+## Where things stood (2026-11-16, end of session)
 
 * **Done:** test batch, batch_01–05, feeder follow-up, ARP probes 01–03.
   4,096 new charts from 6,779 requests. All logs committed (last e2d118c).
