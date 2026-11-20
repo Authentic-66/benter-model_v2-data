@@ -621,6 +621,29 @@ and ded1119y, and Doug's bet logs; every bet-log code is in `tracks.csv`):
 **Mop-up batch built:** `batches/mopup_01.csv` = ARP 2022-09-26 + WO
 2023-11-17 (re-asked once; if it fails again, it goes in `known_gaps.csv`).
 
+## 16. Pause, and the rules for resuming (Doug, 2026-11-20)
+
+* **Bulk downloads are PAUSED** because of the bot check that started on
+  11/18 (section 14). The pause lasts **at least a week**: no bulk run before
+  **2026-11-27** (a week from this note; the block began 11/18 09:46).
+* **When resuming:** **at most one batch per day**, **10–15 s between
+  requests** and **at most 500 requests per run**. These are the downloader's
+  existing parameters, so the request line itself is unchanged:
+
+  ```
+  .\tools\chart_downloader.ps1 -JobsCsv <batch.csv> -MaxRequests 500 -MinDelaySec 10 -MaxDelaySec 15
+  ```
+
+  Start with `mopup_01.csv` (2 requests), as in "Where things stand".
+  `batch_13_rest.csv` (435) fits in one run. The 1,500-job batches need
+  splitting into 500-job files first: a rerun of the same file skips only
+  charts already on disk, so it would ask every 404 day again (30–50% of
+  jobs). Not split yet.
+* **If the block comes back at that pace, the archive STOPS** and Doug
+  contacts Equibase. No further runs, and no change to the request, until
+  then.
+* Claude makes **no requests to Equibase**; Doug runs every download.
+
 ## Not done / open
 
 * GPW 2022, Stockton, Les Bois, Atlantic City, Retama TB: no codes or dates, so
@@ -638,10 +661,13 @@ and ded1119y, and Doug's bet logs; every bet-log code is in `tracks.csv`):
   batch_13 to job 1,068. **10,806 new charts** from 17,888 requests. Logs
   through 11/19 committed.
 * **Blocked since 11/18 09:46** (the Imperva page; batch_13 and two restarts
-  stopped on not-a-PDF). Nothing to change in the downloader. Next run, after
-  a pause: `mopup_01.csv` (2 requests) first; if both come back as a PDF or a
-  404, then `batch_13_rest.csv` (435), then batch_14 as committed. If they
-  come back as not-a-PDF, wait longer.
+  stopped on not-a-PDF). Nothing to change in the downloader. **Paused until
+  at least 2026-11-27 (Doug, 11/20; section 16): then one batch a day, 10–15 s
+  delays, 500 requests per run; if blocked again at that pace, the archive
+  stops and Doug contacts Equibase.** Next run, after the pause:
+  `mopup_01.csv` (2 requests) first; if both come back as a PDF or a 404, then
+  `batch_13_rest.csv` (435), then batch_14 split into 500-job files. If they come
+  back as not-a-PDF, stop (section 16).
 * **Held, untracked, not loaded:** 6 GP Nov 2026 + 4 MNR Nov 2026 charts
   (11/08–11/11), live-DB gaps for the planned rebuild.
 * **BEL:** 244 closed-period jobs dropped from batch_16. Probes proposed
