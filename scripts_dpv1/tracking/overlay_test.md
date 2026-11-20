@@ -33,7 +33,7 @@ starters.**
 |---|---|---|---|
 | DED | 153 | 18 | 10/21–11/19 (this meet from the first card after training) |
 | MNR | 399 | 51 | 2026-08-02 – 11-04 (loaded 11/07) |
-| EVD | 322 | 38 | mostly Jul–Sep 2026 (also 9 from Jul 2025 and 17 from Apr–May 2026, all late loads) |
+| EVD | 322 | 38 | mostly Jun–Sep 2026 (also 9 from Jul 2025 and 17 from Apr–May 2026, all late loads) |
 | CT | 66 | 9 | 2026-10-22 – 10-31 (and 2 from May 2026) |
 | LAD | 51 | 7 | 2026-09-19 – 09-30 |
 | GP | 50 | 5 | 2026-10-23 – 10-31 |
@@ -248,11 +248,11 @@ before post, with the PP bridge and the full field.
   blank. A test needs pars for each new (track, surface, distance) cell.
   To be clean, those should be built only from races before the test
   window. This runs into the par-policy decision.
-* **A feature build** over the whole scratch DB: about 3 minutes at today's
+* **A feature build** over the whole scratch DB: a few minutes at today's
   size, plausibly 15–20 at 3–4 times the rows. Then the same rerun and
   analysis.
 * **What to score.** Only races with enough earlier history at the same
-  track, e.g. 2025–26, using 2022–24 as history. That is roughly 30,000
+  track, e.g. 2025–26, using 2022–24 as history. That is roughly 30,000–35,000
   races.
 
 **Caveats:**
