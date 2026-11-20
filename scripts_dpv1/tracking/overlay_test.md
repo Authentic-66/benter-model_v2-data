@@ -290,3 +290,105 @@ An edge, if there is one, would need a model that **beats the tote's own
 probabilities**. The way to test that is the blend's market-adjusted
 probability, or a new fundamental model, compared with the tote out of
 sample. These raw fundamental-vs-tote rules cannot show it.
+
+## 5. Follow-up: does the shipped blend beat the tote alone? (2026-11-20)
+
+**Setup.**
+* Same scratch copy, same 1,055 races, same 7,958 starters.
+* The blend is the shipped one, exactly as `predict_card` builds it:
+  * logit P(ITM) = 0.110 × logit(fundamental) + 0.771 × logit(tote P(ITM)) − 0.037;
+  * then rescaled so the field sums to 3, and inverted through Harville for
+    P(win).
+* The fundamental term is the base model **without** the reranker, because
+  the blend was fitted on that. The start-of-day feature fix is applied.
+* The tote alone is the takeout-normalised win vector and its Harville
+  P(ITM), as in section 2.
+* Intervals are 90% bootstraps over races (5,000 resamples) on the per-starter
+  log-loss difference. A negative difference means the blend is better.
+* **This is a best case:** the blend uses final odds, which nobody has when
+  the bet goes in.
+
+### Log loss per starter
+
+| | races | win: blend | win: tote | win: difference (90%) | ITM: blend | ITM: tote | ITM: difference (90%) |
+|---|---|---|---|---|---|---|---|
+| **all** | 1,055 | 0.3244 | 0.3207 | **+0.0037** (+0.0024 to +0.0049) | 0.5450 | 0.5491 | **−0.0041** (−0.0060 to −0.0021) |
+| DED | 153 | 0.3152 | 0.3125 | +0.0027 (−0.0001 to +0.0054) | 0.5498 | 0.5539 | −0.0041 (−0.0091 to +0.0008) |
+| MNR | 399 | 0.3319 | 0.3254 | +0.0065 (+0.0041 to +0.0088) | 0.5447 | 0.5467 | −0.0020 (−0.0053 to +0.0012) |
+| EVD | 322 | 0.3125 | 0.3103 | +0.0022 (+0.0002 to +0.0043) | 0.5418 | 0.5476 | −0.0058 (−0.0093 to −0.0023) |
+| CT | 66 | 0.3367 | 0.3340 | +0.0027 (−0.0025 to +0.0075) | 0.5389 | 0.5450 | −0.0061 (−0.0150 to +0.0028) |
+| GP | 50 | 0.3538 | 0.3546 | −0.0008 (−0.0061 to +0.0043) | 0.5864 | 0.5948 | −0.0085 (−0.0175 to +0.0006) |
+| LAD | 51 | 0.3517 | 0.3517 | −0.0000 (−0.0066 to +0.0059) | 0.5335 | 0.5341 | −0.0006 (−0.0104 to +0.0081) |
+| FG | 14 | 0.2862 | 0.2789 | +0.0073 (−0.0040 to +0.0179) | 0.5002 | 0.5046 | −0.0044 (−0.0228 to +0.0126) |
+
+* **On ITM the blend is better than the tote; on win it is worse.**
+
+### Where the ITM gain comes from
+
+The blend does two things at once:
+* it reshapes the tote, since a β of 0.77 flattens the tote's ITM numbers;
+* it adds the model's opinion.
+
+**Separating the two.** I held the model term at its race average and
+renormalised. The model term then has no say within a race, and only the
+blend's own reshaping of the tote is left. Nothing was refitted or tuned.
+
+| | ITM: difference (90%) | win: difference (90%) |
+|---|---|---|
+| reshaped tote vs plain tote | −0.0036 (−0.0058 to −0.0013) | +0.0043 (+0.0029 to +0.0057) |
+| **full blend vs reshaped tote (the model's own contribution)** | **−0.0005** (−0.0010 to 0.0000) | **−0.0006** (−0.0009 to −0.0003) |
+
+* **Most of the ITM gain (0.0036 of 0.0041) is the reshaping.** It corrects
+  Harville's known habit of under-rating longshots for a place.
+* **The model's own contribution is about 0.0005 nats per starter**, roughly
+  0.1% of the log loss. On win it is just outside noise; on ITM it is at the
+  edge.
+* **The win loss is the pipeline's, not the model's.** Going from win odds to
+  ITM and back through Harville costs more (0.0043) than the model adds.
+
+### Rules A and B on the blend's probabilities
+
+Same rules and thresholds as section 2, with the blend in place of the raw
+model. For Rule A the blend's P(ITM) is taken before it is rescaled to sum
+to 3, as in section 2. For Rule B, P(win) comes from the rescaled P(ITM)
+through Harville.
+
+| | bets | hits | staked | returned | ROI | 90% interval | expected hits: blend / tote |
+|---|---|---|---|---|---|---|---|
+| Rule A (show) | 4 | 1 | $8 | $5.00 | −37.5% | −100% to +25% | 1.0 / 0.8 |
+| Rule A + outside top 3 | 4 | 1 | $8 | $5.00 | −37.5% | | |
+| Rule B (win) | 88 | 7 | $176 | $107.80 | **−38.8%** | −73.6% to +2.4% | 10.2 / 8.2 |
+
+* **Rule A almost never fires.** The blend sits so close to the tote that a
+  horse with tote P(ITM) under 20% rarely gets a blend P(ITM) over 25%.
+* **Rule B qualifiers go off around 8-1** (4.5-1 to 10-1). They clear the
+  1.2× bar only narrowly (median 1.23×; the largest blend/tote win ratio on
+  the whole sample is 2.2×).
+* **By track (Rule B):**
+  * MNR: 44 bets, 2 wins, −62%.
+  * EVD: 19 bets, 1 win.
+  * CT: 11 bets, 1 win.
+  * DED: 6 bets, 0 wins.
+  * LAD: 6 bets, 3 wins, +210%.
+  * GP: 2 bets, 0 wins.
+
+  None of these means anything at these sizes.
+
+### Plain reading
+
+**No edge.**
+* Even with final odds, which is a best case nobody can bet, the blend
+  predicts ITM only slightly better than the tote. Almost all of that comes
+  from correcting the Harville conversion of the tote's own odds, not from
+  the model.
+* The model adds about 0.0005 nats per starter. It is real on win, but far
+  too small to beat a takeout of roughly 15–20%.
+* On win the full blend is worse than the tote, because it loses more
+  converting through ITM than the model adds.
+* Bet on the blend, the rules either don't fire (A) or lose (B, −39% on 88
+  bets).
+* Out of sample, the model carries a trace of information the tote lacks, and
+  nothing like enough to bet on.
+* The one usable lesson is about the Harville conversion: a show or place
+  price read off the win odds should be reshaped the way the blend does. That
+  is a correction to how the tote is read, not an edge.
