@@ -26,8 +26,11 @@ date,event,amount,balance
 2026-11-15,DMR 11/15 R2 superfecta box payout ($12.66; personal),12.66,68.66
 2026-11-15,"WO 11/15 R6 trifecta box stake (1,2,7 x $0.20, lost; personal)",-1.20,67.46
 2026-11-15,DED 11/14 PP rebate (11/14 DED wagering $3.00 qualified). Inferred from balance; not yet seen in history. Balance then matches TwinSpires $71.31 reported by Doug 11/15; confirm on the next reconcile,3.85,71.31
-2026-11-18,DED 11/18 PP file purchase (ded1118y.pdf; posted as an adjustment 11/18 7:54 AM; refunded next day if at least $2 is wagered on the DED 11/18 card),-3.85,67.46
-2026-11-18,"DED 11/18 R5 superfecta box stake (2,3,5,7 x $0.10, lost)",-2.40,65.06
-2026-11-18,"DED 11/18 R8 superfecta wheel stake (7,10 / 7,10 / 3,5 / ALL x $0.10, lost)",-2.80,62.26
-2026-11-19,"DED 11/19 PP file purchase (ded1119y.pdf, used for the 11/19 card)",-3.85,58.41
-2026-11-19,"RECONCILE OPEN (not forced): TwinSpires balance after buying the 11/19 PP = $60.66 (Doug). Computed here 58.41 without the 11/18 rebate (+2.25 gap), or 62.26 if the 11/18 rebate (+3.85, earned: $5.20 wagered on 11/18) has posted (-1.60 gap). Something from 11/16-11/17 is probably missing; the 11/14 rebate (inferred 11/15) is unconfirmed too. Doug sends the 7-day TwinSpires history to settle it",0.00,58.41
+2026-11-17,"MNR 11/17 R4 superfecta part-wheel stake (9 / 7 / 2,8 / 2,3,5-9 x $0.20, 8 combos, lost; personal)",-1.60,69.71
+2026-11-18,DED 11/18 PP file purchase (ded1118y.pdf; posted as an adjustment 11/18 7:54 AM; refunded next day if at least $2 is wagered on the DED 11/18 card),-3.85,65.86
+2026-11-18,"DED 11/18 R5 superfecta box stake (2,3,5,7 x $0.10, lost)",-2.40,63.46
+2026-11-18,"DED 11/18 R8 superfecta wheel stake (7,10 / 7,10 / 3,5 / ALL x $0.10, lost)",-2.80,60.66
+2026-11-19,DED 11/18 PP rebate (adjustment 11/19 3:29 AM; 11/18 DED wagering $5.20 qualified),3.85,64.51
+2026-11-19,DED 11/19 PP file purchase (ded1119y.pdf; adjustment 11/19 2:10 PM). Balance after it = TwinSpires $60.66 (Doug): the 11/19 reconcile is CLOSED (the gap was the 11/17 MNR bet and the 11/18 rebate),-3.85,60.66
+2026-11-19,"DED 11/19 R2 $2 win stake (#4 Liamster, lost)",-2.00,58.66
+2026-11-20,DED 11/19 PP rebate (overnight 11/20; 11/19 DED wagering $2.00 qualified). Inferred from the balance; balance then matches TwinSpires $62.51 (Doug),3.85,62.51
