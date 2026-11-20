@@ -7410,3 +7410,42 @@ moved into the 1.4 candidate above.
   live DB and logged runs are untouched. Background: the ON cards' log loss
   rose 0.622 → 0.631 → 0.643 over the three nights (11/07 review), but the
   ON/OFF comparison so far is across different cards, not paired.
+
+## Overlay test: does the model beat the tote? (read-only, 2026-11-20)
+
+Full write-up: `tracking/overlay_test.md`. Scripts and numbers:
+`tracking/overlay_test/`. Commits 282f9e0, 4aeeed2, b608742.
+
+**Setup.**
+* 1,055 out-of-sample races (in the live DB, not in the 10/21 training copy),
+  scored on a scratch copy of the DB.
+* The same-day jockey/trainer features were recomputed as of start of day.
+* Only final tote odds and chart payouts were used.
+
+**Results.**
+* **Raw model vs the tote: no edge.**
+  * Rule A ($2 show: model P(ITM) > 25%, tote < 20%): −39.1% (90%: −46 to
+    −31), against −23.7% for a show bet on every horse.
+  * Rule B ($2 win: model P(win) ≥ 1.2× tote and ≥ 10%): −33.2% (−43 to
+    −23), against −25.0% for a win bet on every horse.
+  * Where the model and the tote disagree, horses run to the tote's numbers.
+    The tote has the better log loss.
+  * DED's logged pre-race predictions agree.
+* **The shipped blend vs the tote (final odds, so a best case): no edge.**
+  * ITM log loss is 0.0041 better than the tote, but 0.0036 of that is the
+    blend reshaping the tote's own numbers (correcting Harville). The model's
+    own share is 0.0005.
+  * Win log loss is 0.0037 worse than the tote.
+  * Rules on the blend's probabilities: A fires 4 times; B is 88 bets at
+    −39%.
+
+**Consequences.**
+* No betting rule built on raw model-vs-tote disagreement goes forward.
+* Any future edge claim must show, out of sample, probabilities that beat the
+  tote's, with the reshaping separated from the model's own share as in
+  section 5 of the write-up.
+* The live picks, the high-confidence forward test and the reranker review
+  are unchanged. They measure ranking, not price.
+* **Not run:** the tracks that are only in the archive (about 10,900
+  charts). That needs a scratch load plus pars; see section 3 of the
+  write-up.
