@@ -34,3 +34,11 @@ date,event,amount,balance
 2026-11-19,DED 11/19 PP file purchase (ded1119y.pdf; adjustment 11/19 2:10 PM). Balance after it = TwinSpires $60.66 (Doug): the 11/19 reconcile is CLOSED (the gap was the 11/17 MNR bet and the 11/18 rebate),-3.85,60.66
 2026-11-19,"DED 11/19 R2 $2 win stake (#4 Liamster, lost)",-2.00,58.66
 2026-11-20,DED 11/19 PP rebate (overnight 11/20; 11/19 DED wagering $2.00 qualified). Inferred from the balance; balance then matches TwinSpires $62.51 (Doug),3.85,62.51
+2026-11-20,DED 11/20 PP file purchase (6:13 AM),-3.85,58.66
+2026-11-20,"DED 11/20 R5 exacta box stake (1,7 x $1, lost)",-2.00,56.66
+2026-11-20,"DED 11/20 R6 superfecta box stake (2,4,5,7 x $0.10)",-2.40,54.26
+2026-11-20,"DED 11/20 R6 superfecta box payout (5-2-7-4; $7.74 as returned by TwinSpires, chart $7.77)",7.74,62.00
+2026-11-20,"DED 11/20 R8 superfecta part-wheel stake (2,6 / 2,6 / ALL / ALL x $0.10, lost)",-2.40,59.60
+2026-11-20,DED 11/20 R9 $2 win stake (#10 Be Back Again),-2.00,57.60
+2026-11-20,"DED 11/20 R9 $2 win payout (#10 Be Back Again, chart $10.40)",10.40,68.00
+2026-11-20,DED 11/20 R9 TwinSpires 15% profit boost token on the win (paid $1.06; not part of the chart payout). Balance after the card = TwinSpires $69.06 (Doug),1.06,69.06
