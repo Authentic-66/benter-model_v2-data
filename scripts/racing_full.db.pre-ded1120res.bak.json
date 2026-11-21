@@ -1,0 +1,16 @@
+{
+ "track": "DED",
+ "chart_date": "2026-11-20",
+ "backup": "racing_full.db.pre-ded1120res.bak",
+ "created_utc": "2026-11-21T02:53:36+00:00",
+ "sha256": "e49cb1bd0b4d5303b732043204e02b900c7eca7dd621898f673e2d26b640ca61",
+ "integrity": "ok",
+ "day_in_backup": {
+  "race_day_id": 4994,
+  "source_pdf": "PP-SCHEDULED:Delta Downs\\ded-pps-files\\ded1120y.pdf",
+  "kind": "pre-race card",
+  "races": 9,
+  "entries": 79,
+  "with_finish": 0
+ }
+}
