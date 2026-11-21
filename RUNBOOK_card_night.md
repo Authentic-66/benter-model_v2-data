@@ -74,6 +74,16 @@ Fill these for the scored card (all in `scripts_dpv1/tracking/`), then write
   Garcia 11/14). The alias is not in the feature build version, so it does
   not reset the side-by-side streak.
 
+* **Dead heat** (first one 11/20 R7, 4th): the parser warns
+  `dead_heat:pos=N:pgm=X`, the DB stores both horses with the same
+  `official_finish_pos` (the next starter skips a place), and the chart's
+  extra exotic payout rows are loaded too. `ticket_replay.py` grades every
+  combo against every payout row, so either finish order pays. Report it;
+  nothing to fix.
+* **Payout differs from the chart / bet boosts** (11/20): log what
+  TwinSpires actually paid in `doug_bets.csv` and note the chart figure. A
+  profit-boost token goes in `bankroll.csv` as its own row, separate from
+  the chart payout.
 * **Missing-last-race tally:** `python
   scripts_dpv1/tracking/missing_last_race_tally.py` (read-only; `--to
   <date>` to stop at the scored card). In the review, always report the two
@@ -82,6 +92,8 @@ Fill these for the scored card (all in `scripts_dpv1/tracking/`), then write
   (shippers from tracks with no data in the DB). It checks each horse
   against the card's own `-run.bak`, so scratched horses and charts loaded
   later no longer show up as gaps; it needs that card's `-run.bak` on disk.
+  It takes about 20 minutes (it opens every card's `-run.bak`): run it in
+  the background to a file.
 
 ## B. Card build
 
