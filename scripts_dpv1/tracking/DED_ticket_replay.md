@@ -1,10 +1,10 @@
-# DED meet ticket replay — model, Don, Doug (through 2026-11-19)
+# DED meet ticket replay — model, Don, Doug (through 2026-11-20)
 
 > **⚠ Read this before choosing a bet from these tables.** Every number
 > here is in-sample: the results were known when the bets were compared.
 > Any strategy picked *because* it looks good below (for example "box Don's
 > top two" or "the model's top-two Pick 3") has to be tested on **future
-> cards, decided in advance**, before it is trusted with money. With 134–188
+> cards, decided in advance**, before it is trusted with money. With 139–197
 > races per source, one ticket can swing an ROI by tens of points, and
 > picking the best of 11 bet types × 3 sources after the fact will find a
 > "winner" by chance alone.
@@ -42,8 +42,15 @@ the card has 7 races, and the Pick 3/4/5 pools with an `ALL` R6 leg are not
 graded. Re-run 2026-11-20 with the 11/19 card: **34 rows added (model 12, Don
 11, Doug 11), all 635 earlier rows unchanged.** Doug's 11/19 R1 picks were
 sent after the post: logged as reference only (blank pick columns), so his
-R1 and every Pick pool starting in R1 are skipped. Sample now: 22 cards / 188
-races for the model, 21 / 179 for Don, 16 / 134 for Doug. (Don's 11/04
+R1 and every Pick pool starting in R1 are skipped. Re-run 2026-11-20 (night)
+with the 11/20 card: **34 rows added (model 12, Don 11, Doug 11), all 669
+earlier rows unchanged.** Doug did not handicap 11/20 R1–R4 (logged as
+missing and skipped); his R5–R9 are graded, so his Pick pools starting
+before R5 are skipped. 11/20 R7 had the meet's first dead heat (4th, #3 and
+#5): superfecta tickets are graded against both payout rows (checked: a
+9-2-6-3 box collects $134.32, a 9-2-6-5 box $113.43, a box with both
+collects both). Sample now: 23 cards / 197 races for the model, 22 / 188 for
+Don, 17 / 139 for Doug. (Don's 11/04
 picks arrived after R1 had run; R1 is graded for him anyway.)
 
 Pick 3/4/5 tickets use the pools each card actually ran: a Pick N is
@@ -80,20 +87,20 @@ from R3 on; Pick 4 and Pick 5 ending in R5 and the last race).
 
 ## Caveats
 
-* **Small samples.** 188 races for the model, 179 for Don, 134 for Doug. One
+* **Small samples.** 197 races for the model, 188 for Don, 139 for Doug. One
   ticket moves the ROI by tens of points: Don's Pick 4 (b) and Pick 5 (b)
   return is eight tickets ($205.15 + $328.80 on 10/22, $141.00 on 10/23,
   $178.60 on 11/11; on 11/12 both Pick 4s, $27.15 + $15.45, and both Pick 5s,
-  $51.90 + $68.10). Without those two lines Don's total is $2,575.79 back on
-  $2,866.30 (−10.1%).
-  (Don's own LP4 ticket hit on 10/29 for $150.15, and both his 11/19 Pick 4s hit, EP4 $39.30 and LP4 $104.00; his real tickets are graded
+  $51.90 + $68.10). Without those two lines Don's total is $2,642.13 back on
+  $3,001.20 (−12.0%).
+  (Don's own LP4 ticket hit on 10/29 for $150.15, and both his 11/19 Pick 4s hit, EP4 $39.30 and LP4 $104.00, and his 11/20 LP4 for $75.60; his real tickets are graded
   in the card reviews, not here.)
 * **Not like for like on timing.** Doug picks on race day with scratches and
   odds known. Don's and the model's picks are made before scratches, and the
   re-rank here then gives them the benefit of knowing the scratches too.
 * **Model record runs:** 10/10 and 10/14 were logged before the 10/15 PP
   fixes; 10/14 R1–R4 were logged after post. 1.3.0 ran 10/10–10/17, 1.3.1
-  10/21, 1.3.2 10/22–11/19 (name matching ON from 11/05).
+  10/21, 1.3.2 10/22–11/20 (name matching ON from 11/05).
 * Rankings are by P(ITM), not P(win): the win bet is the P(ITM) #1. Since
   2026-10-23 the model also has a **Win (top P(win))** line (see below). It is
   an alternative to the Win line, not an extra bet, so it is left out of the
@@ -105,62 +112,62 @@ from R3 on; Pick 4 and Pick 5 ending in R5 and the last race).
 
 ## By source (each over its own cards)
 
-### Model (22 cards: 10/10, 10/14, 10/15, 10/16, 10/17, 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 11/4, 11/5, 11/6, 11/7, 11/11, 11/12, 11/13, 11/14, 11/18, 11/19)
+### Model (23 cards: 10/10, 10/14, 10/15, 10/16, 10/17, 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 11/4, 11/5, 11/6, 11/7, 11/11, 11/12, 11/13, 11/14, 11/18, 11/19, 11/20)
 
 | bet | tickets | hits | cost | return | ROI |
 |---|---|---|---|---|---|
-| Win | 188 | 52 | $376.00 | $300.60 | -20.1% |
-| Win (top P(win)) *alt* | 188 | 53 | $376.00 | $306.60 | -18.5% |
-| Exacta box 2 | 188 | 16 | $376.00 | $171.60 | -54.4% |
-| Trifecta box 3 | 188 | 14 | $564.00 | $280.45 | -50.3% |
-| Superfecta box 4 | 188 | 12 | $451.20 | $253.38 | -43.8% |
-| Super wheel 3/3/3/ALL | 188 | 14 | $610.20 | $227.02 | -62.8% |
-| Pick 3 (a) top 1 | 142 | 2 | $71.00 | $17.10 | -75.9% |
-| Pick 3 (b) top 2 | 142 | 9 | $568.00 | $363.70 | -36.0% |
+| Win | 197 | 54 | $394.00 | $312.00 | -20.8% |
+| Win (top P(win)) *alt* | 197 | 55 | $394.00 | $318.00 | -19.3% |
+| Exacta box 2 | 197 | 17 | $394.00 | $180.60 | -54.2% |
+| Trifecta box 3 | 197 | 16 | $591.00 | $289.80 | -51.0% |
+| Superfecta box 4 | 197 | 13 | $472.80 | $259.33 | -45.2% |
+| Super wheel 3/3/3/ALL | 197 | 16 | $637.80 | $234.55 | -63.2% |
+| Pick 3 (a) top 1 | 149 | 2 | $74.50 | $17.10 | -77.0% |
+| Pick 3 (b) top 2 | 149 | 9 | $596.00 | $363.70 | -39.0% |
+| Pick 4 (a) top 1 | 45 | 0 | $22.50 | $0.00 | -100.0% |
+| Pick 4 (b) top 2 | 45 | 1 | $360.00 | $117.05 | -67.5% |
+| Pick 5 (a) top 1 | 45 | 0 | $22.50 | $0.00 | -100.0% |
+| Pick 5 (b) top 2 | 45 | 1 | $720.00 | $205.40 | -71.5% |
+| **all** | 1463 | 129 | $4,285.10 | $1,979.53 | -53.8% |
+
+### Don (22 cards: 10/14, 10/15, 10/16, 10/17, 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 11/4, 11/5, 11/6, 11/7, 11/11, 11/12, 11/13, 11/14, 11/18, 11/19, 11/20)
+
+| bet | tickets | hits | cost | return | ROI |
+|---|---|---|---|---|---|
+| Win | 188 | 58 | $376.00 | $337.20 | -10.3% |
+| Exacta box 2 | 188 | 34 | $376.00 | $409.30 | **+8.9%** |
+| Trifecta box 3 | 187 | 21 | $561.00 | $475.95 | -15.2% |
+| Superfecta box 4 | 167 | 17 | $400.80 | $339.53 | -15.3% |
+| Super wheel 3/3/3/ALL | 187 | 21 | $605.40 | $590.15 | -2.5% |
+| Pick 3 (a) top 1 | 142 | 3 | $71.00 | $21.05 | -70.4% |
+| Pick 3 (b) top 2 | 142 | 19 | $568.00 | $468.95 | -17.4% |
 | Pick 4 (a) top 1 | 43 | 0 | $21.50 | $0.00 | -100.0% |
-| Pick 4 (b) top 2 | 43 | 1 | $344.00 | $117.05 | -66.0% |
+| Pick 4 (b) top 2 | 43 | 5 | $344.00 | $567.35 | **+64.9%** |
 | Pick 5 (a) top 1 | 43 | 0 | $21.50 | $0.00 | -100.0% |
-| Pick 5 (b) top 2 | 43 | 1 | $688.00 | $205.40 | -70.1% |
-| **all** | 1396 | 121 | $4,091.40 | $1,936.30 | -52.7% |
+| Pick 5 (b) top 2 | 43 | 3 | $688.00 | $448.80 | -34.8% |
+| **all** | 1373 | 181 | $4,033.20 | $3,658.28 | -9.3% |
 
-### Don (21 cards: 10/14, 10/15, 10/16, 10/17, 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 11/4, 11/5, 11/6, 11/7, 11/11, 11/12, 11/13, 11/14, 11/18, 11/19)
-
-| bet | tickets | hits | cost | return | ROI |
-|---|---|---|---|---|---|
-| Win | 179 | 57 | $358.00 | $333.00 | -7.0% |
-| Exacta box 2 | 179 | 32 | $358.00 | $401.50 | **+12.2%** |
-| Trifecta box 3 | 179 | 19 | $537.00 | $447.95 | -16.6% |
-| Superfecta box 4 | 160 | 16 | $384.00 | $327.15 | -14.8% |
-| Super wheel 3/3/3/ALL | 179 | 19 | $580.80 | $576.19 | -0.8% |
-| Pick 3 (a) top 1 | 135 | 3 | $67.50 | $21.05 | -68.8% |
-| Pick 3 (b) top 2 | 135 | 19 | $540.00 | $468.95 | -13.2% |
-| Pick 4 (a) top 1 | 41 | 0 | $20.50 | $0.00 | -100.0% |
-| Pick 4 (b) top 2 | 41 | 5 | $328.00 | $567.35 | **+73.0%** |
-| Pick 5 (a) top 1 | 41 | 0 | $20.50 | $0.00 | -100.0% |
-| Pick 5 (b) top 2 | 41 | 3 | $656.00 | $448.80 | -31.6% |
-| **all** | 1310 | 173 | $3,850.30 | $3,591.94 | -6.7% |
-
-### Doug (16 cards: 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 11/4, 11/5, 11/6, 11/7, 11/11, 11/12, 11/13, 11/14, 11/19)
+### Doug (17 cards: 10/21, 10/22, 10/23, 10/24, 10/28, 10/29, 10/30, 11/4, 11/5, 11/6, 11/7, 11/11, 11/12, 11/13, 11/14, 11/19, 11/20)
 
 | bet | tickets | hits | cost | return | ROI |
 |---|---|---|---|---|---|
-| Win | 134 | 40 | $268.00 | $224.00 | -16.4% |
-| Exacta box 2 | 133 | 20 | $266.00 | $263.00 | -1.1% |
-| Trifecta box 3 | 130 | 8 | $390.00 | $171.95 | -55.9% |
-| Superfecta box 4 | 111 | 8 | $266.40 | $209.32 | -21.4% |
-| Super wheel 3/3/3/ALL | 130 | 8 | $415.80 | $161.72 | -61.1% |
-| Pick 3 (a) top 1 | 99 | 3 | $49.50 | $25.90 | -47.7% |
-| Pick 3 (b) top 2 | 99 | 11 | $390.00 | $268.90 | -31.1% |
-| Pick 4 (a) top 1 | 31 | 0 | $15.50 | $0.00 | -100.0% |
-| Pick 4 (b) top 2 | 31 | 0 | $240.00 | $0.00 | -100.0% |
-| Pick 5 (a) top 1 | 29 | 0 | $14.50 | $0.00 | -100.0% |
-| Pick 5 (b) top 2 | 29 | 0 | $448.00 | $0.00 | -100.0% |
-| **all** | 956 | 98 | $2,763.70 | $1,324.79 | -52.1% |
+| Win | 139 | 42 | $278.00 | $238.60 | -14.2% |
+| Exacta box 2 | 138 | 20 | $276.00 | $263.00 | -4.7% |
+| Trifecta box 3 | 135 | 8 | $405.00 | $171.95 | -57.5% |
+| Superfecta box 4 | 116 | 9 | $278.40 | $217.09 | -22.0% |
+| Super wheel 3/3/3/ALL | 135 | 8 | $431.40 | $161.72 | -62.5% |
+| Pick 3 (a) top 1 | 102 | 3 | $51.00 | $25.90 | -49.2% |
+| Pick 3 (b) top 2 | 102 | 11 | $402.00 | $268.90 | -33.1% |
+| Pick 4 (a) top 1 | 32 | 0 | $16.00 | $0.00 | -100.0% |
+| Pick 4 (b) top 2 | 32 | 0 | $248.00 | $0.00 | -100.0% |
+| Pick 5 (a) top 1 | 30 | 0 | $15.00 | $0.00 | -100.0% |
+| Pick 5 (b) top 2 | 30 | 0 | $464.00 | $0.00 | -100.0% |
+| **all** | 991 | 101 | $2,864.80 | $1,347.16 | -53.0% |
 
 ## Win bet: top P(ITM) vs top P(win) (model, added 2026-10-23)
 
-The model's top P(win) horse was the same as its top P(ITM) horse in **185 of
-188 races** (11/19: all 8 the same). The three differences:
+The model's top P(win) horse was the same as its top P(ITM) horse in **194 of
+197 races** (11/20: all 9 the same). The three differences:
 
 * 10/15 R4: #3 Piastri P(ITM) 45.5% / P(win) 15.8% vs #6 Easy Like Breezy
   45.2% / 15.9%. Easy Like Breezy won ($6.00), Piastri ran 2nd.
@@ -170,7 +177,7 @@ The model's top P(win) horse was the same as its top P(ITM) horse in **185 of
 * 11/11 R1: #7 Severus Squall P(ITM) 58.4% / P(win) 21.8% vs #1 Daat 58.3% /
   22.2%. Severus Squall ran 2nd, Daat 9th; neither won.
 
-10/15 R4 is still the whole gap (+1 hit, +$6.00; −20.1% → −18.5% on 188 bets).
+10/15 R4 is still the whole gap (+1 hit, +$6.00; −20.8% → −19.3% on 197 bets).
 
 So the replay does **not** show that betting the most likely winner beats
 betting the top P(ITM): the two are nearly always the same horse, because
@@ -179,39 +186,39 @@ race separated by 0.1–0.4pp of P(win) is a coin flip, not evidence.
 
 ## Head to head on the same cards
 
-### Model vs Don, 10/14–11/19 (21 cards)
+### Model vs Don, 10/14–11/20 (22 cards)
 
 | bet | Model hits | Model ROI | Don hits | Don ROI |
 |---|---|---|---|---|
-| Win | 48/179 | -21.6% | 57/179 | -7.0% |
-| Exacta box 2 | 14/179 | -61.3% | 32/179 | **+12.2%** |
-| Trifecta box 3 | 14/179 | -47.8% | 19/179 | -16.6% |
-| Superfecta box 4 | 11/179 | -43.2% | 16/160 | -14.8% |
-| Super wheel 3/3/3/ALL | 14/179 | -60.9% | 19/179 | -0.8% |
-| Pick 3 (a) top 1 | 2/135 | -74.7% | 3/135 | -68.8% |
-| Pick 3 (b) top 2 | 9/135 | -32.6% | 19/135 | -13.2% |
-| Pick 4 (a) top 1 | 0/41 | -100.0% | 0/41 | -100.0% |
-| Pick 4 (b) top 2 | 1/41 | -64.3% | 5/41 | **+73.0%** |
-| Pick 5 (a) top 1 | 0/41 | -100.0% | 0/41 | -100.0% |
-| Pick 5 (b) top 2 | 1/41 | -68.7% | 3/41 | -31.6% |
-| **all** | $3,896 → $1,874 | -51.9% | $3,850 → $3,592 | -6.7% |
+| Win | 50/188 | -22.3% | 58/188 | -10.3% |
+| Exacta box 2 | 15/188 | -60.8% | 34/188 | **+8.9%** |
+| Trifecta box 3 | 16/188 | -48.6% | 21/187 | -15.2% |
+| Superfecta box 4 | 12/188 | -44.6% | 17/167 | -15.3% |
+| Super wheel 3/3/3/ALL | 16/188 | -61.4% | 21/187 | -2.5% |
+| Pick 3 (a) top 1 | 2/142 | -75.9% | 3/142 | -70.4% |
+| Pick 3 (b) top 2 | 9/142 | -36.0% | 19/142 | -17.4% |
+| Pick 4 (a) top 1 | 0/43 | -100.0% | 0/43 | -100.0% |
+| Pick 4 (b) top 2 | 1/43 | -66.0% | 5/43 | **+64.9%** |
+| Pick 5 (a) top 1 | 0/43 | -100.0% | 0/43 | -100.0% |
+| Pick 5 (b) top 2 | 1/43 | -70.1% | 3/43 | -34.8% |
+| **all** | $4,090 → $1,917 | -53.1% | $4,033 → $3,658 | -9.3% |
 
-### All three, 10/21–11/19 (16 cards)
+### All three, 10/21–11/20 (17 cards)
 
 | bet | Model hits | Model ROI | Don hits | Don ROI | Doug hits | Doug ROI |
 |---|---|---|---|---|---|---|
-| Win | 36/137 | -28.6% | 43/137 | -6.2% | 40/134 | -16.4% |
-| Exacta box 2 | 10/137 | -64.2% | 24/137 | **+11.5%** | 20/133 | -1.1% |
-| Trifecta box 3 | 13/137 | -36.4% | 17/137 | **+3.2%** | 8/130 | -55.9% |
-| Superfecta box 4 | 9/137 | -27.7% | 14/121 | **+8.4%** | 8/111 | -21.4% |
-| Super wheel 3/3/3/ALL | 13/137 | -49.9% | 17/137 | **+29.8%** | 8/130 | -61.1% |
-| Pick 3 (a) top 1 | 2/105 | -67.4% | 2/105 | -72.0% | 3/99 | -47.7% |
-| Pick 3 (b) top 2 | 6/105 | -44.3% | 17/105 | **+5.7%** | 11/99 | -31.1% |
-| Pick 4 (a) top 1 | 0/32 | -100.0% | 0/32 | -100.0% | 0/31 | -100.0% |
-| Pick 4 (b) top 2 | 1/32 | -54.3% | 5/32 | **+121.6%** | 0/31 | -100.0% |
-| Pick 5 (a) top 1 | 0/32 | -100.0% | 0/32 | -100.0% | 0/29 | -100.0% |
-| Pick 5 (b) top 2 | 1/32 | -59.9% | 3/32 | -12.3% | 0/29 | -100.0% |
-| **all** | $2,994 → $1,583 | -47.1% | $2,955 → $3,339 | **+13.0%** | $2,764 → $1,325 | -52.1% |
+| Win | 38/146 | -29.1% | 44/146 | -10.5% | 42/139 | -14.2% |
+| Exacta box 2 | 11/146 | -63.4% | 26/146 | **+7.3%** | 20/138 | -4.7% |
+| Trifecta box 3 | 15/146 | -38.2% | 19/145 | **+4.0%** | 8/135 | -57.5% |
+| Superfecta box 4 | 10/146 | -30.4% | 15/128 | **+6.5%** | 9/116 | -22.0% |
+| Super wheel 3/3/3/ALL | 15/146 | -51.2% | 19/145 | **+25.8%** | 8/135 | -62.5% |
+| Pick 3 (a) top 1 | 2/112 | -69.5% | 2/112 | -73.8% | 3/102 | -49.2% |
+| Pick 3 (b) top 2 | 6/112 | -47.8% | 17/112 | -0.9% | 11/102 | -33.1% |
+| Pick 4 (a) top 1 | 0/34 | -100.0% | 0/34 | -100.0% | 0/32 | -100.0% |
+| Pick 4 (b) top 2 | 1/34 | -57.0% | 5/34 | **+108.6%** | 0/32 | -100.0% |
+| Pick 5 (a) top 1 | 0/34 | -100.0% | 0/34 | -100.0% | 0/30 | -100.0% |
+| Pick 5 (b) top 2 | 1/34 | -62.2% | 3/34 | -17.5% | 0/30 | -100.0% |
+| **all** | $3,187 → $1,626 | -49.0% | $3,138 → $3,405 | **+8.5%** | $2,865 → $1,347 | -53.0% |
 
 ## By card
 
@@ -802,3 +809,39 @@ race separated by 0.1–0.4pp of P(win) is a coin flip, not evidence.
   hit too (graded in the card review, not here).
 * Doug's top four hit the R4 superfecta box ($28.13) and his top two the R5
   exacta ($4.50); his #1 won 1 of 7 (R3 Debriseason).
+
+### 2026-11-20
+
+| bet | Model hits | Model ROI | Don hits | Don ROI | Doug hits | Doug ROI |
+|---|---|---|---|---|---|---|
+| Win | 2/9 | -36.7% | 1/9 | -76.7% | 2/5 | **+46.0%** |
+| Exacta box 2 | 1/9 | -50.0% | 2/9 | -56.7% | 0/5 | -100.0% |
+| Trifecta box 3 | 2/9 | -65.4% | 2/8 | **+16.7%** | 0/5 | -100.0% |
+| Superfecta box 4 | 1/9 | -72.5% | 1/7 | -26.3% | 1/5 | -35.2% |
+| Super wheel 3/3/3/ALL | 2/9 | -72.7% | 2/8 | -43.3% | 0/5 | -100.0% |
+| Pick 3 (a) top 1 | 0/7 | -100.0% | 0/7 | -100.0% | 0/3 | -100.0% |
+| Pick 3 (b) top 2 | 0/7 | -100.0% | 0/7 | -100.0% | 0/3 | -100.0% |
+| Pick 4 (a) top 1 | 0/2 | -100.0% | 0/2 | -100.0% | 0/1 | -100.0% |
+| Pick 4 (b) top 2 | 0/2 | -100.0% | 0/2 | -100.0% | 0/1 | -100.0% |
+| Pick 5 (a) top 1 | 0/2 | -100.0% | 0/2 | -100.0% | 0/1 | -100.0% |
+| Pick 5 (b) top 2 | 0/2 | -100.0% | 0/2 | -100.0% | 0/1 | -100.0% |
+| **all** | $194 → $43 | -77.7% | $183 → $66 | -63.7% | $101 → $22 | -77.9% |
+
+* Tenth card with name matching ON (the 11/19 note above says tenth; it was
+  the ninth). Doug did not handicap R1–R4 (missing, skipped); his R5–R9
+  picks were sent at 6:21 PM, before the 6:43 R5 post: graded.
+* Scratches R2 #2 Tough Love Torres and #9 Welcometomyholiday (Don's 4th and
+  3rd), R6 #6 Flashy Lover (Don's 2nd), R7 #11/#12 and R9 #11 (also-eligibles).
+  R3 #4 Gallabye refused and walked off (DNF). **R7: dead heat for 4th**
+  (#3 Go Easy, #5 Life's Ride); no source's superfecta ticket had 9-2-6.
+* **The model's #1 was ITM in all 9 races** but won only 2 (R6 Time to Tell,
+  R7 Seeking Aces; $11.40 on $18). Its top three hit the R1 ($5.95) and R8
+  ($3.40) trifectas and wheels, its top four the R1 superfecta box ($5.95),
+  its top two the R4 exacta ($9.00).
+* **Don's top three hit the R8 and R9 trifectas ($3.40, $24.60) and wheels**,
+  his top four the R9 superfecta box ($12.38), his top two the R1 and R8
+  exactas ($4.00, $3.80). His real LP4 ticket hit for $75.60 (graded in the
+  card review, not here).
+* Doug's #1 won R8 (#6 Lady Orient, $4.20) and R9 (#10 Be Back Again,
+  $10.40): +46.0% on 5 win bets. His top four hit the R6 superfecta box
+  ($7.77).
